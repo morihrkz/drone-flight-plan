@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ドローン飛行計画書</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #25364A;
+      --accent-light: #EEF2E4;
+      --border: #C8CEC0;
+      --text: #2D3325;
+      --muted: #72786B;
+      --bg: #F5F3EC;
+      --white: #ffffff;
+      --radius: 8px;
+    }
+
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ===== ヘッダー ===== */
+    .site-header {
+      background: var(--accent);
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .site-header svg { flex-shrink: 0; }
+    .site-header h1 { font-size: 18px; font-weight: 700; letter-spacing: .03em; }
+
+    /* ===== レイアウト ===== */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      min-height: calc(100vh - 54px);
+    }
+
+    /* ===== フォームパネル ===== */
+    .form-panel {
+      background: var(--white);
+      border-right: 1px solid var(--border);
+      padding: 28px 28px 40px;
+      overflow-y: auto;
+    }
+    .form-panel h2 {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 5px;
+      letter-spacing: .04em;
+    }
+    .field input,
+    .field textarea {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--white);
+      transition: border-color .15s, box-shadow .15s;
+      outline: none;
+    }
+    .field input:focus,
+    .field textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(26,95,168,.15);
+    }
+    .field textarea {
+      resize: vertical;
+      min-height: 72px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn-print {
+      margin-top: 24px;
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background .15s, transform .1s;
+    }
+    .btn-print:hover { background: #154d8c; }
+    .btn-print:active { transform: scale(.98); }
+
+    /* ===== プレビューパネル ===== */
+    .preview-panel {
+      background: var(--bg);
+      padding: 28px 28px 40px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .preview-panel-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 16px;
+      align-self: flex-start;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      width: 100%;
+    }
+
+    /* ===== 計画書本体 ===== */
+    .doc {
+      background: var(--white);
+      width: 100%;
+      max-width: 680px;
+      padding: 40px 44px;
+      box-shadow: 0 2px 16px rgba(0,0,0,.10);
+      border-radius: 4px;
+    }
+
+    .doc-header {
+      text-align: center;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 3px solid var(--accent);
+    }
+    .doc-header .doc-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      color: var(--accent);
+    }
+    .doc-header .doc-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+      letter-spacing: .06em;
+    }
+    .doc-header .doc-project {
+      font-size: 17px;
+      font-weight: 700;
+      margin-top: 14px;
+      padding: 8px 16px;
+      background: var(--accent-light);
+      border-left: 4px solid var(--accent);
+      text-align: left;
+      color: var(--text);
+      min-height: 36px;
+    }
+
+    .doc-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      color: var(--white);
+      background: var(--accent);
+      padding: 5px 12px;
+      margin: 24px 0 0;
+    }
+
+    .doc-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 4px;
+    }
+    .doc-table tr { border-bottom: 1px solid var(--border); }
+    .doc-table tr:last-child { border-bottom: 2px solid var(--accent); }
+    .doc-table th {
+      width: 38%;
+      padding: 9px 12px;
+      background: var(--accent-light);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      text-align: left;
+      vertical-align: top;
+      border-right: 2px solid var(--accent);
+    }
+    .doc-table td {
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text);
+      vertical-align: top;
+      min-height: 34px;
+    }
+    .doc-table td.empty { color: var(--muted); font-style: italic; }
+
+    .doc-footer {
+      margin-top: 28px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .doc-footer .sign-area {
+      display: flex;
+      gap: 32px;
+    }
+    .doc-footer .sign-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .doc-footer .sign-label { font-size: 11px; color: var(--muted); }
+    .doc-footer .sign-line {
+      width: 100px;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ===== レスポンシブ ===== */
+    @media (max-width: 768px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .form-panel {
+        border-right: none;
+        border-bottom: 2px solid var(--border);
+        padding: 20px 16px 28px;
+      }
+      .preview-panel {
+        padding: 20px 10px 32px;
+      }
+      .doc {
+        padding: 24px 18px;
+      }
+      .field-row { grid-template-columns: 1fr; }
+    }
+
+    /* ===== 印刷 ===== */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 18mm 16mm 20mm;
+      }
+
+      body { background: #fff; font-size: 12px; }
+      .site-header,
+      .form-panel,
+      .preview-panel-label { display: none !important; }
+
+      .layout { display: block; }
+
+      .preview-panel {
+        background: #fff;
+        padding: 0;
+        overflow: visible;
+        display: block;
+      }
+
+      .doc {
+        box-shadow: none;
+        border-radius: 0;
+        max-width: 100%;
+        width: 100%;
+        padding: 0;
+      }
+
+      .doc-header .doc-title { font-size: 20px; }
+      .doc-header .doc-project { font-size: 15px; }
+
+      .doc-table th,
+      .doc-table td { font-size: 11px; padding: 7px 10px; }
+
+      .btn-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"/>
+    <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
+    <line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
+    <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/>
+    <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/>
+    <line x1="19.07" y1="4.93" x2="16.24" y2="7.76"/>
+    <line x1="7.76" y1="16.24" x2="4.93" y2="19.07"/>
+  </svg>
+  <h1>ドローン飛行計画書 作成ツール</h1>
+</header>
+
+<div class="layout">
+
+  <!-- フォームパネル -->
+  <section class="form-panel">
+    <h2>入力フォーム</h2>
+
+    <div class="field">
+      <label for="f-project">案件名</label>
+      <input type="text" id="f-project" placeholder="例：〇〇橋梁点検業務">
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="f-date">飛行日</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="field">
+        <!-- spacer -->
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="f-start">飛行開始時刻</label>
+        <input type="time" id="f-start">
+      </div>
+      <div class="field">
+        <label for="f-end">飛行終了時刻</label>
+        <input type="time" id="f-end">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="f-location">飛行場所（住所）</label>
+      <input type="text" id="f-location" placeholder="例：東京都千代田区丸の内1-1-1">
+    </div>
+
+    <div class="field">
+      <label for="f-pilot">操縦者氏名</label>
+      <input type="text" id="f-pilot" placeholder="例：山田 太郎">
+    </div>
+
+    <div class="field">
+      <label for="f-aircraft">機体名</label>
+      <input type="text" id="f-aircraft" placeholder="例：DJI Mavic 3 Enterprise">
+    </div>
+
+    <div class="field">
+      <label for="f-purpose">飛行目的</label>
+      <input type="text" id="f-purpose" placeholder="例：構造物点検・空中撮影">
+    </div>
+
+    <div class="field">
+      <label for="f-notes">備考</label>
+      <textarea id="f-notes" placeholder="特記事項・注意事項など（任意）"></textarea>
+    </div>
+
+    <button class="btn-print" onclick="window.print()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 6 2 18 2 18 9"/>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+        <rect x="6" y="14" width="12" height="8"/>
+      </svg>
+      印刷 ／ PDF出力
+    </button>
+  </section>
+
+  <!-- プレビューパネル -->
+  <section class="preview-panel">
+    <div class="preview-panel-label">プレビュー（リアルタイム更新）</div>
+
+    <div class="doc" id="doc">
+
+      <div class="doc-header">
+        <div class="doc-title">ド ロ ー ン 飛 行 計 画 書</div>
+        <div class="doc-subtitle">Drone Flight Plan</div>
+        <div class="doc-project" id="p-project">（案件名未入力）</div>
+      </div>
+
+      <div class="doc-section-title">■ 飛行概要</div>
+      <table class="doc-table">
+        <tr>
+          <th>飛行日</th>
+          <td id="p-date" class="empty">―</td>
+        </tr>
+        <tr>
+          <th>飛行時間</th>
+          <td id="p-time" class="empty">―</td>
+        </tr>
+        <tr>
+          <th>飛行場所（住所）</th>
+          <td id="p-location" class="empty">―</td>
+        </tr>
+      </table>
+
+      <div class="doc-section-title">■ 機体・操縦者情報</div>
+      <table class="doc-table">
+        <tr>
+          <th>操縦者氏名</th>
+          <td id="p-pilot" class="empty">―</td>
+        </tr>
+        <tr>
+          <th>機体名</th>
+          <td id="p-aircraft" class="empty">―</td>
+        </tr>
+        <tr>
+          <th>飛行目的</th>
+          <td id="p-purpose" class="empty">―</td>
+        </tr>
+      </table>
+
+      <div class="doc-section-title">■ 備考</div>
+      <table class="doc-table">
+        <tr>
+          <th>備考・特記事項</th>
+          <td id="p-notes" class="empty" style="min-height:60px;white-space:pre-wrap;">―</td>
+        </tr>
+      </table>
+
+      <div class="doc-footer">
+        <div id="p-issued">作成日：</div>
+        <div class="sign-area">
+          <div class="sign-box">
+            <span class="sign-label">作成者</span>
+            <div class="sign-line"></div>
+          </div>
+          <div class="sign-box">
+            <span class="sign-label">確認者</span>
+            <div class="sign-line"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.doc -->
+  </section>
+
+</div><!-- /.layout -->
+
+<script>
+  const fields = [
+    { input: 'f-project',  preview: 'p-project',  format: v => v || null },
+    { input: 'f-date',     preview: 'p-date',     format: formatDate },
+    { input: 'f-start',    preview: null,          format: null },
+    { input: 'f-end',      preview: null,          format: null },
+    { input: 'f-location', preview: 'p-location', format: v => v || null },
+    { input: 'f-pilot',    preview: 'p-pilot',    format: v => v || null },
+    { input: 'f-aircraft', preview: 'p-aircraft', format: v => v || null },
+    { input: 'f-purpose',  preview: 'p-purpose',  format: v => v || null },
+    { input: 'f-notes',    preview: 'p-notes',    format: v => v || null },
+  ];
+
+  function formatDate(v) {
+    if (!v) return null;
+    const [y, m, d] = v.split('-');
+    return `${y}年${parseInt(m)}月${parseInt(d)}日`;
+  }
+
+  function formatTime(v) {
+    if (!v) return null;
+    const [h, m] = v.split(':');
+    return `${h}:${m}`;
+  }
+
+  function setPreview(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (value) {
+      el.textContent = value;
+      el.classList.remove('empty');
+    } else {
+      el.textContent = '―';
+      el.classList.add('empty');
+    }
+  }
+
+  function update() {
+    // 個別フィールド
+    fields.forEach(({ input, preview, format }) => {
+      if (!preview) return;
+      const val = document.getElementById(input).value.trim();
+      setPreview(preview, format(val));
+    });
+
+    // 案件名は特別扱い（placeholder表示）
+    const proj = document.getElementById('f-project').value.trim();
+    const pProj = document.getElementById('p-project');
+    pProj.textContent = proj || '（案件名未入力）';
+
+    // 飛行時間（開始〜終了）
+    const start = formatTime(document.getElementById('f-start').value);
+    const end   = formatTime(document.getElementById('f-end').value);
+    let timeStr = null;
+    if (start && end)   timeStr = `${start} 〜 ${end}`;
+    else if (start)     timeStr = `${start} 〜`;
+    else if (end)       timeStr = `〜 ${end}`;
+    setPreview('p-time', timeStr);
+
+    // 作成日（今日）
+    const now = new Date();
+    document.getElementById('p-issued').textContent =
+      `作成日：${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+  }
+
+  // イベントバインド
+  fields.forEach(({ input }) => {
+    document.getElementById(input).addEventListener('input', update);
+  });
+
+  // 初期化
+  update();
+</script>
+
+</body>
+</html>
