@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>飛行前チェックリスト</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #25364A;
+      --accent-light: #EEF2E4;
+      --border: #C8CEC0;
+      --text: #2D3325;
+      --muted: #72786B;
+      --bg: #F5F3EC;
+      --white: #ffffff;
+      --radius: 8px;
+    }
+
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ===== ヘッダー ===== */
+    .site-header {
+      background: var(--accent);
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .site-header svg { flex-shrink: 0; }
+    .site-header h1 { font-size: 18px; font-weight: 700; letter-spacing: .03em; }
+
+    /* ===== コンテナ ===== */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px 16px 56px;
+    }
+
+    .page-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ===== 進捗バー ===== */
+    .progress-area {
+      margin-bottom: 20px;
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .progress-track {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      width: 0%;
+      transition: width .35s ease;
+    }
+
+    /* ===== チェックリスト ===== */
+    .checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .check-item {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: background .2s, border-color .2s;
+    }
+    .check-item.is-checked {
+      background: var(--accent-light);
+      border-color: var(--accent);
+    }
+
+    /* ラベル行 */
+    .check-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    /* ネイティブ checkbox は非表示 */
+    .check-input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    /* カスタムチェックボックス */
+    .check-box {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--border);
+      border-radius: 5px;
+      background: var(--white);
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s, border-color .2s;
+    }
+    .check-item.is-checked .check-box {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .check-box .checkmark { display: none; }
+    .check-item.is-checked .check-box .checkmark { display: block; }
+
+    /* テキスト */
+    .check-content { flex: 1; min-width: 0; }
+    .check-num {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .06em;
+      margin-bottom: 1px;
+    }
+    .check-title {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.45;
+    }
+    .check-item.is-checked .check-title {
+      color: var(--accent);
+    }
+
+    /* ===== 説明エリア ===== */
+    .check-desc {
+      padding: 0 16px 14px;
+      padding-left: calc(16px + 28px + 14px); /* label左padding + checkbox幅 + gap */
+    }
+
+    .desc-box {
+      background: rgba(255,255,255,0.75);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .check-item.is-checked .desc-box {
+      background: rgba(255,255,255,0.55);
+    }
+
+    .desc-subtitle {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .desc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .desc-list li {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .desc-list li::before {
+      content: "▸";
+      color: var(--accent);
+      flex-shrink: 0;
+      line-height: 1.6;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 3px;
+      letter-spacing: .03em;
+      white-space: nowrap;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+    .tag-ok       { background: #d4edda; color: #155724; }
+    .tag-required { background: #f8d7da; color: #721c24; }
+    .tag-caution  { background: #fff3cd; color: #856404; }
+
+    /* 警告ノート */
+    .note-warn {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 10px 12px;
+      background: #fff8e1;
+      border: 1px solid #f0c040;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #5a4500;
+      line-height: 1.65;
+    }
+    .note-warn svg { flex-shrink: 0; margin-top: 2px; }
+
+    /* ===== リセットボタン ===== */
+    .reset-btn {
+      display: block;
+      width: 100%;
+      margin-top: 24px;
+      padding: 15px 20px;
+      background: transparent;
+      border: 2px solid var(--accent);
+      border-radius: var(--radius);
+      color: var(--accent);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .reset-btn:hover,
+    .reset-btn:active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* ===== スマホ対応 ===== */
+    @media (max-width: 480px) {
+      .site-header { padding: 12px 16px; }
+      .site-header h1 { font-size: 16px; }
+      .container { padding: 18px 12px 48px; }
+      .check-label { padding: 14px 12px; gap: 12px; }
+      .check-desc {
+        padding: 0 12px 12px;
+        padding-left: calc(12px + 28px + 12px);
+      }
+      .reset-btn { padding: 16px 20px; font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"/>
+    <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
+    <line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
+    <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/>
+    <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/>
+    <line x1="19.07" y1="4.93" x2="16.24" y2="7.76"/>
+    <line x1="7.76" y1="16.24" x2="4.93" y2="19.07"/>
+  </svg>
+  <h1>飛行前チェックリスト</h1>
+</header>
+
+<div class="container">
+
+  <div class="page-label">Drone Pre-flight Checklist</div>
+
+  <div class="progress-area">
+    <div class="progress-meta">
+      <span>チェック済み</span>
+      <span id="progress-count">0 / 10</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-bar"></div>
+    </div>
+  </div>
+
+  <div class="checklist">
+
+    <!-- 01 -->
+    <div class="check-item" id="item-1">
+      <label class="check-label" for="chk-1">
+        <input type="checkbox" class="check-input" id="chk-1">
+        <span class="check-box">
+          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <span class="check-content">
+          <span class="check-num">01</span>
+          <span class="check-title">操縦者の体調確認（飲酒・薬物なし）</span>
+        </span>
+      </label>
+    </div>
+
+    <!-- 02 -->
+    <div class="check-item" id="item-2">
+      <label class="check-label" for="chk-2">
+        <input type="checkbox" class="check-input" id="chk-2">
+        <span class="check-box">
+          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <span class="check-content">
+          <span class="check-num">02</span>
+          <span class="check-title">機体の外観点検（プロペラ・フレームの破損なし）</span>
+        </span>
+      </label>
+    </div>
+
+    <!-- 03 -->
+    <div class="check-item" id="item-3">
+      <label class="check-label" for="chk-3">
+        <input type="checkbox" class="check-input" id="chk-3">
+        <span class="check-box">
+          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <span class="check-content">
+          <span class="check-num">03</span>
+          <span class="check-title">バッテリー残量の確認</span>
+        </span>
+      </label>
+    </div>
+
+    <!-- 04 -->
+    <div class="check-item" id="item-4">
+      <label class="check-label" for="chk-4">
+        <input type="checkbox" class="check-input" id="chk-4">
+        <span class="check-box">
+          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <span class="check-content">
+          <span class="check-num">04</span>
+          <span class="check-title">気象状況の確認（風速・天候）</span>
+        </span>
+      </label>
+    </div>
+
+    <!-- 05 -->
+    <div class="check-item" id="item-5">
+      <label class="check-label" for="chk-5">
+        <input type="checkbox" class="check-input" id="chk-5">
+        <span class="check-box">
+          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <span class="check-content">
+          <span class="check-num">05</span>
+          <span class="check-title">飛行空域の確認（DID・150m制限・空港周辺など）</span>
+        </span>
+      </label>
+    </div>
+
+    <!-- 06 -->
+    <div class="check-item" id="item-6">
+      <label class="check-label" for="chk-6">
+        <input type="checkbox" class="check-input" id="chk-6">
+        <span class="check-box">
+          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <span class="check-content">
+          <span class="check-num">06</span>
+          <span class="check-title">周囲の安全確認（第三者・障害物）</span>
+        </span>
+      </label>
+    </div>
+
+    <!-- 07 -->
+    <div class="check-item" id="item-7">
+      <label class="check-label" for="chk-7">
+        <input type="checkbox" class="check-input" id="chk-7">
+        <span class="check-box">
+          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <span class="check-content">
+          <span class="check-num">07</span>
+          <span class="check-title">飛行時間が昼間であること</span>
+        </span>
+      </label>
+    </div>
+
+    <!-- 08 -->
+    <div class="check-item" id="item-8">
+      <label class="check-label" for="chk-8">
+        <input type="checkbox" class="check-input" id="chk-8">
+        <span class="check-box">
+          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <span class="check-content">
+          <span class="check-num">08</span>
+          <span class="check-title">目視内飛行が保てること</span>
+        </span>
+      </label>
+    </div>
+
+    <!-- 09 特例申請の確認 -->
+    <div class="check-item" id="item-9">
+      <label class="check-label" for="chk-9">
+        <input type="checkbox" class="check-input" id="chk-9">
+        <span class="check-box">
+          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <span class="check-content">
+          <span class="check-num">09</span>
+          <span class="check-title">特例申請の確認</span>
+        </span>
+      </label>
+      <div class="check-desc">
+        <div class="desc-box">
+          <div class="desc-subtitle">申請区分の判断基準</div>
+          <ul class="desc-list">
+            <li>
+              <span>飛行する場所が特定できず広範囲・反復的に飛ばす
+                <span class="tag tag-ok">包括申請で対応可能</span>
+              </span>
+            </li>
+            <li>
+              <span>特定の場所・日時・イベント上空・催し物上空など
+                <span class="tag tag-required">個別申請が必要</span>
+              </span>
+            </li>
+            <li>
+              <span>夜間飛行・目視外飛行・人や物件から30m未満の飛行
+                <span class="tag tag-caution">該当する場合は承認が必要</span>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10 地元警察への事前連絡 -->
+    <div class="check-item" id="item-10">
+      <label class="check-label" for="chk-10">
+        <input type="checkbox" class="check-input" id="chk-10">
+        <span class="check-box">
+          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <span class="check-content">
+          <span class="check-num">10</span>
+          <span class="check-title">地元警察への事前連絡</span>
+        </span>
+      </label>
+      <div class="check-desc">
+        <div class="note-warn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span>地元警察署への事前連絡は、飛行当日より前の<strong>平日午後4時が締め切り</strong>。それを過ぎると当日の飛行に間に合わない場合があるため、余裕をもって連絡すること。</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.checklist -->
+
+  <button class="reset-btn" id="reset-btn">すべてリセット</button>
+
+</div><!-- /.container -->
+
+<script>
+  const TOTAL = 10;
+  const STORAGE_KEY = 'drone-checklist-state';
+
+  function updateProgress() {
+    const count = document.querySelectorAll('.check-input:checked').length;
+    document.getElementById('progress-count').textContent = `${count} / ${TOTAL}`;
+    document.getElementById('progress-bar').style.width = `${(count / TOTAL) * 100}%`;
+  }
+
+  function saveState() {
+    const state = {};
+    document.querySelectorAll('.check-input').forEach(input => {
+      state[input.id] = input.checked;
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function restoreState() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    const state = JSON.parse(saved);
+    document.querySelectorAll('.check-input').forEach(input => {
+      if (state[input.id]) {
+        input.checked = true;
+        input.closest('.check-item').classList.add('is-checked');
+      }
+    });
+    updateProgress();
+  }
+
+  document.querySelectorAll('.check-input').forEach(input => {
+    input.addEventListener('change', () => {
+      input.closest('.check-item').classList.toggle('is-checked', input.checked);
+      updateProgress();
+      saveState();
+    });
+  });
+
+  restoreState();
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if (!confirm('すべてのチェックを外しますか？')) return;
+    document.querySelectorAll('.check-input').forEach(input => {
+      input.checked = false;
+      input.closest('.check-item').classList.remove('is-checked');
+    });
+    updateProgress();
+    localStorage.removeItem(STORAGE_KEY);
+  });
+</script>
+
+</body>
+</html>
