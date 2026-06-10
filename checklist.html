@@ -38,6 +38,13 @@
     }
     .site-header svg { flex-shrink: 0; }
     .site-header h1 { font-size: 18px; font-weight: 700; letter-spacing: .03em; }
+    .site-header a {
+      color: inherit;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
     /* ===== コンテナ ===== */
     .container {
@@ -52,7 +59,7 @@
       text-transform: uppercase;
       letter-spacing: .08em;
       color: var(--muted);
-      margin-bottom: 16px;
+      margin-bottom: 24px;
       padding-bottom: 8px;
       border-bottom: 1px solid var(--border);
     }
@@ -111,12 +118,18 @@
       user-select: none;
     }
 
-    /* ネイティブ checkbox は非表示 */
+    /* ネイティブ checkbox は非表示（アクセシビリティのため完全に消さずキーボード操作を有効に） */
     .check-input {
       position: absolute;
       opacity: 0;
       width: 0;
       height: 0;
+    }
+
+    /* キーボード操作時のフォーカス視認性向上 */
+    .check-input:focus-visible + .check-box {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
 
     /* カスタムチェックボックス */
@@ -277,6 +290,7 @@
 <body>
 
 <header class="site-header">
+  <a href="index.html" aria-label="ドローン運用ツール トップへ戻る">
   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="12" cy="12" r="3"/>
     <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
@@ -287,6 +301,7 @@
     <line x1="7.76" y1="16.24" x2="4.93" y2="19.07"/>
   </svg>
   <h1>飛行前チェックリスト</h1>
+  </a>
 </header>
 
 <div class="container">
@@ -305,7 +320,6 @@
 
   <div class="checklist">
 
-    <!-- 01 -->
     <div class="check-item" id="item-1">
       <label class="check-label" for="chk-1">
         <input type="checkbox" class="check-input" id="chk-1">
@@ -321,7 +335,6 @@
       </label>
     </div>
 
-    <!-- 02 -->
     <div class="check-item" id="item-2">
       <label class="check-label" for="chk-2">
         <input type="checkbox" class="check-input" id="chk-2">
@@ -337,7 +350,6 @@
       </label>
     </div>
 
-    <!-- 03 -->
     <div class="check-item" id="item-3">
       <label class="check-label" for="chk-3">
         <input type="checkbox" class="check-input" id="chk-3">
@@ -353,7 +365,6 @@
       </label>
     </div>
 
-    <!-- 04 -->
     <div class="check-item" id="item-4">
       <label class="check-label" for="chk-4">
         <input type="checkbox" class="check-input" id="chk-4">
@@ -369,7 +380,6 @@
       </label>
     </div>
 
-    <!-- 05 -->
     <div class="check-item" id="item-5">
       <label class="check-label" for="chk-5">
         <input type="checkbox" class="check-input" id="chk-5">
@@ -385,7 +395,6 @@
       </label>
     </div>
 
-    <!-- 06 -->
     <div class="check-item" id="item-6">
       <label class="check-label" for="chk-6">
         <input type="checkbox" class="check-input" id="chk-6">
@@ -401,7 +410,6 @@
       </label>
     </div>
 
-    <!-- 07 -->
     <div class="check-item" id="item-7">
       <label class="check-label" for="chk-7">
         <input type="checkbox" class="check-input" id="chk-7">
@@ -417,7 +425,6 @@
       </label>
     </div>
 
-    <!-- 08 -->
     <div class="check-item" id="item-8">
       <label class="check-label" for="chk-8">
         <input type="checkbox" class="check-input" id="chk-8">
@@ -433,7 +440,6 @@
       </label>
     </div>
 
-    <!-- 09 特例申請の確認 -->
     <div class="check-item" id="item-9">
       <label class="check-label" for="chk-9">
         <input type="checkbox" class="check-input" id="chk-9">
@@ -471,7 +477,6 @@
       </div>
     </div>
 
-    <!-- 10 地元警察への事前連絡 -->
     <div class="check-item" id="item-10">
       <label class="check-label" for="chk-10">
         <input type="checkbox" class="check-input" id="chk-10">
@@ -497,13 +502,9 @@
       </div>
     </div>
 
-  </div><!-- /.checklist -->
+  </div><button class="reset-btn" id="reset-btn">すべてリセット</button>
 
-  <button class="reset-btn" id="reset-btn">すべてリセット</button>
-
-</div><!-- /.container -->
-
-<script>
+</div><script>
   const TOTAL = 10;
   const STORAGE_KEY = 'drone-checklist-state';
 
@@ -551,7 +552,8 @@
       input.closest('.check-item').classList.remove('is-checked');
     });
     updateProgress();
-    localStorage.removeItem(STORAGE_KEY);
+    // 確実に空のデータでストレージを上書き同期する
+    saveState();
   });
 </script>
 
