@@ -606,7 +606,13 @@
   function restoreState() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return;
-    const state = JSON.parse(saved);
+    let state = null;
+    try { state = JSON.parse(saved); } catch (e) {
+      // 壊れたデータは捨てて初期状態から始める
+      localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+    if (!state || typeof state !== 'object') return;
     document.querySelectorAll('.check-input').forEach(input => {
       if (state[input.id]) {
         input.checked = true;
@@ -624,10 +630,8 @@
     });
   });
 
-  initSession();
-  restoreState();
-  updateProgress();
-
+  // リスナー登録は初期化処理より先に行う
+  // （初期化中に万一エラーが起きてもボタンが死なないように）
   document.getElementById('reset-btn').addEventListener('click', () => {
     if (!confirm('すべてのチェックを外しますか？')) return;
     document.querySelectorAll('.check-input').forEach(input => {
@@ -638,6 +642,10 @@
     // 確実に空のデータでストレージを上書き同期する
     saveState();
   });
+
+  try { initSession(); } catch (e) {}
+  try { restoreState(); } catch (e) {}
+  updateProgress();
 </script>
 
 </body>
