@@ -340,6 +340,12 @@
     <span>記録はこのブラウザ内に自動保存されます。ブラウザのデータ削除等で消えることがあるため、<strong>定期的に「JSON書き出し」でバックアップ</strong>してください。飛行日誌は3年間の保存が求められます。</span>
   </div>
 
+  <!-- 進行中セッション（計画書→チェックリストから遷移してきた場合） -->
+  <div id="session-banner" style="display:none; margin-bottom:20px; padding:12px 14px; background:var(--accent-light); border:1.5px solid var(--accent); border-radius:var(--radius); font-size:13px; line-height:1.7;">
+    <div style="font-size:11px; font-weight:700; letter-spacing:.06em; color:var(--accent); margin-bottom:2px;">飛行計画から引き継ぎました</div>
+    <div id="session-summary"></div>
+  </div>
+
   <!-- 入力フォーム -->
   <section class="card">
     <h2 id="form-title">記録の入力</h2>
@@ -371,9 +377,24 @@
         <input type="text" id="f-weather" placeholder="例：晴れ">
       </div>
       <div class="field">
-        <label for="f-wind">風</label>
+        <label for="f-wind">風速</label>
         <input type="text" id="f-wind" placeholder="例：北風 2m/s">
       </div>
+    </div>
+
+    <div class="field">
+      <label for="f-battery">バッテリー番号</label>
+      <input type="text" id="f-battery" placeholder="例：#01, #03（複数可）">
+    </div>
+
+    <div class="field">
+      <label for="f-shoot">撮影内容</label>
+      <textarea id="f-shoot" placeholder="例：海岸線の夕景パン、橋梁上空からの俯瞰カットなど"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="f-anomaly">異常記録</label>
+      <input type="text" id="f-anomaly" placeholder="異常なしの場合は空欄。例：GPS不安定、プロペラ交換">
     </div>
 
     <div class="field">
@@ -421,6 +442,21 @@
       </button>
       <input type="file" id="import-file" accept=".json,application/json">
     </div>
+    <div class="btn-row" style="margin-bottom:10px;">
+      <button class="btn btn-outline" id="btn-export-csv">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        CSV書き出し
+      </button>
+      <a class="btn btn-outline" href="data.html" style="text-decoration:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        データ管理・検索
+      </a>
+    </div>
     <p class="data-hint">
       書き出し：全記録を1つのJSONファイルとして端末に保存します。<br>
       読み込み：書き出したJSONを取り込みます。既存の記録と統合され、同じ記録は二重になりません（機種変更やPC⇔スマホの引っ越しに使えます）。
@@ -435,7 +471,8 @@
   let editingId = null;
 
   const $ = id => document.getElementById(id);
-  const FIELDS = ['date', 'time', 'location', 'aircraft', 'weather', 'wind', 'memo'];
+  const FIELDS = ['date', 'time', 'location', 'aircraft', 'weather', 'wind', 'battery', 'shoot', 'anomaly', 'memo'];
+  const SESSION_KEY = 'drone-active-session';
 
   // ---- 保存・読み出し ----
   function load() {
@@ -472,7 +509,7 @@
       list.innerHTML = '<div class="empty-msg">まだ記録がありません。上のフォームから最初の飛行を記録しましょう。</div>';
     } else {
       list.innerHTML = sorted.map(r => {
-        const meta = [r.aircraft, r.location, [r.weather, r.wind].filter(Boolean).join('・')]
+        const meta = [r.aircraft, r.location, [r.weather, r.wind].filter(Boolean).join('・'), r.battery ? 'バッテリー ' + r.battery : '']
           .filter(Boolean)
           .map(esc)
           .join('<span class="sep">｜</span>');
@@ -483,6 +520,8 @@
             <span class="log-time">${r.time ? esc(r.time) + ' 分' : ''}</span>
           </div>
           ${meta ? `<div class="log-meta">${meta}</div>` : ''}
+          ${r.shoot ? `<div class="log-memo">🎥 ${esc(r.shoot)}</div>` : ''}
+          ${r.anomaly ? `<div class="log-memo" style="color:var(--danger);">⚠ ${esc(r.anomaly)}</div>` : ''}
           ${r.memo ? `<div class="log-memo">${esc(r.memo)}</div>` : ''}
           <div class="log-actions">
             <button class="act-edit" data-act="edit" data-id="${r.id}">✎ 編集</button>
@@ -530,6 +569,11 @@
       setMode(false);
     } else {
       records.push({ id: Date.now(), ...data });
+      // 計画→チェック→日誌のフローを完了し、セッションを閉じる
+      if (localStorage.getItem(SESSION_KEY)) {
+        localStorage.removeItem(SESSION_KEY);
+        document.getElementById('session-banner').style.display = 'none';
+      }
     }
     persist();
     clearForm();
@@ -587,6 +631,26 @@
     URL.revokeObjectURL(a.href);
   });
 
+  // ---- CSV 書き出し ----
+  $('btn-export-csv').addEventListener('click', () => {
+    if (records.length === 0) { alert('書き出す記録がありません。'); return; }
+    const HEAD = ['飛行日', '飛行時間(分)', '飛行場所', '機体', '天候', '風速', 'バッテリー番号', '撮影内容', '異常記録', 'メモ'];
+    const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const rows = [...records]
+      .sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.id - b.id))
+      .map(r => FIELDS.map(k => q(r[k])).join(','));
+    // Excel で文字化けしないよう BOM 付き UTF-8
+    const csv = '\uFEFF' + HEAD.map(q).join(',') + '\r\n' + rows.join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const d = new Date();
+    const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+    a.download = `flight-log-${stamp}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
   // ---- 読み込み（統合・重複なし）----
   $('btn-import').addEventListener('click', () => $('import-file').click());
 
@@ -623,8 +687,33 @@
     reader.readAsText(file);
   });
 
+  // ---- 計画書からの引き継ぎ ----
+  function initSession() {
+    let s = null;
+    try { s = JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) {}
+    if (!s || !s.plan) return;
+    const p = s.plan;
+    if (p.date)     $('f-date').value = p.date;
+    if (p.location) $('f-location').value = p.location;
+    if (p.aircraft) $('f-aircraft').value = p.aircraft;
+    // 開始・終了時刻から飛行時間（分）を自動計算
+    if (p.start && p.end) {
+      const [sh, sm] = p.start.split(':').map(Number);
+      const [eh, em] = p.end.split(':').map(Number);
+      let min = (eh * 60 + em) - (sh * 60 + sm);
+      if (min < 0) min += 24 * 60;
+      if (min > 0) $('f-time').value = min;
+    }
+    const parts = [p.project, p.date, p.location, p.aircraft].filter(Boolean);
+    if (parts.length) {
+      document.getElementById('session-summary').textContent = parts.join('　／　');
+      document.getElementById('session-banner').style.display = 'block';
+    }
+  }
+
   // ---- 初期化 ----
   load();
+  initSession();
   render();
 </script>
 

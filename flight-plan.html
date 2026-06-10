@@ -102,6 +102,94 @@
       resize: vertical;
       min-height: 72px;
     }
+    .field select {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--white);
+      outline: none;
+    }
+
+    /* 機体テンプレート行 */
+    .tpl-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .btn-small {
+      padding: 8px 12px;
+      background: transparent;
+      color: var(--accent);
+      border: 1.5px solid var(--accent);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .15s, color .15s;
+    }
+    .btn-small:hover { background: var(--accent); color: #fff; }
+    .btn-small.danger { color: #8a2f2f; border-color: #8a2f2f; }
+    .btn-small.danger:hover { background: #8a2f2f; color: #fff; }
+
+    /* 保存ステータス */
+    .autosave-note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .btn-secondary-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .btn-outline {
+      padding: 11px;
+      background: transparent;
+      color: var(--accent);
+      border: 2px solid var(--accent);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: background .15s, color .15s;
+    }
+    .btn-outline:hover { background: var(--accent); color: #fff; }
+
+    .btn-next {
+      margin-top: 18px;
+      width: 100%;
+      padding: 13px;
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 2px solid var(--accent);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background .15s, color .15s;
+    }
+    .btn-next:hover { background: var(--accent); color: #fff; }
+    #json-file { display: none; }
 
     .field-row {
       display: grid;
@@ -379,6 +467,13 @@
     <div class="field">
       <label for="f-aircraft">機体名</label>
       <input type="text" id="f-aircraft" placeholder="例：DJI Mavic 3 Enterprise">
+      <div class="tpl-row">
+        <select id="tpl-select" aria-label="機体テンプレートを選択">
+          <option value="">機体テンプレートから選ぶ…</option>
+        </select>
+        <button type="button" class="btn-small" id="tpl-save">現在の機体を登録</button>
+        <button type="button" class="btn-small danger" id="tpl-delete">削除</button>
+      </div>
     </div>
 
     <div class="field">
@@ -399,6 +494,33 @@
       </svg>
       印刷 ／ PDF出力
     </button>
+
+    <div class="btn-secondary-row">
+      <button type="button" class="btn-outline" id="btn-json-save">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        JSON保存
+      </button>
+      <button type="button" class="btn-outline" id="btn-json-load">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        JSON読込
+      </button>
+      <input type="file" id="json-file" accept=".json,application/json">
+    </div>
+
+    <button type="button" class="btn-next" id="btn-to-checklist">
+      この計画で飛行前チェックリストへ進む
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </button>
+
+    <p class="autosave-note" id="autosave-note">入力内容はこのブラウザに自動保存されます</p>
   </section>
 
   <section class="preview-panel">
@@ -529,10 +651,124 @@
       `作成日：${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
   }
 
-  fields.forEach(({ input }) => {
-    document.getElementById(input).addEventListener('input', update);
+  // ===== 自動保存（下書き） =====
+  const DRAFT_KEY   = 'drone-flight-plan-draft';
+  const TPL_KEY     = 'drone-aircraft-templates';
+  const SESSION_KEY = 'drone-active-session';
+
+  const FIELD_IDS = fields.map(f => f.input);
+
+  function readPlan() {
+    const plan = {};
+    FIELD_IDS.forEach(id => plan[id.replace('f-', '')] = document.getElementById(id).value);
+    return plan;
+  }
+  function fillPlan(plan) {
+    FIELD_IDS.forEach(id => {
+      const k = id.replace('f-', '');
+      if (plan[k] !== undefined) document.getElementById(id).value = plan[k];
+    });
+  }
+  function saveDraft() {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(readPlan()));
+  }
+  function loadDraft() {
+    try {
+      const d = JSON.parse(localStorage.getItem(DRAFT_KEY));
+      if (d) fillPlan(d);
+    } catch (e) {}
+  }
+
+  // ===== 機体テンプレート =====
+  function loadTemplates() {
+    try { return JSON.parse(localStorage.getItem(TPL_KEY)) || []; }
+    catch (e) { return []; }
+  }
+  function renderTemplates() {
+    const sel = document.getElementById('tpl-select');
+    const list = loadTemplates();
+    sel.innerHTML = '<option value="">機体テンプレートから選ぶ…</option>' +
+      list.map(t => `<option value="${t.replace(/"/g, '&quot;')}"></option>`).join('');
+    // option のテキストも設定（value のみだと表示されないブラウザ対策）
+    [...sel.options].forEach((o, i) => { if (i > 0) o.textContent = list[i - 1]; });
+  }
+  document.getElementById('tpl-select').addEventListener('change', e => {
+    if (!e.target.value) return;
+    document.getElementById('f-aircraft').value = e.target.value;
+    update();
+    saveDraft();
+  });
+  document.getElementById('tpl-save').addEventListener('click', () => {
+    const name = document.getElementById('f-aircraft').value.trim();
+    if (!name) { alert('機体名を入力してから登録してください。'); return; }
+    const list = loadTemplates();
+    if (list.includes(name)) { alert('すでに登録されています。'); return; }
+    list.push(name);
+    localStorage.setItem(TPL_KEY, JSON.stringify(list));
+    renderTemplates();
+    document.getElementById('tpl-select').value = name;
+  });
+  document.getElementById('tpl-delete').addEventListener('click', () => {
+    const sel = document.getElementById('tpl-select');
+    if (!sel.value) { alert('削除するテンプレートを選択してください。'); return; }
+    if (!confirm(`「${sel.value}」をテンプレートから削除しますか？`)) return;
+    localStorage.setItem(TPL_KEY, JSON.stringify(loadTemplates().filter(t => t !== sel.value)));
+    renderTemplates();
   });
 
+  // ===== JSON 保存・読込 =====
+  document.getElementById('btn-json-save').addEventListener('click', () => {
+    const payload = { app: 'drone-flight-plan', savedAt: new Date().toISOString(), plan: readPlan() };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const name = (readPlan().project || 'flight-plan').replace(/[\\/:*?"<>|]/g, '_');
+    a.download = `${name}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+  document.getElementById('btn-json-load').addEventListener('click', () =>
+    document.getElementById('json-file').click());
+  document.getElementById('json-file').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const plan = parsed.plan || parsed;
+        if (typeof plan !== 'object') throw new Error();
+        fillPlan(plan);
+        update();
+        saveDraft();
+      } catch (err) {
+        alert('JSONファイルを読み込めませんでした。このツールで保存したファイルか確認してください。');
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  // ===== チェックリストへ進む（運用フロー） =====
+  document.getElementById('btn-to-checklist').addEventListener('click', () => {
+    const plan = readPlan();
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      createdAt: Date.now(),
+      step: 'checklist',
+      plan: plan
+    }));
+    location.href = 'checklist.html';
+  });
+
+  fields.forEach(({ input }) => {
+    document.getElementById(input).addEventListener('input', () => {
+      update();
+      saveDraft();
+    });
+  });
+
+  loadDraft();
+  renderTemplates();
   update();
 </script>
 

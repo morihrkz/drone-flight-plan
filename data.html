@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>データ管理</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #25364A;
+      --accent-light: #EEF2E4;
+      --border: #C8CEC0;
+      --text: #2D3325;
+      --muted: #72786B;
+      --bg: #F5F3EC;
+      --white: #ffffff;
+      --radius: 8px;
+      --danger: #8a2f2f;
+    }
+
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .site-header {
+      background: var(--accent);
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .site-header svg { flex-shrink: 0; }
+    .site-header h1 { font-size: 18px; font-weight: 700; letter-spacing: .03em; }
+    .site-header a {
+      color: inherit;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 24px 16px 64px;
+    }
+
+    .page-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 18px;
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 5px;
+      letter-spacing: .04em;
+    }
+    .field input {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--white);
+      transition: border-color .15s, box-shadow .15s;
+      outline: none;
+    }
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 54, 74, .15);
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 11px 16px;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: background .15s, color .15s, transform .1s;
+      -webkit-tap-highlight-color: transparent;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-outline {
+      background: transparent;
+      color: var(--accent);
+      border: 2px solid var(--accent);
+    }
+    .btn-outline:hover { background: var(--accent); color: #fff; }
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .result-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .result-meta strong { color: var(--accent); font-size: 16px; }
+
+    /* テーブル */
+    .table-wrap {
+      overflow-x: auto;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 640px;
+    }
+    th {
+      background: var(--accent);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 10px;
+      text-align: left;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+    td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: #fafaf5; }
+    td.anomaly { color: var(--danger); font-weight: 700; }
+
+    .empty-msg {
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 28px 10px;
+      background: var(--white);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+
+    @media (max-width: 480px) {
+      .site-header { padding: 12px 16px; }
+      .site-header h1 { font-size: 16px; }
+      .container { padding: 18px 12px 56px; }
+      .card { padding: 16px 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="index.html" aria-label="ドローン運用ツール トップへ戻る">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
+      <line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
+      <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/>
+      <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/>
+      <line x1="19.07" y1="4.93" x2="16.24" y2="7.76"/>
+      <line x1="7.76" y1="16.24" x2="4.93" y2="19.07"/>
+    </svg>
+    <h1>データ管理</h1>
+  </a>
+</header>
+
+<div class="container">
+
+  <div class="page-label">Flight Data Management</div>
+
+  <!-- 検索 -->
+  <section class="card">
+    <h2>検索・絞り込み</h2>
+    <div class="field-row">
+      <div class="field">
+        <label for="s-from">日付（から）</label>
+        <input type="date" id="s-from">
+      </div>
+      <div class="field">
+        <label for="s-to">日付（まで）</label>
+        <input type="date" id="s-to">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="s-location">場所</label>
+        <input type="text" id="s-location" placeholder="例：中野区">
+      </div>
+      <div class="field">
+        <label for="s-aircraft">機体</label>
+        <input type="text" id="s-aircraft" placeholder="例：Neo">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label for="s-keyword">キーワード（撮影内容・メモ・バッテリー・異常記録）</label>
+      <input type="text" id="s-keyword" placeholder="例：夕景、#01、GPS">
+    </div>
+  </section>
+
+  <!-- 結果 -->
+  <div class="result-meta">
+    <span><strong id="r-count">0</strong> 件　／　累計 <strong id="r-time">0</strong> 分</span>
+    <span id="r-filtered"></span>
+  </div>
+
+  <div class="table-wrap" id="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>飛行日</th><th>時間(分)</th><th>場所</th><th>機体</th>
+          <th>天候・風速</th><th>バッテリー</th><th>撮影内容</th><th>異常</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="empty-msg" id="empty-msg" style="display:none;"></div>
+
+  <!-- 書き出し -->
+  <section class="card" style="margin-top:20px;">
+    <h2>書き出し（表示中の結果のみ）</h2>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="btn-csv">CSV書き出し</button>
+      <button class="btn btn-outline" id="btn-json">JSON書き出し</button>
+    </div>
+  </section>
+
+  <div class="btn-row">
+    <a class="btn btn-outline" href="flight-log.html">← 飛行日誌（入力）へ</a>
+    <a class="btn btn-outline" href="index.html">ホームへ</a>
+  </div>
+
+</div>
+
+<script>
+  const STORAGE_KEY = 'drone-flight-log-records';
+  const FIELDS = ['date', 'time', 'location', 'aircraft', 'weather', 'wind', 'battery', 'shoot', 'anomaly', 'memo'];
+
+  let records = [];
+  try { records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) {}
+
+  const $ = id => document.getElementById(id);
+
+  function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s ?? '';
+    return d.innerHTML;
+  }
+  function fmtDate(v) {
+    if (!v) return '―';
+    const [y, m, d] = v.split('-');
+    return `${y}/${parseInt(m)}/${parseInt(d)}`;
+  }
+
+  function getFiltered() {
+    const from = $('s-from').value;
+    const to   = $('s-to').value;
+    const loc  = $('s-location').value.trim().toLowerCase();
+    const ac   = $('s-aircraft').value.trim().toLowerCase();
+    const kw   = $('s-keyword').value.trim().toLowerCase();
+
+    return records.filter(r => {
+      if (from && (!r.date || r.date < from)) return false;
+      if (to   && (!r.date || r.date > to))   return false;
+      if (loc && !(r.location || '').toLowerCase().includes(loc)) return false;
+      if (ac  && !(r.aircraft || '').toLowerCase().includes(ac))  return false;
+      if (kw) {
+        const hay = [r.shoot, r.memo, r.battery, r.anomaly, r.weather, r.wind]
+          .filter(Boolean).join(' ').toLowerCase();
+        if (!hay.includes(kw)) return false;
+      }
+      return true;
+    }).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.id - a.id));
+  }
+
+  function render() {
+    const list = getFiltered();
+    const tbody = $('tbody');
+    const filtered = list.length !== records.length;
+
+    $('r-count').textContent = list.length;
+    const total = list.reduce((s, r) => s + (parseInt(r.time) || 0), 0);
+    $('r-time').textContent = total;
+    $('r-filtered').textContent = filtered ? `（全 ${records.length} 件から絞り込み中）` : '';
+
+    if (list.length === 0) {
+      $('table-wrap').style.display = 'none';
+      const msg = $('empty-msg');
+      msg.style.display = 'block';
+      msg.textContent = records.length === 0
+        ? 'まだ記録がありません。飛行日誌ページから記録を追加してください。'
+        : '条件に一致する記録がありません。';
+      return;
+    }
+    $('table-wrap').style.display = 'block';
+    $('empty-msg').style.display = 'none';
+
+    tbody.innerHTML = list.map(r => `
+      <tr>
+        <td style="white-space:nowrap;">${fmtDate(r.date)}</td>
+        <td>${esc(r.time)}</td>
+        <td>${esc(r.location)}</td>
+        <td>${esc(r.aircraft)}</td>
+        <td>${esc([r.weather, r.wind].filter(Boolean).join('・'))}</td>
+        <td>${esc(r.battery)}</td>
+        <td>${esc(r.shoot)}</td>
+        <td class="${r.anomaly ? 'anomaly' : ''}">${esc(r.anomaly)}</td>
+      </tr>`).join('');
+  }
+
+  ['s-from', 's-to', 's-location', 's-aircraft', 's-keyword'].forEach(id =>
+    $(id).addEventListener('input', render));
+
+  // ---- 書き出し（フィルタ結果のみ） ----
+  function stamp() {
+    const d = new Date();
+    return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+  }
+  function download(blob, name) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  $('btn-csv').addEventListener('click', () => {
+    const list = getFiltered();
+    if (list.length === 0) { alert('書き出す記録がありません。'); return; }
+    const HEAD = ['飛行日', '飛行時間(分)', '飛行場所', '機体', '天候', '風速', 'バッテリー番号', '撮影内容', '異常記録', 'メモ'];
+    const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const rows = list.map(r => FIELDS.map(k => q(r[k])).join(','));
+    const csv = '\uFEFF' + HEAD.map(q).join(',') + '\r\n' + rows.join('\r\n');
+    download(new Blob([csv], { type: 'text/csv' }), `flight-log-${stamp()}.csv`);
+  });
+
+  $('btn-json').addEventListener('click', () => {
+    const list = getFiltered();
+    if (list.length === 0) { alert('書き出す記録がありません。'); return; }
+    const payload = { app: 'drone-flight-log', exportedAt: new Date().toISOString(), records: list };
+    download(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }), `flight-log-${stamp()}.json`);
+  });
+
+  render();
+</script>
+
+</body>
+</html>

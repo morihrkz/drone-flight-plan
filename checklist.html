@@ -308,6 +308,12 @@
 
   <div class="page-label">Drone Pre-flight Checklist</div>
 
+  <!-- 進行中の飛行セッション（計画書から遷移してきた場合に表示） -->
+  <div id="session-banner" style="display:none; margin-bottom:20px; padding:12px 14px; background:var(--accent-light); border:1.5px solid var(--accent); border-radius:var(--radius); font-size:13px; line-height:1.7;">
+    <div style="font-size:11px; font-weight:700; letter-spacing:.06em; color:var(--accent); margin-bottom:2px;">進行中の飛行計画</div>
+    <div id="session-summary"></div>
+  </div>
+
   <div class="progress-area">
     <div class="progress-meta">
       <span>チェック済み</span>
@@ -504,14 +510,48 @@
 
   </div><button class="reset-btn" id="reset-btn">すべてリセット</button>
 
+  <a id="btn-to-log" href="flight-log.html" style="display:none; margin-top:14px; padding:15px 20px; background:var(--accent); border:2px solid var(--accent); border-radius:var(--radius); color:#fff; font-size:15px; font-weight:700; letter-spacing:.04em; text-decoration:none; text-align:center;">チェック完了 → 飛行日誌に記録する</a>
+
 </div><script>
   const TOTAL = 10;
   const STORAGE_KEY = 'drone-checklist-state';
+
+  const SESSION_KEY = 'drone-active-session';
+
+  function getSession() {
+    try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
+    catch (e) { return null; }
+  }
+
+  // 計画書から来た場合：計画の概要を表示し、完了時に日誌への導線を出す
+  function initSession() {
+    const s = getSession();
+    if (!s || !s.plan) return;
+    const p = s.plan;
+    const parts = [p.project, p.date, p.location, p.aircraft].filter(Boolean);
+    if (parts.length) {
+      document.getElementById('session-summary').textContent = parts.join('　／　');
+      document.getElementById('session-banner').style.display = 'block';
+    }
+    // 新しいセッションで来たらチェックを自動リセット
+    if (s.step === 'checklist') {
+      document.querySelectorAll('.check-input').forEach(input => {
+        input.checked = false;
+        input.closest('.check-item').classList.remove('is-checked');
+      });
+      saveState();
+      s.step = 'checking';
+      localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    }
+  }
 
   function updateProgress() {
     const count = document.querySelectorAll('.check-input:checked').length;
     document.getElementById('progress-count').textContent = `${count} / ${TOTAL}`;
     document.getElementById('progress-bar').style.width = `${(count / TOTAL) * 100}%`;
+    // 全チェック完了かつセッションありなら日誌への導線を表示
+    const done = count === TOTAL && !!getSession();
+    document.getElementById('btn-to-log').style.display = done ? 'block' : 'none';
   }
 
   function saveState() {
@@ -543,7 +583,9 @@
     });
   });
 
+  initSession();
   restoreState();
+  updateProgress();
 
   document.getElementById('reset-btn').addEventListener('click', () => {
     if (!confirm('すべてのチェックを外しますか？')) return;
