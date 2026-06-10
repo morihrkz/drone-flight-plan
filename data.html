@@ -164,7 +164,7 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 13px;
-      min-width: 640px;
+      min-width: 760px;
     }
     th {
       background: var(--accent);
@@ -185,6 +185,25 @@
     tr:nth-child(even) td { background: #fafaf5; }
     td.anomaly { color: var(--danger); font-weight: 700; }
 
+    /* 操作列 */
+    td.ops { white-space: nowrap; }
+    .op-btn {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 3px 6px;
+      letter-spacing: .03em;
+      border-radius: 4px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .op-edit { color: var(--accent); }
+    .op-edit:hover { background: var(--accent-light); text-decoration: underline; }
+    .op-delete { color: var(--danger); }
+    .op-delete:hover { background: #f8e8e8; text-decoration: underline; }
+
     .empty-msg {
       text-align: center;
       color: var(--muted);
@@ -200,6 +219,38 @@
       .site-header h1 { font-size: 16px; }
       .container { padding: 18px 12px 56px; }
       .card { padding: 16px 14px; }
+    }
+  
+    /* ===== 共通ナビ ===== */
+    .site-nav {
+      background: var(--accent);
+      display: flex;
+      gap: 4px;
+      padding: 0 20px 10px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .site-nav::-webkit-scrollbar { display: none; }
+    .site-nav a {
+      color: rgba(255, 255, 255, .78);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 5px 13px;
+      border-radius: 999px;
+      white-space: nowrap;
+      letter-spacing: .03em;
+      transition: background .15s, color .15s;
+    }
+    .site-nav a:hover { color: #fff; background: rgba(255, 255, 255, .14); }
+    .site-nav a[aria-current="page"] {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+    @media print { .site-nav { display: none !important; } }
+    @media (max-width: 480px) {
+      .site-nav { padding: 0 14px 9px; }
     }
   </style>
 </head>
@@ -219,6 +270,15 @@
     <h1>データ管理</h1>
   </a>
 </header>
+
+<nav class="site-nav" aria-label="ツール間ナビゲーション">
+  <a href="index.html">ホーム</a>
+  <a href="flight-plan.html">計画書</a>
+  <a href="checklist.html">チェックリスト</a>
+  <a href="flight-log.html">日誌</a>
+  <a href="data.html" aria-current="page">データ管理</a>
+</nav>
+
 
 <div class="container">
 
@@ -264,7 +324,7 @@
       <thead>
         <tr>
           <th>飛行日</th><th>時間(分)</th><th>場所</th><th>機体</th>
-          <th>天候・風速</th><th>バッテリー</th><th>撮影内容</th><th>異常</th>
+          <th>天候・風速</th><th>バッテリー</th><th>撮影内容</th><th>異常</th><th>操作</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -361,11 +421,38 @@
         <td>${esc(r.battery)}</td>
         <td>${esc(r.shoot)}</td>
         <td class="${r.anomaly ? 'anomaly' : ''}">${esc(r.anomaly)}</td>
+        <td class="ops">
+          <button class="op-btn op-edit" data-act="edit" data-id="${r.id}">✎ 編集</button>
+          <button class="op-btn op-delete" data-act="delete" data-id="${r.id}">✕ 削除</button>
+        </td>
       </tr>`).join('');
   }
 
   ['s-from', 's-to', 's-location', 's-aircraft', 's-keyword'].forEach(id =>
     $(id).addEventListener('input', render));
+
+  // ---- 編集・削除（イベント委任） ----
+  const EDIT_KEY = 'drone-edit-request';
+
+  $('tbody').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    const id = Number(btn.dataset.id);
+    const rec = records.find(r => r.id === id);
+    if (!rec) return;
+
+    if (btn.dataset.act === 'edit') {
+      // 編集は飛行日誌ページのフォームで行う（フォームの二重管理を避ける）
+      sessionStorage.setItem(EDIT_KEY, id);
+      location.href = 'flight-log.html';
+    } else if (btn.dataset.act === 'delete') {
+      const label = [fmtDate(rec.date), rec.location, rec.aircraft].filter(s => s && s !== '―').join('　');
+      if (!confirm(`この記録を削除しますか？\n${label}`)) return;
+      records = records.filter(r => r.id !== id);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      render();
+    }
+  });
 
   // ---- 書き出し（フィルタ結果のみ） ----
   function stamp() {

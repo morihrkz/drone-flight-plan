@@ -152,6 +152,38 @@
       .card-icon { width: 40px; height: 40px; }
       .card-title { font-size: 15px; }
     }
+  
+    /* ===== 共通ナビ ===== */
+    .site-nav {
+      background: var(--accent);
+      display: flex;
+      gap: 4px;
+      padding: 0 20px 10px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .site-nav::-webkit-scrollbar { display: none; }
+    .site-nav a {
+      color: rgba(255, 255, 255, .78);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 5px 13px;
+      border-radius: 999px;
+      white-space: nowrap;
+      letter-spacing: .03em;
+      transition: background .15s, color .15s;
+    }
+    .site-nav a:hover { color: #fff; background: rgba(255, 255, 255, .14); }
+    .site-nav a[aria-current="page"] {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+    @media print { .site-nav { display: none !important; } }
+    @media (max-width: 480px) {
+      .site-nav { padding: 0 14px 9px; }
+    }
   </style>
 </head>
 <body>
@@ -168,6 +200,15 @@
   </svg>
   <h1>ドローン運用ツール</h1>
 </header>
+
+<nav class="site-nav" aria-label="ツール間ナビゲーション">
+  <a href="index.html" aria-current="page">ホーム</a>
+  <a href="flight-plan.html">計画書</a>
+  <a href="checklist.html">チェックリスト</a>
+  <a href="flight-log.html">日誌</a>
+  <a href="data.html">データ管理</a>
+</nav>
+
 
 <div class="container">
 
