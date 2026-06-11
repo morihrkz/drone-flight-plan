@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>飛行計算ツール｜ドローン運用ツール</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#25364A">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -47,6 +49,24 @@
     .result-item .r-unit { font-size: 13px; color: var(--muted); margin-left: 4px; }
     .result-item .r-note { font-size: 11px; color: var(--muted); }
     .warn { color: #b03a3a; font-size: 12px; font-weight: 700; }
+    .btn-mini {
+      padding: 6px 10px; font-size: 12px; font-weight: 700; white-space: nowrap;
+      border: 1px solid var(--border); border-radius: 6px; background: #fff;
+      color: var(--accent); cursor: pointer; font-family: inherit;
+    }
+    .btn-mini:hover { background: var(--accent); color: #fff; }
+    .btn-mini.danger { color: #8a2f2f; }
+    .btn-mini.danger:hover { background: #8a2f2f; color: #fff; }
+    .actual-box {
+      margin-top: 4px; padding: 10px 12px; background: var(--accent-light);
+      border-radius: 6px; font-size: 12px; color: var(--accent);
+    }
+    .btn-apply {
+      width: 100%; margin-top: 8px; padding: 10px; font-size: 13px; font-weight: 700;
+      border: none; border-radius: 6px; background: var(--accent); color: #fff;
+      cursor: pointer; font-family: inherit;
+    }
+    .btn-apply:hover { background: #34495f; }
 
     @media (max-width: 760px) {
       .calc-body { grid-template-columns: 1fr; }
@@ -77,6 +97,15 @@
     <h2>1. 可能飛行時間・限界ホバリング時間</h2>
     <div class="calc-body">
       <div class="calc-form">
+        <div class="field">
+          <label for="ac-preset">機体プリセット（選ぶだけで全項目入力）</label>
+          <div style="display:flex; gap:8px;">
+            <select id="ac-preset" style="flex:1;"></select>
+            <button type="button" class="btn-mini" id="ac-save">現在値を保存</button>
+            <button type="button" class="btn-mini danger" id="ac-delete">削除</button>
+          </div>
+          <div class="hint">内蔵プリセットは公称値の近似です。実機で確認してください</div>
+        </div>
         <div class="field-row-3">
           <div class="field">
             <label for="ft-mass">機体重量（バッテリー込）[kg]</label>
@@ -164,6 +193,8 @@
           <div><span class="r-value" id="ft-out-power">―</span><span class="r-unit">W</span></div>
         </div>
         <div id="ft-warn"></div>
+        <div class="actual-box" id="ft-actual">日誌の実測データ：なし</div>
+        <button type="button" class="btn-apply" id="btn-apply-plan">📋 計算結果を計画書の備考へ送る</button>
       </div>
     </div>
   </section>
@@ -312,6 +343,118 @@
   });
   sensorSel.value = '4/3型(M4/3)';
 
+  // ===== 機体プリセット =====
+  const PRESET_FIELDS = {
+    massKg: 'ft-mass', propIn: 'ft-prop', capMah: 'ft-cap', focalMm: 'gs-focal',
+    imgW: 'gs-imgw', imgH: 'gs-imgh', sizeM: 'dp-size',
+  };
+  function renderPresets(selected) {
+    const sel = $('ac-preset');
+    sel.innerHTML = '<option value="">機体を選択…</option>';
+    allAircraftPresets().forEach(p => {
+      const o = document.createElement('option');
+      o.value = p.name;
+      o.textContent = (p.custom ? '★ ' : '') + p.name;
+      sel.appendChild(o);
+    });
+    if (selected) sel.value = selected;
+  }
+  function applyPreset(name) {
+    const p = allAircraftPresets().find(x => x.name === name);
+    if (!p) return;
+    Object.entries(PRESET_FIELDS).forEach(([k, id]) => { if (p[k] !== undefined) $(id).value = p[k]; });
+    $('ft-rotors').value = String(p.rotors || 4);
+    // 電圧: 最も近い選択肢を選ぶ
+    const volts = [...$('ft-volt').options].map(o => parseFloat(o.value));
+    const nearest = volts.reduce((a, b) => Math.abs(b - p.voltV) < Math.abs(a - p.voltV) ? b : a);
+    $('ft-volt').value = String(nearest);
+    if (p.sensor && SENSOR_PRESETS[p.sensor]) sensorSel.value = p.sensor;
+  }
+  $('ac-preset').addEventListener('change', e => {
+    if (e.target.value) { applyPreset(e.target.value); updateAll(); saveDraft(); }
+  });
+  $('ac-save').addEventListener('click', () => {
+    const name = prompt('保存する機体名を入力してください', $('ac-preset').value || '');
+    if (!name || !name.trim()) return;
+    const list = loadUserPresets().filter(p => p.name !== name.trim());
+    list.push({
+      name: name.trim(),
+      massKg: num('ft-mass'), rotors: parseInt($('ft-rotors').value),
+      propIn: num('ft-prop'), capMah: num('ft-cap'), voltV: parseFloat($('ft-volt').value),
+      sensor: sensorSel.value, focalMm: num('gs-focal'),
+      imgW: num('gs-imgw'), imgH: num('gs-imgh'), sizeM: num('dp-size'),
+    });
+    saveUserPresets(list);
+    renderPresets(name.trim());
+    alert(`「${name.trim()}」を保存しました。計画書ページの機体テンプレートにも表示されます。`);
+  });
+  $('ac-delete').addEventListener('click', () => {
+    const name = $('ac-preset').value;
+    if (!name) { alert('削除するプリセットを選択してください。'); return; }
+    if (!loadUserPresets().some(p => p.name === name)) { alert('内蔵プリセットは削除できません。'); return; }
+    if (!confirm(`「${name}」を削除しますか？`)) return;
+    saveUserPresets(loadUserPresets().filter(p => p.name !== name));
+    renderPresets('');
+  });
+
+  // ===== 入力値の自動保存 =====
+  const CALC_DRAFT_KEY = 'drone-calc-draft';
+  const ALL_INPUTS = [...document.querySelectorAll('input, select')].map(el => el.id).filter(Boolean);
+  function saveDraft() {
+    const d = {};
+    ALL_INPUTS.forEach(id => d[id] = $(id).value);
+    localStorage.setItem(CALC_DRAFT_KEY, JSON.stringify(d));
+  }
+  function loadDraft() {
+    try {
+      const d = JSON.parse(localStorage.getItem(CALC_DRAFT_KEY));
+      if (!d) return;
+      ALL_INPUTS.forEach(id => { if (d[id] !== undefined && id !== 'ac-preset') $(id).value = d[id]; });
+      if (d['ac-preset']) $('ac-preset').value = d['ac-preset'];
+    } catch (e) {}
+  }
+
+  // ===== 計画書への反映 =====
+  const CALC_SUMMARY_KEY = 'drone-calc-summary';
+  $('btn-apply-plan').addEventListener('click', () => {
+    const v = id => $(id).textContent;
+    const aircraft = $('ac-preset').value || '（機体未選択）';
+    const lines = [
+      `【飛行計算結果】機体：${aircraft}`,
+      `可能飛行時間：約${v('ft-out-flight')}分（限界ホバリング ${v('ft-out-hover')}分・予備率考慮済）`,
+      `催し上空 立入禁止距離：${v('dp-out-event')}m ／ 安全微速度：${v('dp-out-speed')}m/s`,
+      `目視可能範囲の目安：${v('dp-out-vlos')}m ／ 電波到達予想：${v('dp-out-radio')}km`,
+      `GSD：${v('gs-out-gsd')}cm/px（高度${$('gs-alt').value}m・撮影範囲 ${v('gs-out-fp')}m）`,
+    ];
+    localStorage.setItem(CALC_SUMMARY_KEY, JSON.stringify({
+      createdAt: Date.now(), aircraft, text: lines.join('\n'),
+    }));
+    if (confirm('計算結果を保存しました。計画書ページを開きますか？\n（計画書側の「計算結果を挿入」ボタンで備考に反映されます）')) {
+      location.href = 'flight-plan.html';
+    }
+  });
+
+  // ===== 日誌実測値との比較 =====
+  function updateActual(theoryMin) {
+    const aircraft = $('ac-preset').value;
+    const s = flightLogStats(aircraft || undefined);
+    const box = $('ft-actual');
+    if (!s) {
+      box.textContent = aircraft
+        ? `日誌に「${aircraft}」の実測データはまだありません`
+        : '日誌の実測データ：なし（機体プリセット選択で機体別表示）';
+      return;
+    }
+    const target = aircraft ? `「${aircraft}」` : '全機体';
+    let cmp = '';
+    if (Number.isFinite(theoryMin)) {
+      const ratio = s.avgMin / theoryMin;
+      cmp = `（理論値の${Math.round(ratio * 100)}%）`;
+      if (ratio < 0.7) cmp += ' ⚠ 実測が大幅に短め。バッテリー劣化率の見直しを推奨';
+    }
+    box.innerHTML = `📒 日誌実測 ${target}：平均 <strong>${s.avgMin.toFixed(1)}分</strong> × ${s.count}回 ${cmp}`;
+  }
+
   function updateFlightTime() {
     const r = calcFlightTime({
       totalMassKg: num('ft-mass') + (num('ft-payload') || 0),
@@ -330,6 +473,7 @@
     show('ft-out-power',  r && r.hoverW, 0);
     $('ft-warn').innerHTML = (r && r.flightTimeMin < 5)
       ? '<p class="warn">⚠ 可能飛行時間が5分未満です。重量・バッテリー構成を見直してください。</p>' : '';
+    updateActual(r ? r.flightTimeMin : NaN);
   }
 
   function updateDips() {
@@ -361,8 +505,12 @@
   }
 
   function updateAll() { updateFlightTime(); updateDips(); updateGsd(); }
-  document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', updateAll));
+  document.querySelectorAll('input, select').forEach(el =>
+    el.addEventListener('input', () => { updateAll(); saveDraft(); }));
+  renderPresets();
+  loadDraft();
   updateAll();
 </script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>
 </body>
 </html>

@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ドローン飛行計画書</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#25364A">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -540,6 +542,7 @@
     <div class="field">
       <label for="f-notes">備考</label>
       <textarea id="f-notes" placeholder="特記事項・注意事項など（任意）"></textarea>
+      <button type="button" class="btn-small" id="btn-insert-calc" style="margin-top:6px;">📋 飛行計算の結果を備考に挿入</button>
     </div>
 
     <button class="btn-print" onclick="window.print()">
@@ -736,9 +739,23 @@
   }
 
   // ===== 機体テンプレート =====
+  // 飛行計算ページの機体プリセット（内蔵+ユーザー保存）の名前も統合表示する
+  const CALC_PRESET_KEY = 'drone-aircraft-presets-v2';
+  function loadCalcPresetNames() {
+    let names = ['DJI Neo', 'DJI Mini 4 Pro', 'DJI Air 3', 'DJI Mavic 3', 'DJI Phantom 4 Pro', 'DJI Matrice 350 RTK'];
+    try {
+      const user = JSON.parse(localStorage.getItem(CALC_PRESET_KEY)) || [];
+      names = [...user.map(p => p.name), ...names];
+    } catch (e) {}
+    return names;
+  }
   function loadTemplates() {
-    try { return JSON.parse(localStorage.getItem(TPL_KEY)) || []; }
-    catch (e) { return []; }
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem(TPL_KEY)) || []; }
+    catch (e) {}
+    // 計算ページ由来の機体名を統合（重複除去）
+    loadCalcPresetNames().forEach(n => { if (!list.includes(n)) list.push(n); });
+    return list;
   }
   function renderTemplates() {
     const sel = document.getElementById('tpl-select');
@@ -805,6 +822,24 @@
     reader.readAsText(file);
   });
 
+  // ===== 飛行計算結果の挿入 =====
+  const CALC_SUMMARY_KEY = 'drone-calc-summary';
+  document.getElementById('btn-insert-calc').addEventListener('click', () => {
+    let s = null;
+    try { s = JSON.parse(localStorage.getItem(CALC_SUMMARY_KEY)); } catch (e) {}
+    if (!s || !s.text) {
+      alert('保存された計算結果がありません。\n先に「飛行計算」ページで計算し、「計算結果を計画書の備考へ送る」を押してください。');
+      return;
+    }
+    const notes = document.getElementById('f-notes');
+    notes.value = notes.value ? `${notes.value}\n\n${s.text}` : s.text;
+    // 機体名が未入力なら計算時の機体を反映
+    const ac = document.getElementById('f-aircraft');
+    if (!ac.value.trim() && s.aircraft && !s.aircraft.startsWith('（')) ac.value = s.aircraft;
+    update();
+    saveDraft();
+  });
+
   // ===== チェックリストへ進む（運用フロー） =====
   document.getElementById('btn-to-checklist').addEventListener('click', () => {
     const plan = readPlan();
@@ -828,5 +863,6 @@
   update();
 </script>
 
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>
 </body>
 </html>

@@ -185,6 +185,61 @@ function altitudeForGsdM(targetGsdCm, focalMm, imageWpx, sensorWmm) {
   return (targetGsdCm * focalMm * imageWpx) / (sensorWmm * 100);
 }
 
+/* ---------------------------------------------------------------------
+ * 4. 機体プリセット
+ * 内蔵プリセット（DJI主要機・公称スペックの近似値）＋ユーザー保存分
+ * ------------------------------------------------------------------ */
+
+/* 値はメーカー公表値からの近似。実機で必ず確認すること */
+const AIRCRAFT_PRESETS = [
+  { name: 'DJI Neo',           massKg: 0.135, rotors: 4, propIn: 3.0,  capMah: 1435, voltV: 3.87,  sensor: '1/2型',     focalMm: 3.4,  imgW: 4000, imgH: 3000, sizeM: 0.16 },
+  { name: 'DJI Mini 4 Pro',    massKg: 0.249, rotors: 4, propIn: 6.0,  capMah: 2590, voltV: 7.32,  sensor: '1/1.3型',   focalMm: 6.7,  imgW: 8064, imgH: 6048, sizeM: 0.30 },
+  { name: 'DJI Air 3',         massKg: 0.720, rotors: 4, propIn: 8.7,  capMah: 4241, voltV: 14.76, sensor: '1/1.3型',   focalMm: 6.7,  imgW: 8064, imgH: 6048, sizeM: 0.42 },
+  { name: 'DJI Mavic 3',       massKg: 0.895, rotors: 4, propIn: 9.4,  capMah: 5000, voltV: 15.4,  sensor: '4/3型(M4/3)', focalMm: 12.3, imgW: 5280, imgH: 3956, sizeM: 0.38 },
+  { name: 'DJI Phantom 4 Pro', massKg: 1.388, rotors: 4, propIn: 9.4,  capMah: 5870, voltV: 15.2,  sensor: '1型(CMOS)', focalMm: 8.8,  imgW: 5472, imgH: 3648, sizeM: 0.35 },
+  { name: 'DJI Matrice 350 RTK', massKg: 6.47, rotors: 4, propIn: 21.0, capMah: 5880, voltV: 44.76, sensor: '4/3型(M4/3)', focalMm: 12.3, imgW: 5280, imgH: 3956, sizeM: 0.90 },
+];
+
+const USER_PRESET_KEY = 'drone-aircraft-presets-v2';
+
+function loadUserPresets() {
+  try { return JSON.parse(localStorage.getItem(USER_PRESET_KEY)) || []; }
+  catch (e) { return []; }
+}
+function saveUserPresets(list) {
+  localStorage.setItem(USER_PRESET_KEY, JSON.stringify(list));
+}
+/** 内蔵＋ユーザー保存をまとめて返す（ユーザー分には custom:true を付与） */
+function allAircraftPresets() {
+  return [...AIRCRAFT_PRESETS, ...loadUserPresets().map(p => ({ ...p, custom: true }))];
+}
+
+/* ---------------------------------------------------------------------
+ * 5. 飛行日誌（実測値）の参照
+ * ------------------------------------------------------------------ */
+
+const LOG_RECORDS_KEY = 'drone-flight-log-records';
+
+/**
+ * 日誌から実測飛行時間の統計を取得
+ * @param {string} [aircraftName] 機体名で部分一致フィルタ（省略時は全件）
+ * @returns {{ count:number, avgMin:number, totalMin:number }|null}
+ */
+function flightLogStats(aircraftName) {
+  let records;
+  try { records = JSON.parse(localStorage.getItem(LOG_RECORDS_KEY)) || []; }
+  catch (e) { return null; }
+  const filtered = records.filter(r => {
+    const t = parseFloat(r.time);
+    if (!Number.isFinite(t) || t <= 0) return false;
+    if (!aircraftName) return true;
+    return (r.aircraft || '').toLowerCase().includes(aircraftName.toLowerCase());
+  });
+  if (!filtered.length) return null;
+  const totalMin = filtered.reduce((s, r) => s + parseFloat(r.time), 0);
+  return { count: filtered.length, avgMin: totalMin / filtered.length, totalMin };
+}
+
 /* 代表的なセンサーサイズプリセット [mm] */
 const SENSOR_PRESETS = {
   '1/2.3型':       { w: 6.17,  h: 4.55 },

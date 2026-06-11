@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>データ管理</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#25364A">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -314,6 +316,15 @@
     </div>
   </section>
 
+  <!-- 総飛行時間集計（DIPS申請の総飛行時間記入用） -->
+  <section class="card" style="margin-bottom:20px;">
+    <h2>総飛行時間の集計（全記録・機体別）</h2>
+    <div id="summary-box" style="font-size:14px;"></div>
+    <p style="font-size:11px; color:var(--muted); margin-top:8px;">
+      DIPS申請・飛行日誌制度の「総飛行時間」記入の参考にできます（このブラウザに記録された日誌が対象）。
+    </p>
+  </section>
+
   <!-- 結果 -->
   <div class="result-meta">
     <span><strong id="r-count">0</strong> 件　／　累計 <strong id="r-time">0</strong> 分</span>
@@ -391,7 +402,42 @@
     }).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.id - a.id));
   }
 
+  function fmtHourMin(min) {
+    const h = Math.floor(min / 60), m = Math.round(min % 60);
+    return h > 0 ? `${h}時間${m}分` : `${m}分`;
+  }
+
+  function renderSummary() {
+    const box = $('summary-box');
+    if (!records.length) { box.innerHTML = '<span style="color:var(--muted);">日誌の記録がまだありません。</span>'; return; }
+    const byAircraft = {};
+    let totalMin = 0, totalCount = 0;
+    records.forEach(r => {
+      const t = parseInt(r.time) || 0;
+      if (t <= 0) return;
+      const name = (r.aircraft || '').trim() || '（機体名未記入）';
+      byAircraft[name] = byAircraft[name] || { count: 0, min: 0 };
+      byAircraft[name].count++; byAircraft[name].min += t;
+      totalMin += t; totalCount++;
+    });
+    const rows = Object.entries(byAircraft)
+      .sort((a, b) => b[1].min - a[1].min)
+      .map(([name, v]) =>
+        `<tr><td>${esc(name)}</td><td style="text-align:right;">${v.count}回</td>
+         <td style="text-align:right;">${v.min}分</td><td style="text-align:right;">${fmtHourMin(v.min)}</td></tr>`)
+      .join('');
+    box.innerHTML = `
+      <p style="margin-bottom:10px;">全機体合計：<strong style="font-size:18px; color:var(--accent);">${fmtHourMin(totalMin)}</strong>（${totalMin}分・${totalCount}回）</p>
+      <table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <thead><tr style="border-bottom:1px solid var(--border); color:var(--muted);">
+          <th style="text-align:left; padding:4px;">機体</th><th style="text-align:right; padding:4px;">回数</th>
+          <th style="text-align:right; padding:4px;">合計(分)</th><th style="text-align:right; padding:4px;">合計</th>
+        </tr></thead><tbody>${rows}</tbody>
+      </table>`;
+  }
+
   function render() {
+    renderSummary();
     const list = getFiltered();
     const tbody = $('tbody');
     const filtered = list.length !== records.length;
@@ -490,5 +536,6 @@
   try { render(); } catch (e) {}
 </script>
 
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>
 </body>
 </html>

@@ -1,0 +1,15 @@
+{
+  "name": "ドローン運用ツール",
+  "short_name": "ドローン運用",
+  "description": "飛行計画書・飛行計算・チェックリスト・飛行日誌・データ管理",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F5F3EC",
+  "theme_color": "#25364A",
+  "lang": "ja",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
