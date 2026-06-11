@@ -363,8 +363,9 @@
     return d.innerHTML;
   }
   function fmtDate(v) {
-    if (!v) return '―';
+    if (!v || typeof v !== 'string') return '―';
     const [y, m, d] = v.split('-');
+    if (!y || !m || !d) return v;
     return `${y}/${parseInt(m)}/${parseInt(d)}`;
   }
 
@@ -484,7 +485,8 @@
     download(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }), `flight-log-${stamp()}.json`);
   });
 
-  render();
+  // 初期表示の失敗が書き出しボタン等を巻き添えにしないよう保護
+  try { render(); } catch (e) {}
 </script>
 
 </body>

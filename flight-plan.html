@@ -367,7 +367,16 @@
     @media print {
       @page {
         size: A4 portrait;
-        margin: 18mm 16mm 20mm;
+        /* 余白を0にするとブラウザのヘッダー/フッター（URL・日付・ページ番号）の
+           描画場所がなくなり、印刷設定に関係なく消える。
+           実際の余白は .doc 側の padding(mm) で確保する */
+        margin: 0;
+      }
+
+      /* 「背景のグラフィック」設定がオフでも背景色・罫線色を強制的に印刷する */
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
 
       body { background: #fff; font-size: 12px; }
@@ -389,7 +398,8 @@
         border-radius: 0;
         max-width: 100%;
         width: 100%;
-        padding: 0;
+        /* @page margin:0 のぶんの紙余白をここで確保 */
+        padding: 18mm 16mm 20mm;
         /* ページ途中での不自然な分割やサイン欄だけの孤立を防ぐ */
         break-inside: avoid;
       }
@@ -404,6 +414,10 @@
 
       .doc-table th,
       .doc-table td { font-size: 11px; padding: 7px 10px; }
+
+      /* 万一背景色が印刷されない環境でも見出しセルと値セルの
+         区別がつくよう、罫線による保険を掛けておく */
+      .doc-table th { border-right: 1.5px solid var(--accent); }
 
       .btn-print { display: none !important; }
     }

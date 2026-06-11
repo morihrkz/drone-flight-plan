@@ -767,11 +767,14 @@
   }
 
   // ---- 初期化 ----
+  // 各初期化は独立して保護する（1つの失敗が他を巻き添えにしないように）
   load();
+  let editRequested = false;
+  try { editRequested = initEditRequest(); } catch (e) {}
   // 編集リクエストがある場合は計画書の引き継ぎより優先する
   // （initSession がフォームを上書きしてしまうのを防ぐ）
-  if (!initEditRequest()) {
-    initSession();
+  if (!editRequested) {
+    try { initSession(); } catch (e) {}
   }
   render();
 </script>
