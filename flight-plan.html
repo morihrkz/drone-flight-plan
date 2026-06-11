@@ -742,7 +742,7 @@
   // 飛行計算ページの機体プリセット（内蔵+ユーザー保存）の名前も統合表示する
   const CALC_PRESET_KEY = 'drone-aircraft-presets-v2';
   function loadCalcPresetNames() {
-    let names = ['DJI Air 2S', 'DJI Air 3', 'DJI Air 3S', 'DJI AGRAS T70P', 'DJI Avata 2', 'DJI Avata 360', 'DJI Flip', 'DJI FPV', 'DJI Inspire 2', 'DJI Inspire 3', 'DJI Lito', 'DJI Matrice 350 RTK', 'DJI Mavic Pro', 'DJI Mavic 2 Pro', 'DJI Mavic 3 Zoom', 'DJI Mavic 3', 'DJI Mavic 3 Cine', 'DJI Mavic 3 Classic', 'DJI Mavic 3 Pro', 'DJI Mavic 3 Pro Cine', 'DJI Mavic 4 Pro', 'DJI Mavic Air', 'DJI Mavic Air 2', 'DJI Mini 2', 'DJI Mini 2 SE', 'DJI Mini 3', 'DJI Mini 3 Pro', 'DJI Mini 4K', 'DJI Mini 4 Pro', 'DJI Mini 5 Pro', 'DJI Neo', 'DJI Neo 2', 'DJI Phantom 4 Pro', 'DJI Phantom 4 Pro V2.0'];
+    let names = ['DJI Air 2S', 'DJI Air 3', 'DJI Air 3S', 'DJI AGRAS T70P', 'DJI Avata 2', 'DJI Avata 360', 'DJI Flip', 'DJI FPV', 'DJI Inspire 2', 'DJI Inspire 3', 'DJI Lito', 'DJI Matrice 350 RTK', 'DJI Mavic Pro', 'DJI Mavic 2 Pro', 'DJI Mavic 3', 'DJI Mavic 3 Cine', 'DJI Mavic 3 Classic', 'DJI Mavic 3 Zoom', 'DJI Mavic 3 Pro', 'DJI Mavic 4 Pro', 'DJI Mavic Air', 'DJI Mavic Air 2', 'DJI Mini 2', 'DJI Mini 2 SE', 'DJI Mini 3', 'DJI Mini 3 Pro', 'DJI Mini 4 Pro', 'DJI Mini 4K', 'DJI Mini 5 Pro', 'DJI Neo', 'DJI Neo 2', 'DJI Phantom 4 Pro', 'DJI Phantom 4 Pro V2.0'];
     try {
       const user = JSON.parse(localStorage.getItem(CALC_PRESET_KEY)) || [];
       names = [...user.map(p => p.name), ...names];
