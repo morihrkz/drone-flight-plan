@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>飛行計算ツール｜ドローン運用ツール</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --accent: #25364A; --accent-light: #EEF2E4; --border: #C8CEC0;
+      --text: #2D3325; --muted: #72786B; --bg: #F5F3EC; --white: #fff; --radius: 8px;
+    }
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
+      background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6;
+    }
+    .site-header { background: var(--accent); color: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+    .site-header h1 { font-size: 18px; font-weight: 700; letter-spacing: .03em; }
+    .site-header a { color: inherit; text-decoration: none; display: flex; align-items: center; gap: 12px; }
+    .site-nav { background: var(--accent); padding: 0 20px 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .site-nav a { color: rgba(255,255,255,.85); text-decoration: none; font-size: 13px; font-weight: 700;
+      padding: 5px 13px; border-radius: 999px; white-space: nowrap; }
+    .site-nav a:hover { color: #fff; background: rgba(255,255,255,.14); }
+    .site-nav a[aria-current="page"] { background: var(--accent-light); color: var(--accent); }
+
+    .layout { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+    .calc-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 28px; overflow: hidden; }
+    .calc-card h2 { background: var(--accent-light); color: var(--accent); font-size: 16px; padding: 12px 20px; border-bottom: 1px solid var(--border); }
+    .calc-body { display: grid; grid-template-columns: 1fr 320px; gap: 0; }
+    .calc-form { padding: 20px; }
+    .calc-result { background: #FAFAF5; border-left: 1px solid var(--border); padding: 20px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+    .field input, .field select {
+      width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px;
+      font-size: 14px; font-family: inherit; background: #fff; color: var(--text);
+    }
+    .field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+    .field input.invalid { border-color: #b03a3a; background: #fdf3f3; }
+    .field .hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+    .result-item { margin-bottom: 16px; }
+    .result-item .r-label { font-size: 12px; color: var(--muted); font-weight: 700; }
+    .result-item .r-value { font-size: 22px; font-weight: 700; color: var(--accent); }
+    .result-item .r-unit { font-size: 13px; color: var(--muted); margin-left: 4px; }
+    .result-item .r-note { font-size: 11px; color: var(--muted); }
+    .warn { color: #b03a3a; font-size: 12px; font-weight: 700; }
+
+    @media (max-width: 760px) {
+      .calc-body { grid-template-columns: 1fr; }
+      .calc-result { border-left: none; border-top: 1px solid var(--border); }
+      .field-row, .field-row-3 { grid-template-columns: 1fr; }
+    }
+    @media print { .site-nav { display: none !important; } }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="index.html"><h1>ドローン運用ツール｜飛行計算</h1></a>
+</header>
+<nav class="site-nav" aria-label="ツール間ナビゲーション">
+  <a href="index.html">ホーム</a>
+  <a href="flight-plan.html">計画書</a>
+  <a href="calculator.html" aria-current="page">飛行計算</a>
+  <a href="checklist.html">チェックリスト</a>
+  <a href="flight-log.html">日誌</a>
+  <a href="data.html">データ管理</a>
+</nav>
+
+<div class="layout">
+
+  <!-- ===== 1. 飛行時間・ホバリング計算 ===== -->
+  <section class="calc-card">
+    <h2>1. 可能飛行時間・限界ホバリング時間</h2>
+    <div class="calc-body">
+      <div class="calc-form">
+        <div class="field-row-3">
+          <div class="field">
+            <label for="ft-mass">機体重量（バッテリー込）[kg]</label>
+            <input type="number" id="ft-mass" min="0.05" max="150" step="0.01" value="0.92">
+          </div>
+          <div class="field">
+            <label for="ft-payload">ペイロード [kg]</label>
+            <input type="number" id="ft-payload" min="0" max="50" step="0.01" value="0">
+            <div class="hint">カメラ・投下物等の追加重量</div>
+          </div>
+          <div class="field">
+            <label for="ft-rotors">ローター数</label>
+            <select id="ft-rotors">
+              <option value="4" selected>4（クアッド）</option>
+              <option value="6">6（ヘキサ）</option>
+              <option value="8">8（オクト）</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row-3">
+          <div class="field">
+            <label for="ft-prop">プロペラ直径 [inch]</label>
+            <input type="number" id="ft-prop" min="2" max="40" step="0.1" value="9.4">
+          </div>
+          <div class="field">
+            <label for="ft-cap">バッテリー容量 [mAh]</label>
+            <input type="number" id="ft-cap" min="100" max="60000" step="50" value="5000">
+          </div>
+          <div class="field">
+            <label for="ft-volt">公称電圧 [V]</label>
+            <select id="ft-volt">
+              <option value="7.4">2S（7.4V）</option>
+              <option value="11.1">3S（11.1V）</option>
+              <option value="14.8" selected>4S（14.8V）</option>
+              <option value="22.2">6S（22.2V）</option>
+              <option value="44.4">12S（44.4V）</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row-3">
+          <div class="field">
+            <label for="ft-fom">ローター効率 FoM</label>
+            <input type="number" id="ft-fom" min="0.3" max="0.9" step="0.01" value="0.65">
+            <div class="hint">小型機0.55〜0.65／大型機〜0.75</div>
+          </div>
+          <div class="field">
+            <label for="ft-eff">モーター×ESC効率</label>
+            <input type="number" id="ft-eff" min="0.4" max="0.95" step="0.01" value="0.80">
+          </div>
+          <div class="field">
+            <label for="ft-health">バッテリー劣化率</label>
+            <input type="number" id="ft-health" min="0.5" max="1" step="0.01" value="0.90">
+            <div class="hint">新品=1.00／使い込み=0.80</div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="ft-reserve">残量予備率（帰還用）</label>
+            <select id="ft-reserve">
+              <option value="0.30" selected>30%（推奨）</option>
+              <option value="0.25">25%</option>
+              <option value="0.20">20%</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ft-cruise">前進飛行係数</label>
+            <input type="number" id="ft-cruise" min="1" max="2" step="0.05" value="1.15">
+            <div class="hint">無風ホバ中心=1.0〜1.1／移動・風あり=1.2〜1.3</div>
+          </div>
+        </div>
+      </div>
+      <div class="calc-result">
+        <div class="result-item">
+          <div class="r-label">可能飛行時間（運用値）</div>
+          <div><span class="r-value" id="ft-out-flight">―</span><span class="r-unit">分</span></div>
+          <div class="r-note">予備率・劣化・前進飛行を考慮</div>
+        </div>
+        <div class="result-item">
+          <div class="r-label">限界ホバリング時間（物理限界）</div>
+          <div><span class="r-value" id="ft-out-hover">―</span><span class="r-unit">分</span></div>
+          <div class="r-note">残量0%まで使用した場合（計画には使用しないこと）</div>
+        </div>
+        <div class="result-item">
+          <div class="r-label">ホバリング所要電力</div>
+          <div><span class="r-value" id="ft-out-power">―</span><span class="r-unit">W</span></div>
+        </div>
+        <div id="ft-warn"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 2. DIPS申請パラメータ ===== -->
+  <section class="calc-card">
+    <h2>2. DIPS申請用パラメータ（距離・速度）</h2>
+    <div class="calc-body">
+      <div class="calc-form">
+        <div class="field-row-3">
+          <div class="field">
+            <label for="dp-alt">飛行高度 AGL [m]</label>
+            <input type="number" id="dp-alt" min="1" max="150" step="1" value="50">
+          </div>
+          <div class="field">
+            <label for="dp-tether">係留索の長さ [m]（係留時）</label>
+            <input type="number" id="dp-tether" min="0" max="100" step="1" value="30">
+          </div>
+          <div class="field">
+            <label for="dp-size">機体最大寸法 [m]</label>
+            <input type="number" id="dp-size" min="0.05" max="5" step="0.01" value="0.35">
+          </div>
+        </div>
+        <div class="field-row-3">
+          <div class="field">
+            <label for="dp-freq">使用周波数 [MHz]</label>
+            <select id="dp-freq">
+              <option value="2400" selected>2.4GHz帯</option>
+              <option value="5700">5.7GHz帯</option>
+              <option value="920">920MHz帯</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="dp-txpwr">送信出力 [dBm]</label>
+            <input type="number" id="dp-txpwr" min="-10" max="40" step="1" value="20">
+          </div>
+          <div class="field">
+            <label for="dp-sens">受信感度 [dBm]</label>
+            <input type="number" id="dp-sens" min="-130" max="-50" step="1" value="-90">
+          </div>
+        </div>
+      </div>
+      <div class="calc-result">
+        <div class="result-item">
+          <div class="r-label">係留時の水平限界距離</div>
+          <div><span class="r-value" id="dp-out-tether">―</span><span class="r-unit">m</span></div>
+        </div>
+        <div class="result-item">
+          <div class="r-label">電波到達予想距離（見通し内）</div>
+          <div><span class="r-value" id="dp-out-radio">―</span><span class="r-unit">km</span></div>
+          <div class="r-note">FSPL・マージン15dBによる理論値</div>
+        </div>
+        <div class="result-item">
+          <div class="r-label">目視可能範囲の目安</div>
+          <div><span class="r-value" id="dp-out-vlos">―</span><span class="r-unit">m</span></div>
+        </div>
+        <div class="result-item">
+          <div class="r-label">催し上空：立入禁止区画距離</div>
+          <div><span class="r-value" id="dp-out-event">―</span><span class="r-unit">m</span></div>
+          <div class="r-note">審査要領の高度別テーブルに基づく</div>
+        </div>
+        <div class="result-item">
+          <div class="r-label">安全微速度の目安（運動E≦25J）</div>
+          <div><span class="r-value" id="dp-out-speed">―</span><span class="r-unit">m/s</span></div>
+        </div>
+        <div id="dp-warn"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 3. GSD・撮影範囲 ===== -->
+  <section class="calc-card">
+    <h2>3. GSD（地上画素寸法）・撮影範囲</h2>
+    <div class="calc-body">
+      <div class="calc-form">
+        <div class="field-row">
+          <div class="field">
+            <label for="gs-sensor">センサーサイズ</label>
+            <select id="gs-sensor"></select>
+          </div>
+          <div class="field">
+            <label for="gs-focal">レンズ実焦点距離 [mm]</label>
+            <input type="number" id="gs-focal" min="1" max="600" step="0.1" value="12.3">
+            <div class="hint">35mm換算ではなく実焦点距離を入力</div>
+          </div>
+        </div>
+        <div class="field-row-3">
+          <div class="field">
+            <label for="gs-imgw">画像幅 [px]</label>
+            <input type="number" id="gs-imgw" min="640" max="20000" step="1" value="5280">
+          </div>
+          <div class="field">
+            <label for="gs-imgh">画像高さ [px]</label>
+            <input type="number" id="gs-imgh" min="480" max="15000" step="1" value="3956">
+          </div>
+          <div class="field">
+            <label for="gs-alt">飛行高度 AGL [m]</label>
+            <input type="number" id="gs-alt" min="1" max="150" step="1" value="50">
+          </div>
+        </div>
+        <div class="field">
+          <label for="gs-target">目標GSD [cm/px]（高度の逆算）</label>
+          <input type="number" id="gs-target" min="0.1" max="50" step="0.1" value="2.0">
+        </div>
+      </div>
+      <div class="calc-result">
+        <div class="result-item">
+          <div class="r-label">GSD（地上画素寸法）</div>
+          <div><span class="r-value" id="gs-out-gsd">―</span><span class="r-unit">cm/px</span></div>
+        </div>
+        <div class="result-item">
+          <div class="r-label">1枚に写る範囲（横 × 縦）</div>
+          <div><span class="r-value" id="gs-out-fp">―</span><span class="r-unit">m</span></div>
+        </div>
+        <div class="result-item">
+          <div class="r-label">目標GSD達成に必要な高度</div>
+          <div><span class="r-value" id="gs-out-alt">―</span><span class="r-unit">m</span></div>
+          <div id="gs-warn"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="flight-calc.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  const num = id => {
+    const el = $(id);
+    const v = parseFloat(el.value);
+    const min = parseFloat(el.min), max = parseFloat(el.max);
+    const ok = Number.isFinite(v) && (!Number.isFinite(min) || v >= min) && (!Number.isFinite(max) || v <= max);
+    el.classList.toggle('invalid', !ok);
+    return ok ? v : NaN;
+  };
+  const show = (id, v, digits = 1) =>
+    $(id).textContent = (v === null || !Number.isFinite(v)) ? '―' : v.toFixed(digits);
+
+  // センサープリセット投入
+  const sensorSel = $('gs-sensor');
+  Object.keys(SENSOR_PRESETS).forEach(k => {
+    const o = document.createElement('option');
+    o.value = k; o.textContent = `${k}（${SENSOR_PRESETS[k].w}×${SENSOR_PRESETS[k].h}mm）`;
+    sensorSel.appendChild(o);
+  });
+  sensorSel.value = '4/3型(M4/3)';
+
+  function updateFlightTime() {
+    const r = calcFlightTime({
+      totalMassKg: num('ft-mass') + (num('ft-payload') || 0),
+      rotorCount: parseInt($('ft-rotors').value),
+      propDiameterM: num('ft-prop') * 0.0254,  // inch → m
+      figureOfMerit: num('ft-fom'),
+      driveEff: num('ft-eff'),
+      capacityMah: num('ft-cap'),
+      voltageV: parseFloat($('ft-volt').value),
+      reserveRatio: parseFloat($('ft-reserve').value),
+      batteryHealth: num('ft-health'),
+      cruiseFactor: num('ft-cruise'),
+    });
+    show('ft-out-flight', r && r.flightTimeMin);
+    show('ft-out-hover',  r && r.hoverLimitMin);
+    show('ft-out-power',  r && r.hoverW, 0);
+    $('ft-warn').innerHTML = (r && r.flightTimeMin < 5)
+      ? '<p class="warn">⚠ 可能飛行時間が5分未満です。重量・バッテリー構成を見直してください。</p>' : '';
+  }
+
+  function updateDips() {
+    const alt = num('dp-alt');
+    show('dp-out-tether', tetherHorizontalRangeM(num('dp-tether'), alt));
+    show('dp-out-radio',  radioRangeKm(num('dp-txpwr'), 2, 2, num('dp-sens'), parseFloat($('dp-freq').value)), 2);
+    show('dp-out-vlos',   visualLineOfSightM(num('dp-size')), 0);
+    show('dp-out-event',  eventBufferDistanceM(alt), 0);
+    const mass = num('ft-mass') + (num('ft-payload') || 0);
+    show('dp-out-speed',  safeSpeedMps(mass));
+    $('dp-warn').innerHTML = (Number.isFinite(alt) && alt > 150)
+      ? '<p class="warn">⚠ 150m超は別途許可が必要です。</p>' : '';
+  }
+
+  function updateGsd() {
+    const s = SENSOR_PRESETS[sensorSel.value];
+    const r = calcGsd({
+      sensorWmm: s.w, sensorHmm: s.h,
+      focalMm: num('gs-focal'),
+      imageWpx: num('gs-imgw'), imageHpx: num('gs-imgh'),
+      altitudeM: num('gs-alt'),
+    });
+    show('gs-out-gsd', r && r.gsdCm, 2);
+    $('gs-out-fp').textContent = r ? `${r.footprintWm.toFixed(1)} × ${r.footprintHm.toFixed(1)}` : '―';
+    const reqAlt = altitudeForGsdM(num('gs-target'), num('gs-focal'), num('gs-imgw'), s.w);
+    show('gs-out-alt', reqAlt);
+    $('gs-warn').innerHTML = (reqAlt !== null && reqAlt > 150)
+      ? '<p class="warn">⚠ 必要高度が150mを超えます（航空法の許可対象）。長焦点レンズ等を検討。</p>' : '';
+  }
+
+  function updateAll() { updateFlightTime(); updateDips(); updateGsd(); }
+  document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', updateAll));
+  updateAll();
+</script>
+</body>
+</html>
