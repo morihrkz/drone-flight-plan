@@ -11,6 +11,9 @@
     :root {
       --accent: #25364A; --accent-light: #EEF2E4; --border: #C8CEC0;
       --text: #2D3325; --muted: #72786B; --bg: #F5F3EC; --white: #fff; --radius: 8px;
+      /* 【UI改善 1-1】屋外日光下でのコントラスト向上用：ラベル専用の濃い文字色 */
+      --label: #3A4032;
+      --danger: #b03a3a;
     }
     body {
       font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
@@ -32,10 +35,12 @@
     .calc-form { padding: 20px; }
     .calc-result { background: #FAFAF5; border-left: 1px solid var(--border); padding: 20px; }
     .field { margin-bottom: 16px; }
-    .field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+    /* 【UI改善 1-1】ラベルを濃色化＋1px拡大：屋外の強い日光下でも読み取りやすく */
+    .field label { display: block; font-size: 13px; font-weight: 700; color: var(--label); margin-bottom: 4px; }
+    /* 【UI改善 1-1】入力文字16px化：可読性向上＋iOS Safariのフォーカス時自動ズームを抑止（誤操作防止） */
     .field input, .field select {
-      width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px;
-      font-size: 14px; font-family: inherit; background: #fff; color: var(--text);
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px;
+      font-size: 16px; font-weight: 600; font-family: inherit; background: #fff; color: var(--text);
     }
     .field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
     .field input.invalid { border-color: #b03a3a; background: #fdf3f3; }
@@ -43,18 +48,27 @@
 
     /* ===== スライダー併用 ===== */
     .slider-wrap { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+    /* 【UI改善 1-2】スライダー現在値バッジ：太字・大きめで指がスライダー上にあっても値が読める */
+    .slider-val {
+      min-width: 64px; text-align: right; font-size: 16px; font-weight: 700;
+      color: var(--accent); font-variant-numeric: tabular-nums;
+      transition: transform .1s ease-out;
+    }
+    /* 【UI改善 1-2】ドラッグ中はバッジをさらに拡大して強調 */
+    .slider-wrap.dragging .slider-val { transform: scale(1.25); transform-origin: right center; }
     input[type="range"].fld-slider {
       -webkit-appearance: none; appearance: none; flex: 1; height: 6px;
       background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--fill, 50%), #DDE1D4 var(--fill, 50%), #DDE1D4 100%);
       border-radius: 999px; outline: none; cursor: pointer; padding: 0; border: none;
     }
+    /* 【UX改善】サムを26pxに拡大：グローブ着用時でもつまみやすく（タッチターゲット拡大） */
     input[type="range"].fld-slider::-webkit-slider-thumb {
-      -webkit-appearance: none; appearance: none; width: 22px; height: 22px;
+      -webkit-appearance: none; appearance: none; width: 26px; height: 26px;
       border-radius: 50%; background: var(--white); border: 3px solid var(--accent);
       box-shadow: 0 1px 4px rgba(0,0,0,.25); cursor: grab;
     }
     input[type="range"].fld-slider::-moz-range-thumb {
-      width: 22px; height: 22px; border-radius: 50%; background: var(--white);
+      width: 26px; height: 26px; border-radius: 50%; background: var(--white);
       border: 3px solid var(--accent); box-shadow: 0 1px 4px rgba(0,0,0,.25); cursor: grab;
     }
     input[type="range"].fld-slider:active::-webkit-slider-thumb { cursor: grabbing; transform: scale(1.15); }
@@ -83,6 +97,21 @@
     .result-item .r-unit { font-size: 13px; color: var(--muted); margin-left: 4px; }
     .result-item .r-note { font-size: 11px; color: var(--muted); }
     .warn { color: #b03a3a; font-size: 12px; font-weight: 700; }
+    /* 【UI改善 1-3】150m超の警告バナー：⚠アイコン＋背景付きで視覚的に強調 */
+    .warn-banner {
+      display: flex; align-items: flex-start; gap: 8px; margin-top: 8px;
+      padding: 10px 12px; border: 2px solid var(--danger); border-radius: 6px;
+      background: #FDF3F3; color: #8a2f2f; font-size: 13px; font-weight: 700; line-height: 1.5;
+    }
+    .warn-banner .w-icon { font-size: 18px; line-height: 1.2; }
+    /* 【UX改善 2-3】計画コピーボタン＋コピー完了フィードバック */
+    .btn-copy {
+      width: 100%; margin-top: 8px; padding: 12px; font-size: 14px; font-weight: 700;
+      border: 1px solid var(--accent); border-radius: 6px; background: #fff;
+      color: var(--accent); cursor: pointer; font-family: inherit;
+    }
+    .btn-copy:hover { background: var(--accent-light); }
+    .btn-copy.copied { background: #F2F7EA; border-color: #9DB87C; color: #3E5226; }
     .btn-mini {
       padding: 6px 10px; font-size: 12px; font-weight: 700; white-space: nowrap;
       border: 1px solid var(--border); border-radius: 6px; background: #fff;
@@ -339,21 +368,45 @@
           <label for="gs-target">目標GSD [cm/px]（高度の逆算）</label>
           <input type="number" id="gs-target" min="0.1" max="50" step="0.1" value="2.0">
         </div>
+        <!-- 【UX改善 2-1/2-3】ラップ率入力を新設（写真測量の計画値・コピー出力に使用） -->
+        <div class="field-row">
+          <div class="field">
+            <label for="gs-front">前方ラップ率 [%]</label>
+            <input type="number" id="gs-front" min="30" max="95" step="1" value="80">
+            <div class="hint">写真測量の推奨：80%前後</div>
+          </div>
+          <div class="field">
+            <label for="gs-side">側方ラップ率 [%]</label>
+            <input type="number" id="gs-side" min="30" max="95" step="1" value="70">
+            <div class="hint">写真測量の推奨：60〜70%</div>
+          </div>
+        </div>
       </div>
       <div class="calc-result">
         <div class="result-item">
           <div class="r-label">GSD（地上画素寸法）</div>
           <div><span class="r-value" id="gs-out-gsd">―</span><span class="r-unit">cm/px</span></div>
+          <!-- 【UX改善 2-2】GSDが1cm/px未満のときmm/px換算を自動併記 -->
+          <div class="r-note" id="gs-out-gsd-sub"></div>
         </div>
         <div class="result-item">
-          <div class="r-label">1枚に写る範囲（横 × 縦）</div>
-          <div><span class="r-value" id="gs-out-fp">―</span><span class="r-unit">m</span></div>
+          <div class="r-label">1枚に写る撮影範囲</div>
+          <!-- 【UX改善 2-2】「横 ◯m × 縦 ◯m」形式で方向が一目で分かる表示に変更 -->
+          <div><span class="r-value" id="gs-out-fp" style="font-size:18px;">―</span></div>
+        </div>
+        <!-- 【UX改善 2-1】ラップ率に基づく撮影間隔・コース間隔（既存計算結果からの参考値） -->
+        <div class="result-item">
+          <div class="r-label">撮影間隔／コース間隔（ラップ率反映）</div>
+          <div><span class="r-value" id="gs-out-lap" style="font-size:18px;">―</span></div>
+          <div class="r-note">前方ラップ→シャッター間隔距離、側方ラップ→隣接コース間隔</div>
         </div>
         <div class="result-item">
           <div class="r-label">目標GSD達成に必要な高度</div>
           <div><span class="r-value" id="gs-out-alt">―</span><span class="r-unit">m</span></div>
           <div id="gs-warn"></div>
         </div>
+        <!-- 【UX改善 2-3】飛行計画テキストをクリップボードへコピー -->
+        <button type="button" class="btn-copy" id="btn-copy-plan">📋 計画をコピー</button>
       </div>
     </div>
     <!-- ③ 画角・撮影範囲の動的図解 -->
@@ -417,6 +470,9 @@
     'gs-alt':     [1, 200, 1],
     'gs-focal':   [2, 50, 0.1],
     'gs-target':  [0.1, 10, 0.1],
+    // 【UX改善 2-1】ラップ率スライダー：最小30%に制限し1%刻みで微調整しやすく
+    'gs-front':   [30, 95, 1],
+    'gs-side':    [30, 95, 1],
   };
   function paintSlider(sl) {
     const min = parseFloat(sl.min), max = parseFloat(sl.max), v = parseFloat(sl.value);
@@ -425,7 +481,12 @@
   function syncSliders() {
     Object.keys(SLIDER_DEFS).forEach(id => {
       const sl = $(id + '-slider');
-      if (sl) { sl.value = $(id).value; paintSlider(sl); }
+      if (sl) {
+        sl.value = $(id).value; paintSlider(sl);
+        // 【UI改善 1-2】プリセット適用・下書き復元時も現在値バッジを同期
+        const badge = sl.parentElement.querySelector('.slider-val');
+        if (badge) badge.textContent = $(id).value;
+      }
     });
   }
   Object.entries(SLIDER_DEFS).forEach(([id, [min, max, step]]) => {
@@ -440,15 +501,26 @@
     sl.value = input.value;
     sl.setAttribute('aria-label', (input.labels && input.labels[0] ? input.labels[0].textContent : id) + ' スライダー');
     wrap.appendChild(sl);
+    // 【UI改善 1-2】現在値バッジ：指がスライダー上にあっても太字の大きな数字で値を確認できる
+    const badge = document.createElement('span');
+    badge.className = 'slider-val';
+    badge.textContent = input.value;
+    wrap.appendChild(badge);
     input.insertAdjacentElement('afterend', wrap);
     paintSlider(sl);
     sl.addEventListener('input', () => {
       input.value = sl.value;
       paintSlider(sl);
+      badge.textContent = sl.value;   // 【UI改善 1-2】操作中もバッジを即時更新
       input.dispatchEvent(new Event('input', { bubbles: true }));
     });
+    // 【UI改善 1-2】ドラッグ中はバッジを拡大表示（pointerイベントでタッチ・マウス両対応）
+    sl.addEventListener('pointerdown', () => wrap.classList.add('dragging'));
+    ['pointerup', 'pointercancel'].forEach(ev =>
+      sl.addEventListener(ev, () => wrap.classList.remove('dragging')));
     input.addEventListener('input', e => {
       if (e.isTrusted) { sl.value = input.value; paintSlider(sl); }
+      badge.textContent = input.value;  // 数値ボックス直接入力時もバッジ同期
     });
   });
 
@@ -552,6 +624,32 @@
     }
   });
 
+  // ===== 【UX改善 2-3】計画共有：飛行計画テキストをクリップボードへコピー =====
+  $('btn-copy-plan').addEventListener('click', async () => {
+    const r = lastGsdResult;
+    const text = [
+      '【飛行計画】',
+      `高度：${$('gs-alt').value}m`,
+      `GSD：${r ? r.gsdCm.toFixed(2) : '―'}cm/px`,
+      `撮影範囲：横 ${r ? r.footprintWm.toFixed(1) : '―'}m × 縦 ${r ? r.footprintHm.toFixed(1) : '―'}m`,
+      `前方ラップ率：${$('gs-front').value}%`,
+      `側方ラップ率：${$('gs-side').value}%`,
+    ].join('\n');
+    const btn = $('btn-copy-plan');
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (e) {
+      // 旧ブラウザ・非HTTPS環境向けフォールバック
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); ta.remove();
+    }
+    // コピー完了をボタン自体で視覚フィードバック（屋外でトーストより気づきやすい）
+    btn.textContent = '✅ コピーしました';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 計画をコピー'; btn.classList.remove('copied'); }, 2000);
+  });
+
   // ===== 日誌実測値との比較 =====
   function updateActual(theoryMin) {
     const aircraft = $('ac-preset').value;
@@ -602,8 +700,9 @@
     show('dp-out-event',  eventBufferDistanceM(alt), 0);
     const mass = num('ft-mass') + (num('ft-payload') || 0);
     show('dp-out-speed',  safeSpeedMps(mass));
+    // 【UI改善 1-3】150m超警告をアイコン付きバナー形式に強化（入力欄の赤枠は updateCompliance 側で付与）
     $('dp-warn').innerHTML = (Number.isFinite(alt) && alt > 150)
-      ? '<p class="warn">⚠ 150m超は別途許可が必要です。</p>' : '';
+      ? '<div class="warn-banner"><span class="w-icon">⚠️</span><span>飛行高度150m超：航空局の個別許可が必要です。</span></div>' : '';
   }
 
   // ===== ③ 画角・撮影範囲の動的図解 =====
@@ -637,6 +736,9 @@
     $('viz-gsd-label').textContent = `GSD: ${gsdCm.toFixed(2)} cm/px`;
   }
 
+  // 【UX改善 2-3】コピー機能用に最新のGSD計算結果を保持
+  let lastGsdResult = null;
+
   function updateGsd() {
     const s = SENSOR_PRESETS[sensorSel.value];
     const r = calcGsd({
@@ -645,13 +747,25 @@
       imageWpx: num('gs-imgw'), imageHpx: num('gs-imgh'),
       altitudeM: num('gs-alt'),
     });
+    lastGsdResult = r;
     show('gs-out-gsd', r && r.gsdCm, 2);
-    $('gs-out-fp').textContent = r ? `${r.footprintWm.toFixed(1)} × ${r.footprintHm.toFixed(1)}` : '―';
+    // 【UX改善 2-2】GSDが1cm/px未満ならmm/px換算を自動併記（現場で直感的に把握しやすく）
+    $('gs-out-gsd-sub').textContent = (r && r.gsdCm < 1)
+      ? `= ${(r.gsdCm * 10).toFixed(1)} mm/px（高精細）` : '';
+    // 【UX改善 2-2】「横 ◯m × 縦 ◯m」形式で方向を明示
+    $('gs-out-fp').textContent = r
+      ? `横 ${r.footprintWm.toFixed(1)}m × 縦 ${r.footprintHm.toFixed(1)}m` : '―';
+    // 【UX改善 2-1】ラップ率→撮影間隔（前方）・コース間隔（側方）の参考値
+    const front = num('gs-front'), side = num('gs-side');
+    $('gs-out-lap').textContent = (r && Number.isFinite(front) && Number.isFinite(side))
+      ? `${(r.footprintHm * (1 - front / 100)).toFixed(1)}m ／ ${(r.footprintWm * (1 - side / 100)).toFixed(1)}m`
+      : '―';
     updateViz(num('gs-alt'), r && r.footprintWm, r && r.footprintHm, r && r.gsdCm);
     const reqAlt = altitudeForGsdM(num('gs-target'), num('gs-focal'), num('gs-imgw'), s.w);
     show('gs-out-alt', reqAlt);
+    // 【UI改善 1-3】警告をアイコン付きバナー形式に強化
     $('gs-warn').innerHTML = (reqAlt !== null && reqAlt > 150)
-      ? '<p class="warn">⚠ 必要高度が150mを超えます（航空法の許可対象）。長焦点レンズ等を検討。</p>' : '';
+      ? '<div class="warn-banner"><span class="w-icon">⚠️</span><span>必要高度が150mを超えます（航空法の許可対象）。長焦点レンズ等を検討してください。</span></div>' : '';
   }
 
   // ===== ④ 航空法・DIPS 簡易コンプライアンスチェック =====
