@@ -382,6 +382,14 @@
   </div>
 
   <!-- 進行中セッション（計画書→チェックリストから遷移してきた場合） -->
+  <div id="backup-banner" style="display:none; margin-bottom:20px; padding:12px 14px; background:var(--accent-light); border:1.5px solid var(--accent); border-radius:var(--radius); font-size:13px; line-height:1.7;">
+    <strong>バックアップのおすすめ：</strong><span id="backup-msg"></span>
+    <div style="display:flex; gap:10px; margin-top:8px;">
+      <button id="backup-now" style="flex:1; padding:8px 12px; background:var(--accent); color:#fff; border:2px solid var(--accent); border-radius:var(--radius); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer;">今すぐ書き出す</button>
+      <button id="backup-later" style="flex:1; padding:8px 12px; background:transparent; color:var(--muted); border:2px solid var(--border); border-radius:var(--radius); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer;">あとで</button>
+    </div>
+  </div>
+
   <div id="session-banner" style="display:none; margin-bottom:20px; padding:12px 14px; background:var(--accent-light); border:1.5px solid var(--accent); border-radius:var(--radius); font-size:13px; line-height:1.7;">
     <div style="font-size:11px; font-weight:700; letter-spacing:.06em; color:var(--accent); margin-bottom:2px;">飛行計画から引き継ぎました</div>
     <div id="session-summary"></div>
@@ -527,6 +535,42 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
   }
 
+  // ---- バックアップ催促 ----
+  const META_KEY = 'drone-flight-log-meta';
+  const DIRTY_THRESHOLD = 5; // 未バックアップの変更がこの件数に達したら催促
+
+  function loadMeta() {
+    try {
+      const m = JSON.parse(localStorage.getItem(META_KEY));
+      if (m && typeof m === 'object') return { lastExportAt: m.lastExportAt || null, dirty: m.dirty || 0, snoozedAt: m.snoozedAt || 0 };
+    } catch (e) {}
+    // メタ情報がない（この機能の導入前から使っている）場合は、
+    // 既存の全記録を「未バックアップ」とみなして出発する
+    return { lastExportAt: null, dirty: records.length, snoozedAt: 0 };
+  }
+  let meta = { lastExportAt: null, dirty: 0, snoozedAt: 0 };
+  function saveMeta() {
+    localStorage.setItem(META_KEY, JSON.stringify(meta));
+  }
+  function markDirty(n) {
+    meta.dirty += n;
+    saveMeta();
+    updateBackupBanner();
+  }
+  function updateBackupBanner() {
+    const banner = $('backup-banner');
+    // 「あとで」を押した時点の件数を超えて変更が積まれたら再表示する
+    const show = meta.dirty >= DIRTY_THRESHOLD && meta.dirty > meta.snoozedAt;
+    if (!show) { banner.style.display = 'none'; return; }
+    const last = meta.lastExportAt
+      ? `前回の書き出し（${meta.lastExportAt.slice(0, 10)}）以降、`
+      : 'まだ一度も書き出しされていません。';
+    $('backup-msg').textContent = meta.lastExportAt
+      ? `${last}${meta.dirty} 件の変更がバックアップされていません。`
+      : `${last}${meta.dirty} 件の記録が未バックアップです。`;
+    banner.style.display = 'block';
+  }
+
   // ---- 表示 ----
   function esc(s) {
     const d = document.createElement('div');
@@ -617,6 +661,7 @@
       }
     }
     persist();
+    markDirty(1);
     clearForm();
     render();
   });
@@ -647,12 +692,13 @@
       records = records.filter(r => r.id !== id);
       if (editingId === id) { editingId = null; setMode(false); clearForm(); }
       persist();
+      markDirty(1);
       render();
     }
   });
 
   // ---- 書き出し ----
-  $('btn-export').addEventListener('click', () => {
+  function exportJSON() {
     if (records.length === 0) {
       alert('書き出す記録がありません。');
       return;
@@ -670,6 +716,19 @@
     a.download = `flight-log-${stamp}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
+    // 全件書き出し＝バックアップ完了として催促をリセット
+    meta.lastExportAt = new Date().toISOString();
+    meta.dirty = 0;
+    meta.snoozedAt = 0;
+    saveMeta();
+    updateBackupBanner();
+  }
+  $('btn-export').addEventListener('click', exportJSON);
+  $('backup-now').addEventListener('click', exportJSON);
+  $('backup-later').addEventListener('click', () => {
+    meta.snoozedAt = meta.dirty;
+    saveMeta();
+    updateBackupBanner();
   });
 
   // ---- CSV 書き出し ----
@@ -718,6 +777,7 @@
           }
         });
         persist();
+        markDirty(added);
         render();
         alert(`読み込み完了：${added} 件を追加しました（重複 ${imported.length - added} 件はスキップ）。`);
       } catch (err) {
@@ -769,6 +829,15 @@
   // ---- 初期化 ----
   // 各初期化は独立して保護する（1つの失敗が他を巻き添えにしないように）
   load();
+  try { meta = loadMeta(); saveMeta(); } catch (e) {}
+  try { updateBackupBanner(); } catch (e) {}
+  // ブラウザに「このサイトのデータを自動削除しないで」と要請する
+  // （対応ブラウザのみ・拒否されても害はない）
+  try {
+    if (navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist();
+    }
+  } catch (e) {}
   let editRequested = false;
   try { editRequested = initEditRequest(); } catch (e) {}
   // 編集リクエストがある場合は計画書の引き継ぎより優先する
