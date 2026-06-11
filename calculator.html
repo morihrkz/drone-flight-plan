@@ -39,6 +39,40 @@
     }
     .field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
     .field input.invalid { border-color: #b03a3a; background: #fdf3f3; }
+    .field input.over-limit { border-color: #b03a3a; background: #fdf3f3; color: #b03a3a; font-weight: 700; }
+
+    /* ===== スライダー併用 ===== */
+    .slider-wrap { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+    input[type="range"].fld-slider {
+      -webkit-appearance: none; appearance: none; flex: 1; height: 6px;
+      background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--fill, 50%), #DDE1D4 var(--fill, 50%), #DDE1D4 100%);
+      border-radius: 999px; outline: none; cursor: pointer; padding: 0; border: none;
+    }
+    input[type="range"].fld-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none; width: 22px; height: 22px;
+      border-radius: 50%; background: var(--white); border: 3px solid var(--accent);
+      box-shadow: 0 1px 4px rgba(0,0,0,.25); cursor: grab;
+    }
+    input[type="range"].fld-slider::-moz-range-thumb {
+      width: 22px; height: 22px; border-radius: 50%; background: var(--white);
+      border: 3px solid var(--accent); box-shadow: 0 1px 4px rgba(0,0,0,.25); cursor: grab;
+    }
+    input[type="range"].fld-slider:active::-webkit-slider-thumb { cursor: grabbing; transform: scale(1.15); }
+
+    /* ===== ③ 図解 ===== */
+    .viz-box { border-top: 1px solid var(--border); background: #FAFAF5; padding: 14px 20px 18px; }
+    .viz-title { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+    .viz-box svg { width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto;
+      background: #fff; border: 1px solid var(--border); border-radius: 6px; }
+    #viz-drone, #viz-cone, #viz-fp, #viz-altline { transition: all .15s ease-out; }
+
+    /* ===== ④ 法規チェック ===== */
+    .compliance-box { border-top: 1px solid var(--border); background: #FAFAF5; padding: 14px 20px 16px; }
+    .compliance-list { list-style: none; display: grid; gap: 6px; }
+    .compliance-list li { font-size: 13px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: #fff; }
+    .compliance-list li.c-ok   { border-color: #9DB87C; background: #F2F7EA; color: #3E5226; }
+    .compliance-list li.c-warn { border-color: #C9A227; background: #FBF6E3; color: #7A6212; }
+    .compliance-list li.c-ng   { border-color: #b03a3a; background: #FDF3F3; color: #8a2f2f; font-weight: 700; }
     .field .hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
@@ -207,7 +241,7 @@
         <div class="field-row-3">
           <div class="field">
             <label for="dp-alt">飛行高度 AGL [m]</label>
-            <input type="number" id="dp-alt" min="1" max="150" step="1" value="50">
+            <input type="number" id="dp-alt" min="1" max="500" step="1" value="50">
           </div>
           <div class="field">
             <label for="dp-tether">係留索の長さ [m]（係留時）</label>
@@ -263,6 +297,12 @@
         <div id="dp-warn"></div>
       </div>
     </div>
+    <!-- ④ 航空法・DIPS 簡易コンプライアンスチェック -->
+    <div class="compliance-box">
+      <div class="viz-title">🛡 航空法・DIPS 簡易チェック（入力値に連動）</div>
+      <ul id="compliance-list" class="compliance-list"></ul>
+      <div class="hint" style="padding:4px 2px 0;">※簡易判定です。実際の飛行可否は DIPS 2.0・最新の審査要領で必ず確認してください。</div>
+    </div>
   </section>
 
   <!-- ===== 3. GSD・撮影範囲 ===== -->
@@ -292,7 +332,7 @@
           </div>
           <div class="field">
             <label for="gs-alt">飛行高度 AGL [m]</label>
-            <input type="number" id="gs-alt" min="1" max="150" step="1" value="50">
+            <input type="number" id="gs-alt" min="1" max="500" step="1" value="50">
           </div>
         </div>
         <div class="field">
@@ -316,6 +356,39 @@
         </div>
       </div>
     </div>
+    <!-- ③ 画角・撮影範囲の動的図解 -->
+    <div class="viz-box">
+      <div class="viz-title">📐 画角・撮影範囲イメージ（高度に連動）</div>
+      <svg id="gsd-viz" viewBox="0 0 420 270" preserveAspectRatio="xMidYMid meet" role="img" aria-label="高度と撮影範囲の図解">
+        <defs>
+          <linearGradient id="viz-sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#DCE8F2"/><stop offset="100%" stop-color="#F2F5EC"/>
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="420" height="232" fill="url(#viz-sky)"/>
+        <rect x="0" y="232" width="420" height="38" fill="#A8B894"/>
+        <line x1="0" y1="232" x2="420" y2="232" stroke="#72786B" stroke-width="1.5"/>
+        <!-- 画角の三角形 -->
+        <polygon id="viz-cone" points="210,60 130,232 290,232" fill="rgba(37,54,74,0.13)" stroke="#25364A" stroke-width="1" stroke-dasharray="4 3"/>
+        <!-- 撮影範囲（地面の帯） -->
+        <rect id="viz-fp" x="130" y="229" width="160" height="7" rx="2" fill="#25364A"/>
+        <!-- 高度の寸法線 -->
+        <line id="viz-altline" x1="38" y1="60" x2="38" y2="232" stroke="#b03a3a" stroke-width="1.2"/>
+        <text id="viz-alt-label" x="44" y="150" font-size="13" font-weight="bold" fill="#b03a3a">50m</text>
+        <!-- 150m制限ライン -->
+        <line id="viz-150" x1="0" y1="100" x2="420" y2="100" stroke="#b03a3a" stroke-width="1" stroke-dasharray="6 4" opacity="0"/>
+        <text id="viz-150-label" x="416" y="96" font-size="10" fill="#b03a3a" text-anchor="end" opacity="0">150m（航空法上限）</text>
+        <!-- ドローン -->
+        <g id="viz-drone" transform="translate(210,60)">
+          <rect x="-13" y="-3" width="26" height="6" rx="3" fill="#25364A"/>
+          <circle cx="-17" cy="-5" r="5" fill="none" stroke="#25364A" stroke-width="2"/>
+          <circle cx="17" cy="-5" r="5" fill="none" stroke="#25364A" stroke-width="2"/>
+        </g>
+        <!-- 撮影範囲ラベル -->
+        <text id="viz-fp-label" x="210" y="258" font-size="13" font-weight="bold" fill="#25364A" text-anchor="middle">―</text>
+        <text id="viz-gsd-label" x="8" y="18" font-size="12" fill="#2D3325">GSD: ―</text>
+      </svg>
+    </div>
   </section>
 
 </div>
@@ -333,6 +406,51 @@
   };
   const show = (id, v, digits = 1) =>
     $(id).textContent = (v === null || !Number.isFinite(v)) ? '―' : v.toFixed(digits);
+
+  // ===== ① スライダー併用（数値入力と双方向同期） =====
+  // id: [min, max, step] — 数値ボックスの直下にスライダーを生成
+  const SLIDER_DEFS = {
+    'ft-mass':    [0.1, 10, 0.01],
+    'ft-payload': [0, 5, 0.01],
+    'ft-cap':     [500, 20000, 50],
+    'dp-alt':     [1, 200, 1],
+    'gs-alt':     [1, 200, 1],
+    'gs-focal':   [2, 50, 0.1],
+    'gs-target':  [0.1, 10, 0.1],
+  };
+  function paintSlider(sl) {
+    const min = parseFloat(sl.min), max = parseFloat(sl.max), v = parseFloat(sl.value);
+    sl.style.setProperty('--fill', `${((v - min) / (max - min)) * 100}%`);
+  }
+  function syncSliders() {
+    Object.keys(SLIDER_DEFS).forEach(id => {
+      const sl = $(id + '-slider');
+      if (sl) { sl.value = $(id).value; paintSlider(sl); }
+    });
+  }
+  Object.entries(SLIDER_DEFS).forEach(([id, [min, max, step]]) => {
+    const input = $(id);
+    if (!input) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'slider-wrap';
+    const sl = document.createElement('input');
+    sl.type = 'range'; sl.id = id + '-slider';
+    sl.className = 'fld-slider';
+    sl.min = min; sl.max = max; sl.step = step;
+    sl.value = input.value;
+    sl.setAttribute('aria-label', (input.labels && input.labels[0] ? input.labels[0].textContent : id) + ' スライダー');
+    wrap.appendChild(sl);
+    input.insertAdjacentElement('afterend', wrap);
+    paintSlider(sl);
+    sl.addEventListener('input', () => {
+      input.value = sl.value;
+      paintSlider(sl);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    input.addEventListener('input', e => {
+      if (e.isTrusted) { sl.value = input.value; paintSlider(sl); }
+    });
+  });
 
   // センサープリセット投入
   const sensorSel = $('gs-sensor');
@@ -371,7 +489,7 @@
     if (p.sensor && SENSOR_PRESETS[p.sensor]) sensorSel.value = p.sensor;
   }
   $('ac-preset').addEventListener('change', e => {
-    if (e.target.value) { applyPreset(e.target.value); updateAll(); saveDraft(); }
+    if (e.target.value) { applyPreset(e.target.value); syncSliders(); updateAll(); saveDraft(); }
   });
   $('ac-save').addEventListener('click', () => {
     const name = prompt('保存する機体名を入力してください', $('ac-preset').value || '');
@@ -488,6 +606,37 @@
       ? '<p class="warn">⚠ 150m超は別途許可が必要です。</p>' : '';
   }
 
+  // ===== ③ 画角・撮影範囲の動的図解 =====
+  function updateViz(altM, fpWm, fpHm, gsdCm) {
+    const set = (id, attr, v) => $(id).setAttribute(attr, v);
+    if (!Number.isFinite(altM) || !Number.isFinite(fpWm)) {
+      $('viz-fp-label').textContent = '―';
+      $('viz-gsd-label').textContent = 'GSD: ―';
+      return;
+    }
+    const GROUND = 232, CX = 210, TOP = 40, HALF_MAX = 195;
+    // 縦横同一スケール（実際の画角の形を保つ）
+    const pxPerM = Math.min((GROUND - TOP) / altM, HALF_MAX / (fpWm / 2));
+    const droneY = GROUND - altM * pxPerM;
+    const halfW = (fpWm / 2) * pxPerM;
+    $('viz-drone').setAttribute('transform', `translate(${CX},${droneY})`);
+    set('viz-cone', 'points', `${CX},${droneY} ${CX - halfW},${GROUND} ${CX + halfW},${GROUND}`);
+    set('viz-fp', 'x', CX - halfW); set('viz-fp', 'width', halfW * 2);
+    set('viz-altline', 'y1', droneY);
+    const altLbl = $('viz-alt-label');
+    altLbl.textContent = `高度 ${Math.round(altM)}m`;
+    altLbl.setAttribute('y', Math.max((droneY + GROUND) / 2, droneY + 14));
+    altLbl.setAttribute('fill', altM > 150 ? '#b03a3a' : '#25364A');
+    $('viz-altline').setAttribute('stroke', altM > 150 ? '#b03a3a' : '#25364A');
+    // 150m制限ライン（スケール内に収まるときだけ表示）
+    const y150 = GROUND - 150 * pxPerM;
+    const show150 = y150 > 14 && altM > 75;
+    ['viz-150', 'viz-150-label'].forEach(id => set(id, 'opacity', show150 ? 1 : 0));
+    if (show150) { set('viz-150', 'y1', y150); set('viz-150', 'y2', y150); $('viz-150-label').setAttribute('y', y150 - 4); }
+    $('viz-fp-label').textContent = `撮影範囲 ${fpWm.toFixed(1)} × ${fpHm.toFixed(1)} m`;
+    $('viz-gsd-label').textContent = `GSD: ${gsdCm.toFixed(2)} cm/px`;
+  }
+
   function updateGsd() {
     const s = SENSOR_PRESETS[sensorSel.value];
     const r = calcGsd({
@@ -498,17 +647,59 @@
     });
     show('gs-out-gsd', r && r.gsdCm, 2);
     $('gs-out-fp').textContent = r ? `${r.footprintWm.toFixed(1)} × ${r.footprintHm.toFixed(1)}` : '―';
+    updateViz(num('gs-alt'), r && r.footprintWm, r && r.footprintHm, r && r.gsdCm);
     const reqAlt = altitudeForGsdM(num('gs-target'), num('gs-focal'), num('gs-imgw'), s.w);
     show('gs-out-alt', reqAlt);
     $('gs-warn').innerHTML = (reqAlt !== null && reqAlt > 150)
       ? '<p class="warn">⚠ 必要高度が150mを超えます（航空法の許可対象）。長焦点レンズ等を検討。</p>' : '';
   }
 
-  function updateAll() { updateFlightTime(); updateDips(); updateGsd(); }
+  // ===== ④ 航空法・DIPS 簡易コンプライアンスチェック =====
+  function updateCompliance() {
+    const items = [];
+    const add = (cls, icon, text) => items.push(`<li class="c-${cls}">${icon} ${text}</li>`);
+
+    // 重量（航空法の規制対象判定）
+    const massG = (num('ft-mass') + (num('ft-payload') || 0)) * 1000;
+    if (Number.isFinite(massG)) {
+      if (massG >= 25000) add('ng', '🚫', `総重量 ${(massG/1000).toFixed(1)}kg：25kg以上の区分。機体認証・許可承認の要件が大幅に厳格化されます`);
+      else if (massG >= 100) add('warn', '⚠', `総重量 ${Math.round(massG)}g：航空法の規制対象です（機体登録・リモートID搭載が必要）`);
+      else add('ok', '✅', `総重量 ${Math.round(massG)}g：100g未満のため航空法の無人航空機規制対象外（小型無人機等飛行禁止法・電波法には注意）`);
+    }
+
+    // 高度150m判定（DIPS・GSD両方の高度入力を確認）
+    const altMax = Math.max(num('dp-alt') || 0, num('gs-alt') || 0);
+    if (altMax > 150) add('ng', '🚫', `飛行高度 ${Math.round(altMax)}m：150m以上の飛行は航空局の個別許可（カテゴリーⅡ以上）が必要です`);
+    else if (altMax > 130) add('warn', '⚠', `飛行高度 ${Math.round(altMax)}m：150m上限まで余裕がわずかです。地形の起伏に注意`);
+    else if (altMax > 0) add('ok', '✅', `飛行高度 ${Math.round(altMax)}m：150m未満（高度に関する許可は不要）`);
+
+    // 係留
+    const tether = num('dp-tether');
+    if (Number.isFinite(tether)) {
+      if (tether <= 30) add('ok', '✅', `係留索 ${tether}m：30m以下の係留なら一部の特定飛行（人口集中地区・夜間・目視外等）は許可承認不要`);
+      else add('warn', '⚠', `係留索 ${tether}m：30m超のため係留による許可承認の免除は適用されません`);
+    }
+
+    // 目視外の目安
+    const vlos = visualLineOfSightM(num('dp-size'));
+    if (vlos !== null) add('warn', '👁', `目視可能距離の目安 約${Math.round(vlos)}m：これを超える飛行は目視外飛行（要承認・カテゴリーⅡ）になる可能性`);
+
+    $('compliance-list').innerHTML = items.join('');
+
+    // 高度入力ボックスの赤色強調
+    ['dp-alt', 'gs-alt'].forEach(id => {
+      const v = parseFloat($(id).value);
+      $(id).classList.toggle('over-limit', Number.isFinite(v) && v > 150);
+    });
+    $('ft-mass').classList.toggle('over-limit', Number.isFinite(massG) && massG >= 25000);
+  }
+
+  function updateAll() { updateFlightTime(); updateDips(); updateGsd(); updateCompliance(); }
   document.querySelectorAll('input, select').forEach(el =>
     el.addEventListener('input', () => { updateAll(); saveDraft(); }));
   renderPresets();
   loadDraft();
+  syncSliders();
   updateAll();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>

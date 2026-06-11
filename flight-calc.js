@@ -194,8 +194,11 @@ function altitudeForGsdM(targetGsdCm, focalMm, imageWpx, sensorWmm) {
 const AIRCRAFT_PRESETS = [
   { name: 'DJI Neo',           massKg: 0.135, rotors: 4, propIn: 3.0,  capMah: 1435, voltV: 3.87,  sensor: '1/2型',     focalMm: 3.4,  imgW: 4000, imgH: 3000, sizeM: 0.16 },
   { name: 'DJI Mini 4 Pro',    massKg: 0.249, rotors: 4, propIn: 6.0,  capMah: 2590, voltV: 7.32,  sensor: '1/1.3型',   focalMm: 6.7,  imgW: 8064, imgH: 6048, sizeM: 0.30 },
+  { name: 'DJI Avata 2',       massKg: 0.377, rotors: 4, propIn: 3.0,  capMah: 2150, voltV: 14.76, sensor: '1/1.3型',   focalMm: 2.1,  imgW: 4000, imgH: 3000, sizeM: 0.21 },
   { name: 'DJI Air 3',         massKg: 0.720, rotors: 4, propIn: 8.7,  capMah: 4241, voltV: 14.76, sensor: '1/1.3型',   focalMm: 6.7,  imgW: 8064, imgH: 6048, sizeM: 0.42 },
+  { name: 'DJI Air 3S',        massKg: 0.724, rotors: 4, propIn: 8.7,  capMah: 4276, voltV: 14.6,  sensor: '1型(CMOS)', focalMm: 8.8,  imgW: 8192, imgH: 6144, sizeM: 0.42 },
   { name: 'DJI Mavic 3',       massKg: 0.895, rotors: 4, propIn: 9.4,  capMah: 5000, voltV: 15.4,  sensor: '4/3型(M4/3)', focalMm: 12.3, imgW: 5280, imgH: 3956, sizeM: 0.38 },
+  { name: 'DJI Mavic 3 Pro',   massKg: 0.958, rotors: 4, propIn: 9.4,  capMah: 5000, voltV: 15.4,  sensor: '4/3型(M4/3)', focalMm: 12.3, imgW: 5280, imgH: 3956, sizeM: 0.38 },
   { name: 'DJI Phantom 4 Pro', massKg: 1.388, rotors: 4, propIn: 9.4,  capMah: 5870, voltV: 15.2,  sensor: '1型(CMOS)', focalMm: 8.8,  imgW: 5472, imgH: 3648, sizeM: 0.35 },
   { name: 'DJI Matrice 350 RTK', massKg: 6.47, rotors: 4, propIn: 21.0, capMah: 5880, voltV: 44.76, sensor: '4/3型(M4/3)', focalMm: 12.3, imgW: 5280, imgH: 3956, sizeM: 0.90 },
 ];
