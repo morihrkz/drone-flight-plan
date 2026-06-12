@@ -230,7 +230,11 @@
         text-overflow: ellipsis;
       }
     }
-  
+
+    @media (max-height: 500px) {
+      .field-row { grid-template-columns: 1fr; }
+    }
+
     /* ===== 共通ナビ ===== */
     .site-nav {
       background: var(--accent);
