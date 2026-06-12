@@ -310,7 +310,13 @@
       .card { padding: 16px 14px; }
       .summary-box .num { font-size: 19px; }
       .field-row { grid-template-columns: 1fr; }
-      .field input[type="date"] { padding: 6px 8px; line-height: 1.2; }
+      .field input[type="date"] {
+        padding: 6px 8px;
+        line-height: 1.2;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
   
     /* ===== 共通ナビ ===== */
