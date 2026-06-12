@@ -112,14 +112,19 @@
 </header>
 <nav class="site-nav" aria-label="ツール間ナビゲーション">
   <a href="index.html">ホーム</a>
+  <a href="aircraft.html">機体管理</a>
   <a href="flight-plan.html">計画書</a>
-  <a href="calculator.html" aria-current="page">飛行計算</a>
   <a href="checklist.html">チェックリスト</a>
   <a href="flight-log.html">日誌</a>
   <a href="data.html">データ管理</a>
+  <a href="calculator.html" aria-current="page">飛行計算</a>
 </nav>
 
 <div class="container">
+
+  <p style="font-size:12px; color:var(--muted); margin-bottom:16px; line-height:1.7;">
+    ※このページは<strong>参考機能</strong>です。飛行許可申請・飛行日誌の作成には必須ではありません。
+  </p>
 
   <!-- ===== 1. 飛行時間・ホバリング計算 ===== -->
   <section class="calc-card">
@@ -228,73 +233,27 @@
     </div>
   </section>
 
-  <!-- ===== 2. DIPS申請パラメータ ===== -->
+  <!-- ===== 2. 目視可能の目安 ===== -->
   <section class="calc-card">
-    <h2>2. DIPS申請用パラメータ（距離・速度）</h2>
+    <h2>2. 目視可能の目安</h2>
     <div class="calc-body">
       <div class="calc-form">
-        <div class="field-row-3">
-          <div class="field">
-            <label for="dp-alt">飛行高度 AGL [m]</label>
-            <input type="number" id="dp-alt" min="1" max="500" step="1" value="50">
-          </div>
-          <div class="field">
-            <label for="dp-tether">係留索の長さ [m]（係留時）</label>
-            <input type="number" id="dp-tether" min="0" max="100" step="1" value="30">
-          </div>
-          <div class="field">
-            <label for="dp-size">機体最大寸法 [m]</label>
-            <input type="number" id="dp-size" min="0.05" max="5" step="0.01" value="0.35">
-          </div>
-        </div>
-        <div class="field-row-3">
-          <div class="field">
-            <label for="dp-freq">使用周波数 [MHz]</label>
-            <select id="dp-freq">
-              <option value="2400" selected>2.4GHz帯</option>
-              <option value="5700">5.7GHz帯</option>
-              <option value="920">920MHz帯</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="dp-txpwr">送信出力 [dBm]</label>
-            <input type="number" id="dp-txpwr" min="-10" max="40" step="1" value="20">
-          </div>
-          <div class="field">
-            <label for="dp-sens">受信感度 [dBm]</label>
-            <input type="number" id="dp-sens" min="-130" max="-50" step="1" value="-90">
-          </div>
+        <div class="field">
+          <label for="dp-size">機体最大寸法 [m]</label>
+          <input type="number" id="dp-size" min="0.05" max="5" step="0.01" value="0.35">
         </div>
       </div>
       <div class="calc-result">
         <div class="result-item">
-          <div class="r-label">係留時の水平限界距離</div>
-          <div><span class="r-value" id="dp-out-tether">―</span><span class="r-unit">m</span></div>
-        </div>
-        <div class="result-item">
-          <div class="r-label">電波到達予想距離（見通し内）</div>
-          <div><span class="r-value" id="dp-out-radio">―</span><span class="r-unit">km</span></div>
-          <div class="r-note">FSPL・マージン15dBによる理論値</div>
-        </div>
-        <div class="result-item">
           <div class="r-label">目視可能範囲の目安</div>
           <div><span class="r-value" id="dp-out-vlos">―</span><span class="r-unit">m</span></div>
+          <div class="r-note">これを超える距離の飛行は目視外飛行（要承認）になる可能性があります</div>
         </div>
-        <div class="result-item">
-          <div class="r-label">催し上空：立入禁止区画距離</div>
-          <div><span class="r-value" id="dp-out-event">―</span><span class="r-unit">m</span></div>
-          <div class="r-note">審査要領の高度別テーブルに基づく</div>
-        </div>
-        <div class="result-item">
-          <div class="r-label">安全微速度の目安（運動E≦25J）</div>
-          <div><span class="r-value" id="dp-out-speed">―</span><span class="r-unit">m/s</span></div>
-        </div>
-        <div id="dp-warn"></div>
       </div>
     </div>
-    <!-- ④ 航空法・DIPS 簡易コンプライアンスチェック -->
+    <!-- 航空法 簡易コンプライアンスチェック -->
     <div class="compliance-box">
-      <div class="viz-title">🛡 航空法・DIPS 簡易チェック（入力値に連動）</div>
+      <div class="viz-title">🛡 航空法 簡易チェック（入力値に連動）</div>
       <ul id="compliance-list" class="compliance-list"></ul>
       <div class="hint" style="padding:4px 2px 0;">※簡易判定です。実際の飛行可否は DIPS 2.0・最新の審査要領で必ず確認してください。</div>
     </div>
@@ -432,7 +391,6 @@
     'ft-mass':    [0.1, 10, 0.01],
     'ft-payload': [0, 5, 0.01],
     'ft-cap':     [500, 20000, 50],
-    'dp-alt':     [1, 200, 1],
     'gs-alt':     [1, 200, 1],
     'gs-focal':   [2, 50, 0.1],
     'gs-target':  [0.1, 10, 0.1],
@@ -578,8 +536,7 @@
     const lines = [
       `【飛行計算結果】機体：${aircraft}`,
       `可能飛行時間：約${v('ft-out-flight')}分（限界ホバリング ${v('ft-out-hover')}分・予備率考慮済）`,
-      `催し上空 立入禁止距離：${v('dp-out-event')}m ／ 安全微速度：${v('dp-out-speed')}m/s`,
-      `目視可能範囲の目安：${v('dp-out-vlos')}m ／ 電波到達予想：${v('dp-out-radio')}km`,
+      `目視可能範囲の目安：${v('dp-out-vlos')}m`,
       `GSD：${v('gs-out-gsd')}cm/px（高度${$('gs-alt').value}m・撮影範囲 ${v('gs-out-fp')}m）`,
     ];
     localStorage.setItem(CALC_SUMMARY_KEY, JSON.stringify({
@@ -658,17 +615,8 @@
     updateActual(r ? r.flightTimeMin : NaN);
   }
 
-  function updateDips() {
-    const alt = num('dp-alt');
-    show('dp-out-tether', tetherHorizontalRangeM(num('dp-tether'), alt));
-    show('dp-out-radio',  radioRangeKm(num('dp-txpwr'), 2, 2, num('dp-sens'), parseFloat($('dp-freq').value)), 2);
-    show('dp-out-vlos',   visualLineOfSightM(num('dp-size')), 0);
-    show('dp-out-event',  eventBufferDistanceM(alt), 0);
-    const mass = num('ft-mass') + (num('ft-payload') || 0);
-    show('dp-out-speed',  safeSpeedMps(mass));
-    // 【UI改善 1-3】150m超警告をアイコン付きバナー形式に強化（入力欄の赤枠は updateCompliance 側で付与）
-    $('dp-warn').innerHTML = (Number.isFinite(alt) && alt > 150)
-      ? '<div class="warn-banner"><span class="w-icon">⚠️</span><span>飛行高度150m超：航空局の個別許可が必要です。</span></div>' : '';
+  function updateVlos() {
+    show('dp-out-vlos', visualLineOfSightM(num('dp-size')), 0);
   }
 
   // ===== ③ 画角・撮影範囲の動的図解 =====
@@ -747,18 +695,11 @@
       else add('ok', '✅', `総重量 ${Math.round(massG)}g：100g未満のため航空法の無人航空機規制対象外（小型無人機等飛行禁止法・電波法には注意）`);
     }
 
-    // 高度150m判定（DIPS・GSD両方の高度入力を確認）
-    const altMax = Math.max(num('dp-alt') || 0, num('gs-alt') || 0);
+    // 高度150m判定（GSDの高度入力を確認）
+    const altMax = num('gs-alt') || 0;
     if (altMax > 150) add('ng', '🚫', `飛行高度 ${Math.round(altMax)}m：150m以上の飛行は航空局の個別許可（カテゴリーⅡ以上）が必要です`);
     else if (altMax > 130) add('warn', '⚠', `飛行高度 ${Math.round(altMax)}m：150m上限まで余裕がわずかです。地形の起伏に注意`);
     else if (altMax > 0) add('ok', '✅', `飛行高度 ${Math.round(altMax)}m：150m未満（高度に関する許可は不要）`);
-
-    // 係留
-    const tether = num('dp-tether');
-    if (Number.isFinite(tether)) {
-      if (tether <= 30) add('ok', '✅', `係留索 ${tether}m：30m以下の係留なら一部の特定飛行（人口集中地区・夜間・目視外等）は許可承認不要`);
-      else add('warn', '⚠', `係留索 ${tether}m：30m超のため係留による許可承認の免除は適用されません`);
-    }
 
     // 目視外の目安
     const vlos = visualLineOfSightM(num('dp-size'));
@@ -767,14 +708,14 @@
     $('compliance-list').innerHTML = items.join('');
 
     // 高度入力ボックスの赤色強調
-    ['dp-alt', 'gs-alt'].forEach(id => {
+    ['gs-alt'].forEach(id => {
       const v = parseFloat($(id).value);
       $(id).classList.toggle('over-limit', Number.isFinite(v) && v > 150);
     });
     $('ft-mass').classList.toggle('over-limit', Number.isFinite(massG) && massG >= 25000);
   }
 
-  function updateAll() { updateFlightTime(); updateDips(); updateGsd(); updateCompliance(); }
+  function updateAll() { updateFlightTime(); updateVlos(); updateGsd(); updateCompliance(); }
   document.querySelectorAll('input, select').forEach(el =>
     el.addEventListener('input', () => { updateAll(); saveDraft(); }));
   renderPresets();

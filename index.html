@@ -112,11 +112,12 @@
 
 <nav class="site-nav" aria-label="ツール間ナビゲーション">
   <a href="index.html" aria-current="page">ホーム</a>
+  <a href="aircraft.html">機体管理</a>
   <a href="flight-plan.html">計画書</a>
-  <a href="calculator.html">飛行計算</a>
   <a href="checklist.html">チェックリスト</a>
   <a href="flight-log.html">日誌</a>
   <a href="data.html">データ管理</a>
+  <a href="calculator.html">飛行計算</a>
 </nav>
 
 
@@ -126,6 +127,29 @@
   <p class="page-desc">個人操縦者や小規模事業者向けのドローン運用支援ツールです。<strong>飛行計画書 → 飛行前チェックリスト → 飛行日誌</strong> がひとつの流れで繋がっており、計画書の内容はチェックリスト・日誌へ自動で引き継がれます。</p>
 
   <div class="tool-list">
+
+    <a class="tool-card" href="aircraft.html">
+      <div class="card-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#25364A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="5.5" cy="5.5" r="2.5"/>
+          <circle cx="18.5" cy="5.5" r="2.5"/>
+          <circle cx="5.5" cy="18.5" r="2.5"/>
+          <circle cx="18.5" cy="18.5" r="2.5"/>
+          <rect x="9.5" y="9.5" width="5" height="5" rx="1.2"/>
+          <line x1="7.3" y1="7.3" x2="9.5" y2="9.5"/>
+          <line x1="16.7" y1="7.3" x2="14.5" y2="9.5"/>
+          <line x1="7.3" y1="16.7" x2="9.5" y2="14.5"/>
+          <line x1="16.7" y1="16.7" x2="14.5" y2="14.5"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <span class="card-title">機体管理</span>
+        <span class="card-desc">機体名・JU番号・担当操縦者・総飛行時間を登録管理</span>
+      </div>
+      <svg class="card-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </a>
 
     <a class="tool-card" href="flight-plan.html">
       <div class="card-icon">
@@ -140,25 +164,6 @@
       <div class="card-body">
         <span class="card-title">飛行計画書</span>
         <span class="card-desc">飛行内容を入力してPDFの飛行計画書を作成</span>
-      </div>
-      <svg class="card-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="9 18 15 12 9 6"/>
-      </svg>
-    </a>
-
-    <a class="tool-card" href="calculator.html">
-      <div class="card-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#25364A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="4" y="2" width="16" height="20" rx="2"/>
-          <line x1="8" y1="6" x2="16" y2="6"/>
-          <line x1="8" y1="11" x2="8" y2="11.01"/><line x1="12" y1="11" x2="12" y2="11.01"/><line x1="16" y1="11" x2="16" y2="11.01"/>
-          <line x1="8" y1="15" x2="8" y2="15.01"/><line x1="12" y1="15" x2="12" y2="15.01"/><line x1="16" y1="15" x2="16" y2="15.01"/>
-          <line x1="8" y1="19" x2="8" y2="19.01"/><line x1="12" y1="19" x2="16" y2="19"/>
-        </svg>
-      </div>
-      <div class="card-body">
-        <span class="card-title">飛行計算</span>
-        <span class="card-desc">飛行時間・DIPS申請パラメータ・GSD（地上画素寸法）を計算</span>
       </div>
       <svg class="card-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="9 18 15 12 9 6"/>
@@ -210,6 +215,25 @@
       <div class="card-body">
         <span class="card-title">データ管理</span>
         <span class="card-desc">日誌の一覧・検索（日付/場所/機体）・CSV/JSON出力</span>
+      </div>
+      <svg class="card-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </a>
+
+    <a class="tool-card" href="calculator.html">
+      <div class="card-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#25364A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="2" width="16" height="20" rx="2"/>
+          <line x1="8" y1="6" x2="16" y2="6"/>
+          <line x1="8" y1="11" x2="8" y2="11.01"/><line x1="12" y1="11" x2="12" y2="11.01"/><line x1="16" y1="11" x2="16" y2="11.01"/>
+          <line x1="8" y1="15" x2="8" y2="15.01"/><line x1="12" y1="15" x2="12" y2="15.01"/><line x1="16" y1="15" x2="16" y2="15.01"/>
+          <line x1="8" y1="19" x2="8" y2="19.01"/><line x1="12" y1="19" x2="16" y2="19"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <span class="card-title">飛行計算（参考機能）</span>
+        <span class="card-desc">飛行時間・GSD（地上画素寸法）・目視可能の目安を計算</span>
       </div>
       <svg class="card-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="9 18 15 12 9 6"/>

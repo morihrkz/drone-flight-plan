@@ -39,13 +39,48 @@
     /* 入力間隔はこのページのみ広め（長い1カラムフォームの視線移動を助ける） */
     .field { margin-bottom: 24px; }
 
-    /* 機体テンプレート行 */
-    .tpl-row {
-      display: grid;
-      grid-template-columns: 1fr auto auto;
-      gap: 8px;
-      margin-top: 8px;
+    /* 機体入力行（複数機対応） */
+    .ac-row {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 10px;
+      background: var(--bg);
     }
+    .ac-row select { margin-bottom: 8px; }
+    .ac-pair {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 8px;
+    }
+    @media (max-width: 480px) {
+      .ac-pair { grid-template-columns: 1fr; }
+    }
+
+    /* 特定飛行ボタン群 */
+    .sp-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    /* データクリア */
+    .btn-clear {
+      margin-top: 10px;
+      width: 100%;
+      padding: 11px;
+      background: transparent;
+      color: var(--danger-dark);
+      border: 2px solid var(--danger-dark);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .btn-clear:hover { background: var(--danger-dark); color: #fff; }
     .btn-small {
       padding: 8px 12px;
       background: transparent;
@@ -355,11 +390,12 @@
 
 <nav class="site-nav" aria-label="ツール間ナビゲーション">
   <a href="index.html">ホーム</a>
+  <a href="aircraft.html">機体管理</a>
   <a href="flight-plan.html" aria-current="page">計画書</a>
-  <a href="calculator.html">飛行計算</a>
   <a href="checklist.html">チェックリスト</a>
   <a href="flight-log.html">日誌</a>
   <a href="data.html">データ管理</a>
+  <a href="calculator.html">飛行計算</a>
 </nav>
 
 
@@ -397,20 +433,17 @@
     </div>
 
     <div class="field">
-      <label for="f-pilot">操縦者氏名</label>
+      <label for="pilot-select">操縦者氏名</label>
+      <select id="pilot-select" aria-label="機体管理の登録から操縦者を選ぶ" style="margin-bottom:8px;">
+        <option value="">機体管理の登録から選ぶ…</option>
+      </select>
       <input type="text" id="f-pilot" placeholder="例：山田 太郎">
     </div>
 
     <div class="field">
-      <label for="f-aircraft">機体名</label>
-      <input type="text" id="f-aircraft" placeholder="例：DJI Mavic 3 Enterprise">
-      <div class="tpl-row">
-        <select id="tpl-select" aria-label="機体テンプレートを選択">
-          <option value="">機体テンプレートから選ぶ…</option>
-        </select>
-        <button type="button" class="btn-small" id="tpl-save">現在の機体を登録</button>
-        <button type="button" class="btn-small danger" id="tpl-delete">削除</button>
-      </div>
+      <label>機体（最大5機）</label>
+      <div id="aircraft-rows"></div>
+      <div class="hint">機体管理タブの登録機体から選択できます（手入力も可）。1機入力すると次の欄が現れます。</div>
     </div>
 
     <div class="field">
@@ -420,6 +453,12 @@
 
     <div class="field">
       <label for="f-notes">備考</label>
+      <div class="sp-btns" aria-label="特定飛行を備考に追記">
+        <button type="button" class="btn-small sp-btn" data-sp="night">＋夜間</button>
+        <button type="button" class="btn-small sp-btn" data-sp="bvlos">＋目視外</button>
+        <button type="button" class="btn-small sp-btn" data-sp="heavy">＋25kg以上</button>
+        <button type="button" class="btn-small sp-btn" data-sp="drop">＋物件投下</button>
+      </div>
       <textarea id="f-notes" placeholder="特記事項・注意事項など（任意）"></textarea>
       <button type="button" class="btn-small" id="btn-insert-calc" style="margin-top:6px;">📋 飛行計算の結果を備考に挿入</button>
     </div>
@@ -450,6 +489,8 @@
       </button>
       <input type="file" id="json-file" accept=".json,application/json">
     </div>
+
+    <button type="button" class="btn-clear" id="btn-clear">データクリア（入力と保存データを消去）</button>
 
     <button type="button" class="btn-next" id="btn-to-checklist">
       この計画で飛行前チェックリストへ進む
@@ -495,8 +536,8 @@
           <td id="p-pilot" class="empty">―</td>
         </tr>
         <tr>
-          <th>機体名</th>
-          <td id="p-aircraft" class="empty">―</td>
+          <th>機体（機体番号）</th>
+          <td id="p-aircraft" class="empty" style="white-space:pre-wrap;">―</td>
         </tr>
         <tr>
           <th>飛行目的</th>
@@ -536,7 +577,6 @@
     { input: 'f-end',      preview: null,          format: null },
     { input: 'f-location', preview: 'p-location', format: v => v || null },
     { input: 'f-pilot',    preview: 'p-pilot',    format: v => v || null },
-    { input: 'f-aircraft', preview: 'p-aircraft', format: v => v || null },
     { input: 'f-purpose',  preview: 'p-purpose',  format: v => v || null },
     { input: 'f-notes',    preview: 'p-notes',    format: v => v || null },
   ];
@@ -584,6 +624,12 @@
     else if (end)       timeStr = `〜 ${end}`;
     setPreview('p-time', timeStr);
 
+    // 機体プレビュー（複数機・JU番号付き）
+    const acs = readAircrafts();
+    setPreview('p-aircraft', acs.length
+      ? acs.map(a => a.regNo ? `${a.name}（${a.regNo}）` : (a.name || `（JU番号のみ：${a.regNo}）`)).join('\n')
+      : null);
+
     const now = new Date();
     document.getElementById('p-issued').textContent =
       `作成日：${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
@@ -591,14 +637,23 @@
 
   // ===== 自動保存（下書き） =====
   const DRAFT_KEY   = 'drone-flight-plan-draft';
-  const TPL_KEY     = 'drone-aircraft-templates';
   const SESSION_KEY = 'drone-active-session';
 
   const FIELD_IDS = fields.map(f => f.input);
 
+  function readAircrafts() {
+    return [...document.querySelectorAll('#aircraft-rows .ac-row')].map(row => ({
+      name: row.querySelector('.ac-name').value.trim(),
+      regNo: row.querySelector('.ac-reg').value.trim(),
+    })).filter(a => a.name || a.regNo);
+  }
   function readPlan() {
     const plan = {};
     FIELD_IDS.forEach(id => plan[id.replace('f-', '')] = document.getElementById(id).value);
+    const acs = readAircrafts();
+    plan.aircrafts = acs;
+    // 旧スキーマ互換: 機体名の連結文字列も保持（チェックリスト・日誌への引き継ぎ、旧JSON互換）
+    plan.aircraft = acs.map(a => a.name).filter(Boolean).join(' / ');
     return plan;
   }
   function fillPlan(plan) {
@@ -606,6 +661,19 @@
       const k = id.replace('f-', '');
       if (plan[k] !== undefined) document.getElementById(id).value = plan[k];
     });
+    let acs = Array.isArray(plan.aircrafts) ? plan.aircrafts : null;
+    if (!acs && typeof plan.aircraft === 'string' && plan.aircraft.trim()) {
+      // 旧形式（機体名の文字列）からの復元
+      acs = plan.aircraft.split(' / ').map(n => ({ name: n.trim(), regNo: '' }));
+    }
+    if (acs) {
+      document.querySelectorAll('#aircraft-rows .ac-row').forEach((row, i) => {
+        row.querySelector('.ac-name').value = (acs[i] && acs[i].name) || '';
+        row.querySelector('.ac-reg').value = (acs[i] && acs[i].regNo) || '';
+        row.querySelector('.ac-select').value = '';
+      });
+      updateRowVisibility();
+    }
   }
   function saveDraft() {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(readPlan()));
@@ -617,55 +685,84 @@
     } catch (e) {}
   }
 
-  // ===== 機体テンプレート =====
-  // 飛行計算ページの機体プリセット（内蔵+ユーザー保存）の名前も統合表示する
-  const CALC_PRESET_KEY = 'drone-aircraft-presets-v2';
-  function loadCalcPresetNames() {
-    let names = ['DJI Air 2S', 'DJI Air 3', 'DJI Air 3S', 'DJI AGRAS T70P', 'DJI Avata 2', 'DJI Avata 360', 'DJI Flip', 'DJI FPV', 'DJI Inspire 2', 'DJI Inspire 3', 'DJI Lito', 'DJI Matrice 350 RTK', 'DJI Mavic Pro', 'DJI Mavic 2 Pro', 'DJI Mavic 3', 'DJI Mavic 3 Cine', 'DJI Mavic 3 Classic', 'DJI Mavic 3 Zoom', 'DJI Mavic 3 Pro', 'DJI Mavic 4 Pro', 'DJI Mavic Air', 'DJI Mavic Air 2', 'DJI Mini 2', 'DJI Mini 2 SE', 'DJI Mini 3', 'DJI Mini 3 Pro', 'DJI Mini 4 Pro', 'DJI Mini 4K', 'DJI Mini 5 Pro', 'DJI Neo', 'DJI Neo 2', 'DJI Phantom 4 Pro', 'DJI Phantom 4 Pro V2.0'];
-    try {
-      const user = JSON.parse(localStorage.getItem(CALC_PRESET_KEY)) || [];
-      names = [...user.map(p => p.name), ...names];
-    } catch (e) {}
-    return names;
+  // ===== 機体管理タブの登録内容から選択 =====
+  const AIRCRAFT_KEY = 'drone-aircraft-list';
+  const MAX_AIRCRAFT = 5;
+
+  function loadAircraftList() {
+    try { return JSON.parse(localStorage.getItem(AIRCRAFT_KEY)) || []; }
+    catch (e) { return []; }
   }
-  function loadTemplates() {
-    let list = [];
-    try { list = JSON.parse(localStorage.getItem(TPL_KEY)) || []; }
-    catch (e) {}
-    // 計算ページ由来の機体名を統合（重複除去）
-    loadCalcPresetNames().forEach(n => { if (!list.includes(n)) list.push(n); });
-    return list;
+  function escAttr(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
   }
-  function renderTemplates() {
-    const sel = document.getElementById('tpl-select');
-    const list = loadTemplates();
-    sel.innerHTML = '<option value="">機体テンプレートから選ぶ…</option>' +
-      list.map(t => `<option value="${t.replace(/"/g, '&quot;')}"></option>`).join('');
-    // option のテキストも設定（value のみだと表示されないブラウザ対策）
-    [...sel.options].forEach((o, i) => { if (i > 0) o.textContent = list[i - 1]; });
+
+  function buildAircraftRows() {
+    const wrap = document.getElementById('aircraft-rows');
+    const regs = loadAircraftList();
+    const options = '<option value="">機体管理の登録から選ぶ…</option>' +
+      regs.map((a, i) =>
+        `<option value="${i}">${escAttr(a.name)}${a.regNo ? '（' + escAttr(a.regNo) + '）' : ''}</option>`
+      ).join('');
+    wrap.innerHTML = '';
+    for (let i = 0; i < MAX_AIRCRAFT; i++) {
+      const row = document.createElement('div');
+      row.className = 'ac-row';
+      row.innerHTML = `
+        <select class="ac-select" aria-label="機体${i + 1}を機体管理の登録から選ぶ">${options}</select>
+        <div class="ac-pair">
+          <input type="text" class="ac-name" placeholder="機体名" aria-label="機体${i + 1}の機体名">
+          <input type="text" class="ac-reg" placeholder="JU番号" aria-label="機体${i + 1}の機体番号">
+        </div>`;
+      wrap.appendChild(row);
+    }
+    // 機体管理に登録がない場合は選択プルダウンを隠す（手入力のみ）
+    if (!regs.length) wrap.querySelectorAll('.ac-select').forEach(s => s.style.display = 'none');
+
+    wrap.addEventListener('change', e => {
+      if (!e.target.classList.contains('ac-select')) return;
+      const a = loadAircraftList()[e.target.value];
+      if (!a) return;
+      const row = e.target.closest('.ac-row');
+      row.querySelector('.ac-name').value = a.name;
+      row.querySelector('.ac-reg').value = a.regNo || '';
+      updateRowVisibility();
+      update();
+      saveDraft();
+    });
+    wrap.addEventListener('input', e => {
+      if (!e.target.matches('.ac-name, .ac-reg')) return;
+      updateRowVisibility();
+      update();
+      saveDraft();
+    });
   }
-  document.getElementById('tpl-select').addEventListener('change', e => {
+
+  // 1機入力すると次の行が現れる（最大5機）
+  function updateRowVisibility() {
+    const rows = [...document.querySelectorAll('#aircraft-rows .ac-row')];
+    let visible = 1;
+    rows.forEach((row, i) => {
+      const filled = row.querySelector('.ac-name').value.trim() || row.querySelector('.ac-reg').value.trim();
+      if (filled) visible = Math.min(i + 2, MAX_AIRCRAFT);
+    });
+    rows.forEach((row, i) => { row.style.display = i < visible ? '' : 'none'; });
+  }
+
+  // 操縦者の選択肢（機体管理の担当操縦者から重複を除いて作成）
+  function buildPilotSelect() {
+    const sel = document.getElementById('pilot-select');
+    const pilots = [...new Set(loadAircraftList().map(a => (a.pilot || '').trim()).filter(Boolean))];
+    sel.innerHTML = '<option value="">機体管理の登録から選ぶ…</option>' +
+      pilots.map(p => `<option value="${escAttr(p)}">${escAttr(p)}</option>`).join('');
+    sel.style.display = pilots.length ? '' : 'none';
+  }
+  document.getElementById('pilot-select').addEventListener('change', e => {
     if (!e.target.value) return;
-    document.getElementById('f-aircraft').value = e.target.value;
+    document.getElementById('f-pilot').value = e.target.value;
+    e.target.value = '';
     update();
     saveDraft();
-  });
-  document.getElementById('tpl-save').addEventListener('click', () => {
-    const name = document.getElementById('f-aircraft').value.trim();
-    if (!name) { alert('機体名を入力してから登録してください。'); return; }
-    const list = loadTemplates();
-    if (list.includes(name)) { alert('すでに登録されています。'); return; }
-    list.push(name);
-    localStorage.setItem(TPL_KEY, JSON.stringify(list));
-    renderTemplates();
-    document.getElementById('tpl-select').value = name;
-  });
-  document.getElementById('tpl-delete').addEventListener('click', () => {
-    const sel = document.getElementById('tpl-select');
-    if (!sel.value) { alert('削除するテンプレートを選択してください。'); return; }
-    if (!confirm(`「${sel.value}」をテンプレートから削除しますか？`)) return;
-    localStorage.setItem(TPL_KEY, JSON.stringify(loadTemplates().filter(t => t !== sel.value)));
-    renderTemplates();
   });
 
   // ===== JSON 保存・読込 =====
@@ -712,9 +809,12 @@
     }
     const notes = document.getElementById('f-notes');
     notes.value = notes.value ? `${notes.value}\n\n${s.text}` : s.text;
-    // 機体名が未入力なら計算時の機体を反映
-    const ac = document.getElementById('f-aircraft');
-    if (!ac.value.trim() && s.aircraft && !s.aircraft.startsWith('（')) ac.value = s.aircraft;
+    // 機体が未入力なら計算時の機体を1機目に反映
+    const first = document.querySelector('#aircraft-rows .ac-name');
+    if (first && !first.value.trim() && s.aircraft && !s.aircraft.startsWith('（')) {
+      first.value = s.aircraft;
+      updateRowVisibility();
+    }
     update();
     saveDraft();
   });
@@ -730,6 +830,34 @@
     location.href = 'checklist.html';
   });
 
+  // ===== 特定飛行ボタン（備考へ追記。トグルではない＝複数同時成立し得るため） =====
+  const SP_TEXT = {
+    night: '【特定飛行】夜間飛行',
+    bvlos: '【特定飛行】目視外飛行',
+    heavy: '【特定飛行】最大離陸重量25kg以上の機体の飛行',
+    drop:  '【特定飛行】物件投下',
+  };
+  document.querySelectorAll('.sp-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const notes = document.getElementById('f-notes');
+      const t = SP_TEXT[btn.dataset.sp];
+      notes.value = notes.value ? `${notes.value}\n${t}` : t;
+      update();
+      saveDraft();
+    });
+  });
+
+  // ===== データクリア =====
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    if (!confirm('計画書の入力内容と保存データをクリアしますか？\nこの操作は取り消せません。')) return;
+    FIELD_IDS.forEach(id => document.getElementById(id).value = '');
+    document.querySelectorAll('#aircraft-rows input').forEach(i => i.value = '');
+    document.querySelectorAll('#aircraft-rows .ac-select').forEach(s => s.value = '');
+    localStorage.removeItem(DRAFT_KEY);
+    updateRowVisibility();
+    update();
+  });
+
   fields.forEach(({ input }) => {
     document.getElementById(input).addEventListener('input', () => {
       update();
@@ -737,8 +865,10 @@
     });
   });
 
+  buildAircraftRows();
+  buildPilotSelect();
   loadDraft();
-  renderTemplates();
+  updateRowVisibility();
   update();
 </script>
 

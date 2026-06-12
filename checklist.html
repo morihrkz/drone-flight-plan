@@ -205,6 +205,73 @@
       color: #fff;
     }
 
+    /* ===== セクション見出し ===== */
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin: 28px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* 点検内容（サブタイトル） */
+    .check-sub {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-top: 2px;
+    }
+
+    /* ===== 下部ボタン ===== */
+    .btn-next-log {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 14px;
+      padding: 15px 20px;
+      background: var(--accent-light);
+      border: 2px solid var(--accent);
+      border-radius: var(--radius);
+      color: var(--accent);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-decoration: none;
+      text-align: center;
+      transition: background .2s, color .2s;
+    }
+    .btn-next-log:hover { background: var(--accent); color: #fff; }
+    .btn-next-log.done { background: var(--accent); color: #fff; }
+
+    .btn-print {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 14px;
+      padding: 13px 20px;
+      background: transparent;
+      border: 2px solid var(--accent);
+      border-radius: var(--radius);
+      color: var(--accent);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+    .btn-print:hover { background: var(--accent); color: #fff; }
+
+    /* ===== 日常点検記録（印刷用・画面では非表示） ===== */
+    .print-doc { display: none; }
+
     /* ===== スマホ対応 ===== */
     @media (max-width: 480px) {
       .check-label { padding: 14px 12px; gap: 12px; }
@@ -213,6 +280,72 @@
         padding-left: calc(12px + 28px + 12px);
       }
       .reset-btn { padding: 16px 20px; font-size: 16px; }
+    }
+
+    /* ===== 印刷（日常点検記録フォーマット） ===== */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 0; /* ブラウザのヘッダー/フッターを消す。紙余白は .print-doc の padding で確保 */
+      }
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body { background: #fff; }
+      .site-header, .site-nav, .container { display: none !important; }
+
+      .print-doc {
+        display: block;
+        padding: 18mm 16mm 20mm;
+        color: #000;
+      }
+      .print-doc .pd-title {
+        text-align: center;
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: .1em;
+        margin-bottom: 4px;
+      }
+      .print-doc .pd-subtitle {
+        text-align: center;
+        font-size: 11px;
+        color: #555;
+        margin-bottom: 20px;
+      }
+      .print-doc table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 18px;
+      }
+      .print-doc th, .print-doc td {
+        border: 1px solid #333;
+        padding: 7px 10px;
+        font-size: 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+      .print-doc th {
+        background: #eef0ea;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .print-doc .pd-result {
+        width: 18%;
+        text-align: center;
+        font-weight: 700;
+      }
+      .print-doc .pd-notes-box {
+        border: 1px solid #333;
+        min-height: 70px;
+        padding: 7px 10px;
+        font-size: 12px;
+      }
+      .print-doc .pd-notes-label {
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
     }
   </style>
 </head>
@@ -223,11 +356,12 @@
 
 <nav class="site-nav" aria-label="ツール間ナビゲーション">
   <a href="index.html">ホーム</a>
+  <a href="aircraft.html">機体管理</a>
   <a href="flight-plan.html">計画書</a>
-  <a href="calculator.html">飛行計算</a>
   <a href="checklist.html" aria-current="page">チェックリスト</a>
   <a href="flight-log.html">日誌</a>
   <a href="data.html">データ管理</a>
+  <a href="calculator.html">飛行計算</a>
 </nav>
 
 
@@ -435,15 +569,99 @@
       </div>
     </div>
 
-  </div><button class="reset-btn" id="reset-btn">すべてリセット</button>
+  </div>
 
-  <a id="btn-to-log" href="flight-log.html" style="display:none; margin-top:14px; padding:15px 20px; background:var(--accent); border:2px solid var(--accent); border-radius:var(--radius); color:#fff; font-size:15px; font-weight:700; letter-spacing:.04em; text-decoration:none; text-align:center;">チェック完了 → 飛行日誌に記録する</a>
+  <div class="section-title">日常点検記録（国土交通省様式に基づく必須点検）</div>
+  <div class="checklist" id="daily-checklist"></div>
 
-</div><script>
-  const TOTAL = 10;
+  <button class="reset-btn" id="reset-btn">すべてリセット</button>
+
+  <button type="button" class="btn-print" id="btn-print">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 6 2 18 2 18 9"/>
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+      <rect x="6" y="14" width="12" height="8"/>
+    </svg>
+    印刷（日常点検記録）
+  </button>
+
+  <a id="btn-to-log" class="btn-next-log" href="flight-log.html">
+    次へ（日誌）
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"/>
+    </svg>
+  </a>
+
+</div>
+
+<!-- 印刷専用：無人航空機の日常点検記録 -->
+<div class="print-doc" id="print-doc">
+  <div class="pd-title">無人航空機の日常点検記録</div>
+  <div class="pd-subtitle">Daily Inspection Record</div>
+
+  <table>
+    <tr><th style="width:24%;">機体名</th><td id="pd-aircraft"></td></tr>
+    <tr><th>実施年月日</th><td id="pd-date"></td></tr>
+    <tr><th>実施場所</th><td id="pd-location"></td></tr>
+    <tr><th>実施者</th><td id="pd-pilot"></td></tr>
+  </table>
+
+  <table>
+    <thead>
+      <tr><th style="width:24%;">点検箇所</th><th>点検内容</th><th class="pd-result">結果</th></tr>
+    </thead>
+    <tbody id="pd-rows"></tbody>
+  </table>
+
+  <div class="pd-notes-label">特記事項</div>
+  <div class="pd-notes-box"></div>
+</div>
+
+<script>
   const STORAGE_KEY = 'drone-checklist-state';
 
   const SESSION_KEY = 'drone-active-session';
+
+  // ===== 日常点検記録（国土交通省様式）の点検項目 =====
+  const INSPECT_ITEMS = [
+    { part: '機体全般',        desc: '機器の取付状態（ネジ・コネクタ・ケーブル等）' },
+    { part: 'プロペラ',        desc: '外観・損傷・歪み' },
+    { part: 'フレーム',        desc: '外観・損傷・歪み' },
+    { part: '通信系統',        desc: '機体と操縦装置の通信品質の健全性' },
+    { part: '推進系統',        desc: 'モーター又は発動機の健全性' },
+    { part: '電源系統',        desc: '機体及び操縦装置の電源の健全性' },
+    { part: '自動制御系統',    desc: '飛行制御装置の健全性' },
+    { part: '操縦装置',        desc: '外観、スティック、スイッチの健全性' },
+    { part: 'バッテリー・燃料', desc: 'バッテリーの充電状況、燃料表示性能の健全性' },
+  ];
+
+  // 既存10項目 ＋ 日常点検9項目
+  const TOTAL = 10 + INSPECT_ITEMS.length;
+
+  // 日常点検項目を生成（id は chk-11〜chk-19。保存形式は既存と同じ）
+  function buildDailyChecklist() {
+    const wrap = document.getElementById('daily-checklist');
+    wrap.innerHTML = INSPECT_ITEMS.map((it, idx) => {
+      const n = 11 + idx;
+      return `
+    <div class="check-item" id="item-${n}">
+      <label class="check-label" for="chk-${n}">
+        <input type="checkbox" class="check-input" id="chk-${n}">
+        <span class="check-box">
+          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <span class="check-content">
+          <span class="check-num">点検 ${String(idx + 1).padStart(2, '0')}</span>
+          <span class="check-title">${it.part}</span>
+          <span class="check-sub">${it.desc}</span>
+        </span>
+      </label>
+    </div>`;
+    }).join('');
+  }
+  buildDailyChecklist();
 
   function getSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
@@ -476,9 +694,8 @@
     const count = document.querySelectorAll('.check-input:checked').length;
     document.getElementById('progress-count').textContent = `${count} / ${TOTAL}`;
     document.getElementById('progress-bar').style.width = `${(count / TOTAL) * 100}%`;
-    // 全チェック完了かつセッションありなら日誌への導線を表示
-    const done = count === TOTAL && !!getSession();
-    document.getElementById('btn-to-log').style.display = done ? 'block' : 'none';
+    // 全チェック完了で日誌ボタンを強調表示（ボタン自体は常時表示）
+    document.getElementById('btn-to-log').classList.toggle('done', count === TOTAL);
   }
 
   function saveState() {
@@ -528,6 +745,35 @@
     // 確実に空のデータでストレージを上書き同期する
     saveState();
   });
+
+  // ===== 印刷（日常点検記録フォーマット） =====
+  function fillPrintDoc() {
+    const s = getSession();
+    const p = (s && s.plan) || {};
+    const set = (id, v) => { document.getElementById(id).textContent = v || ''; };
+    set('pd-aircraft', p.aircraft);
+    set('pd-location', p.location);
+    set('pd-pilot', p.pilot);
+    let dateStr = '';
+    if (p.date) {
+      const [y, m, d] = p.date.split('-');
+      dateStr = `${y}年${parseInt(m)}月${parseInt(d)}日`;
+    } else {
+      const now = new Date();
+      dateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+    }
+    set('pd-date', dateStr);
+
+    document.getElementById('pd-rows').innerHTML = INSPECT_ITEMS.map((it, idx) => {
+      const checked = document.getElementById(`chk-${11 + idx}`).checked;
+      return `<tr><th>${it.part}</th><td>${it.desc}</td><td class="pd-result">${checked ? '正常' : ''}</td></tr>`;
+    }).join('');
+  }
+  document.getElementById('btn-print').addEventListener('click', () => {
+    fillPrintDoc();
+    window.print();
+  });
+  window.addEventListener('beforeprint', fillPrintDoc);
 
   try { initSession(); } catch (e) {}
   try { restoreState(); } catch (e) {}

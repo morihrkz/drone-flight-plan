@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>機体管理</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#25364A">
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    /* ===== ページ固有スタイル（共通部分は theme.css 参照） ===== */
+    .container { max-width: 720px; }
+
+    /* ===== 機体一覧 ===== */
+    .aircraft-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .ac-item {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .ac-item.editing { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: -1px; }
+
+    .ac-head {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    .ac-name { font-size: 16px; font-weight: 700; color: var(--text); }
+    .ac-reg {
+      font-size: 12px; font-weight: 700; color: var(--accent);
+      background: var(--accent-light); padding: 2px 8px; border-radius: 999px;
+      letter-spacing: .03em;
+    }
+    .ac-reg.none { background: transparent; color: var(--muted); font-weight: 600; }
+
+    .ac-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 16px;
+      font-size: 13px;
+      color: var(--label);
+      margin-bottom: 10px;
+    }
+    .ac-meta .k { color: var(--muted); font-size: 11px; display: block; }
+    .ac-meta .v { font-weight: 700; }
+    .ac-meta .v .unit { font-size: 11px; font-weight: 600; color: var(--muted); }
+    .ac-meta .v .breakdown { font-size: 11px; font-weight: 600; color: var(--muted); }
+
+    .ac-actions { display: flex; gap: 8px; }
+    .btn-small {
+      padding: 8px 14px;
+      min-height: 36px;
+      background: transparent;
+      color: var(--accent);
+      border: 1.5px solid var(--accent);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .15s, color .15s;
+    }
+    .btn-small:hover { background: var(--accent); color: #fff; }
+    .btn-small.danger { color: var(--danger-dark); border-color: var(--danger-dark); }
+    .btn-small.danger:hover { background: var(--danger-dark); color: #fff; }
+
+    /* 編集中のフォームカード見出し */
+    #form-title { transition: color .15s; }
+    .card.editing { border-color: var(--accent); }
+    .card.editing #form-title { color: var(--accent); }
+
+    .cancel-row { margin-top: 10px; display: none; }
+    .card.editing .cancel-row { display: block; }
+
+    .hint-block {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 480px) {
+      .ac-meta { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+</header>
+
+<nav class="site-nav" aria-label="ツール間ナビゲーション">
+  <a href="index.html">ホーム</a>
+  <a href="aircraft.html" aria-current="page">機体管理</a>
+  <a href="flight-plan.html">計画書</a>
+  <a href="checklist.html">チェックリスト</a>
+  <a href="flight-log.html">日誌</a>
+  <a href="data.html">データ管理</a>
+  <a href="calculator.html">飛行計算</a>
+</nav>
+
+
+<div class="container">
+
+  <div class="page-label">Aircraft Management</div>
+
+  <div class="card" id="form-card">
+    <h2 id="form-title">機体の登録</h2>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="f-name">機体名 <span style="color:var(--danger-dark);">＊</span></label>
+        <input type="text" id="f-name" placeholder="例：DJI Mavic 3 Enterprise">
+      </div>
+      <div class="field">
+        <label for="f-reg">機体番号（JU番号）</label>
+        <input type="text" id="f-reg" placeholder="例：JU1234567890">
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="f-pilot">担当操縦者</label>
+        <input type="text" id="f-pilot" placeholder="例：山田 太郎">
+      </div>
+      <div class="field">
+        <label for="f-carryover">総飛行時間の繰越値（分）</label>
+        <input type="number" id="f-carryover" min="0" step="1" inputmode="numeric" placeholder="例：1200">
+        <div class="hint">このツール導入前までの飛行時間を分単位で入力（任意）</div>
+      </div>
+    </div>
+
+    <button type="button" class="btn btn-primary" id="btn-save">この内容で登録する</button>
+    <div class="cancel-row">
+      <button type="button" class="btn btn-outline" id="btn-cancel" style="width:100%;">編集をやめる</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>登録済みの機体</h2>
+    <div class="aircraft-list" id="list"></div>
+    <div class="empty-msg" id="empty" style="display:none;">登録された機体はまだありません。<br>上のフォームから追加してください。</div>
+    <p class="hint-block">
+      総飛行時間 ＝ 繰越値 ＋ 日誌に記録された当該機体の飛行時間の累計。<br>
+      日誌の記録を追加・削除すると、このページの表示も自動的に変わります。
+    </p>
+  </div>
+
+</div>
+
+<script>
+  const AIRCRAFT_KEY = 'drone-aircraft-list';
+  const LOG_KEY = 'drone-flight-log-records';
+
+  const $ = id => document.getElementById(id);
+
+  let aircraft = [];
+  let editingId = null;
+
+  function load() {
+    try { aircraft = JSON.parse(localStorage.getItem(AIRCRAFT_KEY)) || []; }
+    catch (e) { aircraft = []; }
+  }
+  function save() {
+    localStorage.setItem(AIRCRAFT_KEY, JSON.stringify(aircraft));
+  }
+
+  // 日誌の記録から機体名ごとの飛行時間（分）累計を求める
+  function logMinutesByAircraft() {
+    let records = [];
+    try { records = JSON.parse(localStorage.getItem(LOG_KEY)) || []; }
+    catch (e) {}
+    const sums = {};
+    records.forEach(r => {
+      const name = (r.aircraft || '').trim();
+      const min = parseInt(r.time, 10);
+      if (!name || isNaN(min)) return;
+      sums[name] = (sums[name] || 0) + min;
+    });
+    return sums;
+  }
+
+  function fmtMinutes(total) {
+    if (total >= 60) return `${Math.floor(total / 60)}時間${total % 60}分`;
+    return `${total}分`;
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function render() {
+    const list = $('list');
+    const logSums = logMinutesByAircraft();
+    $('empty').style.display = aircraft.length ? 'none' : 'block';
+    list.innerHTML = aircraft.map(a => {
+      const carry = parseInt(a.carryoverMinutes, 10) || 0;
+      const logged = logSums[a.name] || 0;
+      const total = carry + logged;
+      return `
+      <div class="ac-item${a.id === editingId ? ' editing' : ''}" data-id="${a.id}">
+        <div class="ac-head">
+          <span class="ac-name">${esc(a.name)}</span>
+          ${a.regNo
+            ? `<span class="ac-reg">${esc(a.regNo)}</span>`
+            : `<span class="ac-reg none">JU番号未登録</span>`}
+        </div>
+        <div class="ac-meta">
+          <div><span class="k">担当操縦者</span><span class="v">${a.pilot ? esc(a.pilot) : '―'}</span></div>
+          <div><span class="k">総飛行時間</span>
+            <span class="v">${fmtMinutes(total)}
+              <span class="breakdown">（繰越 ${fmtMinutes(carry)} ＋ 日誌 ${fmtMinutes(logged)}）</span>
+            </span>
+          </div>
+        </div>
+        <div class="ac-actions">
+          <button type="button" class="btn-small" data-act="edit">編集</button>
+          <button type="button" class="btn-small danger" data-act="delete">削除</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ===== フォーム =====
+  function clearForm() {
+    editingId = null;
+    $('f-name').value = '';
+    $('f-reg').value = '';
+    $('f-pilot').value = '';
+    $('f-carryover').value = '';
+    $('form-title').textContent = '機体の登録';
+    $('btn-save').textContent = 'この内容で登録する';
+    $('form-card').classList.remove('editing');
+  }
+
+  function startEdit(id) {
+    const a = aircraft.find(x => x.id === id);
+    if (!a) return;
+    editingId = id;
+    $('f-name').value = a.name;
+    $('f-reg').value = a.regNo || '';
+    $('f-pilot').value = a.pilot || '';
+    $('f-carryover').value = a.carryoverMinutes || '';
+    $('form-title').textContent = `機体の編集：${a.name}`;
+    $('btn-save').textContent = 'この内容で更新する';
+    $('form-card').classList.add('editing');
+    render();
+    $('form-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    $('f-name').focus();
+  }
+
+  $('btn-save').addEventListener('click', () => {
+    const name = $('f-name').value.trim();
+    if (!name) { alert('機体名を入力してください。'); $('f-name').focus(); return; }
+
+    const dup = aircraft.find(a => a.name === name && a.id !== editingId);
+    if (dup) { alert(`「${name}」はすでに登録されています。`); return; }
+
+    const carryRaw = $('f-carryover').value.trim();
+    const carry = carryRaw === '' ? 0 : parseInt(carryRaw, 10);
+    if (isNaN(carry) || carry < 0) { alert('繰越値は0以上の整数（分）で入力してください。'); return; }
+
+    const data = {
+      name,
+      regNo: $('f-reg').value.trim(),
+      pilot: $('f-pilot').value.trim(),
+      carryoverMinutes: carry,
+    };
+
+    if (editingId) {
+      const i = aircraft.findIndex(a => a.id === editingId);
+      aircraft[i] = { ...aircraft[i], ...data };
+    } else {
+      aircraft.push({ id: 'ac-' + Date.now().toString(36), ...data });
+    }
+    save();
+    clearForm();
+    render();
+  });
+
+  $('btn-cancel').addEventListener('click', () => { clearForm(); render(); });
+
+  $('list').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    const id = btn.closest('.ac-item').dataset.id;
+    if (btn.dataset.act === 'edit') {
+      startEdit(id);
+    } else if (btn.dataset.act === 'delete') {
+      const a = aircraft.find(x => x.id === id);
+      if (!a) return;
+      if (!confirm(`機体「${a.name}」を削除しますか？\n（日誌の過去の記録は削除されません）`)) return;
+      aircraft = aircraft.filter(x => x.id !== id);
+      if (editingId === id) clearForm();
+      save();
+      render();
+    }
+  });
+
+  load();
+  render();
+</script>
+
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>
+</body>
+</html>
