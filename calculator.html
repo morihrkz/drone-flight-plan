@@ -6,44 +6,15 @@
   <title>飛行計算ツール｜ドローン運用ツール</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#25364A">
+  <link rel="stylesheet" href="theme.css">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --accent: #25364A; --accent-light: #EEF2E4; --border: #C8CEC0;
-      --text: #2D3325; --muted: #72786B; --bg: #F5F3EC; --white: #fff; --radius: 8px;
-      /* 【UI改善 1-1】屋外日光下でのコントラスト向上用：ラベル専用の濃い文字色 */
-      --label: #3A4032;
-      --danger: #b03a3a;
-    }
-    body {
-      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
-      background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6;
-    }
-    .site-header { background: var(--accent); color: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
-    .site-header h1 { font-size: 18px; font-weight: 700; letter-spacing: .03em; }
-    .site-header a { color: inherit; text-decoration: none; display: flex; align-items: center; gap: 12px; }
-    .site-nav { background: var(--accent); padding: 0 20px 10px; display: flex; gap: 6px; flex-wrap: wrap; }
-    .site-nav a { color: rgba(255,255,255,.85); text-decoration: none; font-size: 13px; font-weight: 700;
-      padding: 5px 13px; border-radius: 999px; white-space: nowrap; }
-    .site-nav a:hover { color: #fff; background: rgba(255,255,255,.14); }
-    .site-nav a[aria-current="page"] { background: var(--accent-light); color: var(--accent); }
-
-    .layout { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+    /* ===== ページ固有スタイル（共通部分は theme.css 参照） ===== */
+    .container { max-width: 1100px; }
     .calc-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 28px; overflow: hidden; }
     .calc-card h2 { background: var(--accent-light); color: var(--accent); font-size: 16px; padding: 12px 20px; border-bottom: 1px solid var(--border); }
     .calc-body { display: grid; grid-template-columns: 1fr 320px; gap: 0; }
     .calc-form { padding: 20px; }
     .calc-result { background: #FAFAF5; border-left: 1px solid var(--border); padding: 20px; }
-    .field { margin-bottom: 16px; }
-    /* 【UI改善 1-1】ラベルを濃色化＋1px拡大：屋外の強い日光下でも読み取りやすく */
-    .field label { display: block; font-size: 13px; font-weight: 700; color: var(--label); margin-bottom: 4px; }
-    /* 【UI改善 1-1】入力文字16px化：可読性向上＋iOS Safariのフォーカス時自動ズームを抑止（誤操作防止） */
-    .field input, .field select {
-      width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px;
-      font-size: 16px; font-weight: 600; font-family: inherit; background: #fff; color: var(--text);
-    }
-    .field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
-    .field input.invalid { border-color: #b03a3a; background: #fdf3f3; }
     .field input.over-limit { border-color: #b03a3a; background: #fdf3f3; color: #b03a3a; font-weight: 700; }
 
     /* ===== スライダー併用 ===== */
@@ -87,10 +58,6 @@
     .compliance-list li.c-ok   { border-color: #9DB87C; background: #F2F7EA; color: #3E5226; }
     .compliance-list li.c-warn { border-color: #C9A227; background: #FBF6E3; color: #7A6212; }
     .compliance-list li.c-ng   { border-color: #b03a3a; background: #FDF3F3; color: #8a2f2f; font-weight: 700; }
-    .field .hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
-    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-
     .result-item { margin-bottom: 16px; }
     .result-item .r-label { font-size: 12px; color: var(--muted); font-weight: 700; }
     .result-item .r-value { font-size: 22px; font-weight: 700; color: var(--accent); }
@@ -136,7 +103,6 @@
       .calc-result { border-left: none; border-top: 1px solid var(--border); }
       .field-row, .field-row-3 { grid-template-columns: 1fr; }
     }
-    @media print { .site-nav { display: none !important; } }
   </style>
 </head>
 <body>
@@ -153,7 +119,7 @@
   <a href="data.html">データ管理</a>
 </nav>
 
-<div class="layout">
+<div class="container">
 
   <!-- ===== 1. 飛行時間・ホバリング計算 ===== -->
   <section class="calc-card">

@@ -1,0 +1,146 @@
+/* =========================================================
+   ドローン運用ツール 共通デザインガイドライン (theme.css)
+   基準ページ: calculator.html
+
+   設計原則（屋外・強い日差し・スマートフォン操作を前提）
+   - 視認性    : ラベルは濃色 --label / 13px太字。淡色文字は補足にのみ使う
+   - 誤操作防止: 入力文字は16px（iOS Safariのフォーカス時自動ズームを抑止）
+                 タッチターゲットは原則44px以上
+   - ナビ      : 画面が狭いときは折り返して全リンクを常時表示
+                 （横スクロールで隠れるリンクを作らない）
+
+   読み込み順: 各ページで theme.css を先に読み込み、
+   ページ固有の <style> で必要な部分だけ上書きする
+   ========================================================= */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --accent: #25364A;        /* 基調色（ヘッダー・主要ボタン・強調値） */
+  --accent-light: #EEF2E4;  /* 基調の淡色（選択状態・カード見出し背景） */
+  --border: #C8CEC0;        /* 罫線 */
+  --text: #2D3325;          /* 本文 */
+  --muted: #72786B;         /* 補足文字（小さい注記のみに使用） */
+  --label: #3A4032;         /* フォームラベル専用の濃色（屋外視認性） */
+  --bg: #F5F3EC;            /* ページ背景 */
+  --white: #fff;
+  --radius: 8px;            /* カード角丸（入力欄は6px） */
+  --danger: #b03a3a;        /* 警告: 枠線・アイコン */
+  --danger-dark: #8a2f2f;   /* 警告: 文字 */
+  --ok: #9DB87C;            /* 良好: 枠線 */
+  --ok-bg: #F2F7EA;         /* 良好: 背景 */
+  --ok-text: #3E5226;       /* 良好: 文字 */
+}
+
+body {
+  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ===== ヘッダー ===== */
+.site-header { background: var(--accent); color: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.site-header svg { flex-shrink: 0; }
+.site-header h1 { font-size: 18px; font-weight: 700; letter-spacing: .03em; }
+.site-header a { color: inherit; text-decoration: none; display: flex; align-items: center; gap: 12px; }
+
+/* ===== 共通ナビ（狭い画面では折り返し＝全リンク常時表示） ===== */
+.site-nav { background: var(--accent); padding: 0 20px 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+.site-nav a {
+  color: rgba(255,255,255,.85); text-decoration: none; font-size: 13px; font-weight: 700;
+  padding: 5px 13px; border-radius: 999px; white-space: nowrap; letter-spacing: .03em;
+  transition: background .15s, color .15s;
+}
+.site-nav a:hover { color: #fff; background: rgba(255,255,255,.14); }
+.site-nav a[aria-current="page"] { background: var(--accent-light); color: var(--accent); }
+
+/* ===== コンテナ（max-width は各ページで指定） ===== */
+.container { margin: 0 auto; padding: 28px 20px 60px; }
+
+.page-label {
+  font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); margin-bottom: 20px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ===== カード ===== */
+.card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px 18px; margin-bottom: 24px;
+}
+.card h2 {
+  font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); margin-bottom: 16px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ===== フォーム ===== */
+.field { margin-bottom: 16px; min-width: 0; }
+.field label { display: block; font-size: 13px; font-weight: 700; color: var(--label); margin-bottom: 4px; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px;
+  font-size: 16px; font-family: inherit; background: var(--white); color: var(--text);
+}
+.field input, .field select { font-weight: 600; }
+/* iOS Safari の独自スタイルをリセット（select は矢印が消えるため対象外） */
+.field input, .field textarea { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+.field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.field textarea { resize: vertical; min-height: 72px; }
+.field .hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.field input.invalid { border-color: var(--danger); background: #fdf3f3; }
+input[type="date"], input[type="time"] { min-height: 44px; }
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+/* ===== ボタン ===== */
+.btn {
+  padding: 11px 16px; border-radius: var(--radius); font-family: inherit;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  transition: background .15s, color .15s, transform .1s;
+  -webkit-tap-highlight-color: transparent; text-decoration: none;
+}
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--accent); color: #fff; border: 2px solid var(--accent); width: 100%; }
+.btn-primary:hover { background: #34495f; border-color: #34495f; }
+.btn-outline { background: transparent; color: var(--accent); border: 2px solid var(--accent); }
+.btn-outline:hover { background: var(--accent); color: #fff; }
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* ===== 注意ノート・空表示 ===== */
+.note-warn {
+  display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px;
+  background: #fff8e1; border: 1px solid #f0c040; border-radius: 6px;
+  font-size: 13px; color: #5a4500; line-height: 1.65;
+}
+.note-warn svg { flex-shrink: 0; margin-top: 2px; }
+.empty-msg {
+  text-align: center; color: var(--muted); font-size: 14px; padding: 28px 10px;
+  background: var(--white); border: 1px dashed var(--border); border-radius: var(--radius);
+}
+
+/* ===== レスポンシブ ===== */
+@media (max-width: 480px) {
+  .site-header { padding: 12px 16px; }
+  .site-header h1 { font-size: 16px; }
+  .site-nav { padding: 0 14px 9px; }
+  .container { padding: 20px 12px 48px; }
+  .card { padding: 16px 14px; }
+  .field-row, .field-row-3 { grid-template-columns: 1fr; }
+  .field input[type="date"], .field input[type="time"] {
+    padding: 6px 8px; line-height: 1.2; max-width: 100%;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+}
+@media (max-height: 500px) {
+  .field-row, .field-row-3 { grid-template-columns: 1fr; }
+}
+
+/* ===== 印刷 ===== */
+@media print {
+  .site-nav { display: none !important; }
+}
