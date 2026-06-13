@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>飛行前チェックリスト</title>
+  <title>ドローン運用ツール | 飛行前チェックリスト</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#25364A">
   <link rel="stylesheet" href="theme.css">
@@ -13,7 +13,19 @@
 
     /* ===== 進捗バー ===== */
     .progress-area {
-      margin-bottom: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      margin: 0 -20px 20px;
+      padding: 14px 20px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    @media (max-width: 600px) {
+      .progress-area {
+        margin: 0 -12px 20px;
+        padding: 12px 12px;
+      }
     }
     .progress-meta {
       display: flex;
@@ -367,14 +379,6 @@
 
 <div class="container">
 
-  <div class="page-label">Drone Pre-flight Checklist</div>
-
-  <!-- 進行中の飛行セッション（計画書から遷移してきた場合に表示） -->
-  <div id="session-banner" style="display:none; margin-bottom:20px; padding:12px 14px; background:var(--accent-light); border:1.5px solid var(--accent); border-radius:var(--radius); font-size:13px; line-height:1.7;">
-    <div style="font-size:11px; font-weight:700; letter-spacing:.06em; color:var(--accent); margin-bottom:2px;">進行中の飛行計画</div>
-    <div id="session-summary"></div>
-  </div>
-
   <div class="progress-area">
     <div class="progress-meta">
       <span>チェック済み</span>
@@ -383,6 +387,14 @@
     <div class="progress-track">
       <div class="progress-fill" id="progress-bar"></div>
     </div>
+  </div>
+
+  <div class="page-label">飛行前に行う点検</div>
+
+  <!-- 進行中の飛行セッション（計画書から遷移してきた場合に表示） -->
+  <div id="session-banner" style="display:none; margin-bottom:20px; padding:12px 14px; background:var(--accent-light); border:1.5px solid var(--accent); border-radius:var(--radius); font-size:13px; line-height:1.7;">
+    <div style="font-size:11px; font-weight:700; letter-spacing:.06em; color:var(--accent); margin-bottom:2px;">進行中の飛行計画</div>
+    <div id="session-summary"></div>
   </div>
 
   <div class="checklist">
