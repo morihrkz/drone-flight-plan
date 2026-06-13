@@ -238,6 +238,39 @@
       margin-top: 2px;
     }
 
+    /* 結果・備考（様式２の RESULT / REMARKS） */
+    .result-row {
+      display: flex;
+      gap: 12px;
+      padding: 0 16px 14px;
+      padding-left: calc(16px + 28px + 14px);
+    }
+    .result-field { display: flex; flex-direction: column; gap: 4px; }
+    .result-field.remarks { flex: 1; }
+    .result-field label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .04em;
+    }
+    .result-input, .remarks-input {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      background: var(--white);
+      color: var(--text);
+      min-height: 40px;
+    }
+    .result-input { min-width: 88px; }
+    @media (max-width: 480px) {
+      .result-row {
+        padding: 0 12px 12px;
+        padding-left: calc(12px + 28px + 12px);
+      }
+    }
+
     /* ===== 下部ボタン ===== */
     .btn-next-log {
       display: flex;
@@ -309,55 +342,71 @@
 
       .print-doc {
         display: block;
-        padding: 18mm 16mm 20mm;
+        padding: 14mm 14mm 16mm;
         color: #000;
       }
-      .print-doc .pd-title {
-        text-align: center;
-        font-size: 20px;
-        font-weight: 700;
-        letter-spacing: .1em;
-        margin-bottom: 4px;
+      .print-doc .pd-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 12px;
       }
-      .print-doc .pd-subtitle {
-        text-align: center;
+      .print-doc .pd-form-title {
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.4;
+      }
+      .print-doc .pd-form-en {
         font-size: 11px;
-        color: #555;
-        margin-bottom: 20px;
+        font-weight: 700;
+        color: #333;
+      }
+      .print-doc .pd-nr {
+        border: 1px solid #333;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        min-width: 90px;
+        text-align: center;
       }
       .print-doc table {
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 18px;
+        margin-bottom: 14px;
       }
       .print-doc th, .print-doc td {
         border: 1px solid #333;
-        padding: 7px 10px;
-        font-size: 12px;
+        padding: 6px 9px;
+        font-size: 11px;
         text-align: left;
         vertical-align: top;
+        line-height: 1.4;
       }
       .print-doc th {
         background: #eef0ea;
         font-weight: 700;
-        white-space: nowrap;
       }
-      .print-doc .pd-result {
-        width: 18%;
-        text-align: center;
-        font-weight: 700;
+      .print-doc th .en {
+        font-size: 8px;
+        font-weight: 600;
+        color: #555;
       }
-      .print-doc .pd-notes-box {
-        border: 1px solid #333;
-        min-height: 70px;
-        padding: 7px 10px;
-        font-size: 12px;
-      }
+      .print-doc .pd-meta td { font-weight: 700; font-size: 13px; }
+      .print-doc .pd-result { text-align: center; font-weight: 700; }
       .print-doc .pd-notes-label {
         font-size: 12px;
         font-weight: 700;
         margin-bottom: 4px;
       }
+      .print-doc .pd-notes-box {
+        border: 1px solid #333;
+        min-height: 56px;
+        padding: 6px 9px;
+        font-size: 11px;
+        margin-bottom: 14px;
+        white-space: pre-wrap;
+      }
+      .print-doc tr { page-break-inside: avoid; }
     }
   </style>
 </head>
@@ -396,6 +445,15 @@
     <div style="font-size:11px; font-weight:700; letter-spacing:.06em; color:var(--accent); margin-bottom:2px;">進行中の飛行計画</div>
     <div id="session-summary"></div>
   </div>
+
+  <!-- 機体概要（様式２冒頭・ページに一度だけ） -->
+  <section class="card">
+    <h2>機体概要（様式２）</h2>
+    <div class="field">
+      <label for="f-registration">無人航空機の登録記号 <span style="font-weight:400;color:var(--muted);">REGISTRATION ID OF UAS</span></label>
+      <input type="text" id="f-registration" placeholder="例：JU0123456789">
+    </div>
+  </section>
 
   <div class="checklist">
 
@@ -586,6 +644,29 @@
   <div class="section-title">日常点検記録（国土交通省様式に基づく必須点検）</div>
   <div class="checklist" id="daily-checklist"></div>
 
+  <!-- 点検後の記録（様式２） -->
+  <section class="card" style="margin-top:20px;">
+    <h2>点検記録（様式２）</h2>
+    <div class="field">
+      <label for="f-notes">特記事項 <span style="font-weight:400;color:var(--muted);">NOTES（任意）</span></label>
+      <textarea id="f-notes" placeholder="点検で気づいた事項など（任意）"></textarea>
+    </div>
+    <div class="field">
+      <label for="f-place">実施場所 <span style="font-weight:400;color:var(--muted);">PLACE</span></label>
+      <input type="text" id="f-place" placeholder="点検を実施した場所">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="f-date">実施年月日 <span style="font-weight:400;color:var(--muted);">DATE</span></label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="field">
+        <label for="f-inspector">実施者 <span style="font-weight:400;color:var(--muted);">INSPECTOR</span></label>
+        <input type="text" id="f-inspector" placeholder="点検実施者の氏名">
+      </div>
+    </div>
+  </section>
+
   <button class="reset-btn" id="reset-btn">すべてリセット</button>
 
   <button type="button" class="btn-print" id="btn-print">
@@ -606,27 +687,48 @@
 
 </div>
 
-<!-- 印刷専用：無人航空機の日常点検記録 -->
+<!-- 印刷専用：様式２ 日常点検記録 -->
 <div class="print-doc" id="print-doc">
-  <div class="pd-title">無人航空機の日常点検記録</div>
-  <div class="pd-subtitle">Daily Inspection Record</div>
+  <div class="pd-header">
+    <div class="pd-form-title">
+      <div>（様式２）日常点検記録</div>
+      <div class="pd-form-en">無人航空機の日常点検記録　DAILY INSPECTION RECORD OF UAS</div>
+    </div>
+    <div class="pd-nr">NR.&nbsp;<span id="pd-nr">&nbsp;</span></div>
+  </div>
 
-  <table>
-    <tr><th style="width:24%;">機体名</th><td id="pd-aircraft"></td></tr>
-    <tr><th>実施年月日</th><td id="pd-date"></td></tr>
-    <tr><th>実施場所</th><td id="pd-location"></td></tr>
-    <tr><th>実施者</th><td id="pd-pilot"></td></tr>
+  <table class="pd-meta">
+    <tr>
+      <th style="width:30%;">無人航空機の登録記号<br><span class="en">REGISTRATION ID OF UAS</span></th>
+      <td id="pd-registration"></td>
+    </tr>
   </table>
 
-  <table>
+  <table class="pd-main">
     <thead>
-      <tr><th style="width:24%;">点検箇所</th><th>点検内容</th><th class="pd-result">結果</th></tr>
+      <tr>
+        <th style="width:22%;">点検箇所<br><span class="en">INSPECTION POINT</span></th>
+        <th>点検内容<br><span class="en">DETAILS</span></th>
+        <th class="pd-result" style="width:14%;">結果<br><span class="en">RESULT</span></th>
+        <th style="width:24%;">備考<br><span class="en">REMARKS</span></th>
+      </tr>
     </thead>
     <tbody id="pd-rows"></tbody>
   </table>
 
-  <div class="pd-notes-label">特記事項</div>
-  <div class="pd-notes-box"></div>
+  <div class="pd-notes-label">特記事項　NOTES</div>
+  <div class="pd-notes-box" id="pd-notes"></div>
+
+  <table class="pd-foot">
+    <tr>
+      <th style="width:16%;">実施場所<br><span class="en">PLACE</span></th>
+      <td id="pd-place"></td>
+      <th style="width:16%;">実施年月日<br><span class="en">DATE</span></th>
+      <td id="pd-date" style="width:18%;"></td>
+      <th style="width:14%;">実施者<br><span class="en">INSPECTOR</span></th>
+      <td id="pd-inspector" style="width:16%;"></td>
+    </tr>
+  </table>
 </div>
 
 <script>
@@ -636,15 +738,15 @@
 
   // ===== 日常点検記録（国土交通省様式）の点検項目 =====
   const INSPECT_ITEMS = [
-    { part: '機体全般',        desc: '機器の取付状態（ネジ・コネクタ・ケーブル等）' },
-    { part: 'プロペラ',        desc: '外観・損傷・歪み' },
-    { part: 'フレーム',        desc: '外観・損傷・歪み' },
-    { part: '通信系統',        desc: '機体と操縦装置の通信品質の健全性' },
-    { part: '推進系統',        desc: 'モーター又は発動機の健全性' },
-    { part: '電源系統',        desc: '機体及び操縦装置の電源の健全性' },
-    { part: '自動制御系統',    desc: '飛行制御装置の健全性' },
-    { part: '操縦装置',        desc: '外観、スティック、スイッチの健全性' },
-    { part: 'バッテリー・燃料', desc: 'バッテリーの充電状況、燃料表示性能の健全性' },
+    { part: '機体全般',         en: 'UAS GENERAL',              desc: '機器の取付状態（ネジ・コネクタ・ケーブル等）' },
+    { part: 'プロペラ',         en: 'PROPELLER(S)',             desc: '外観・損傷・歪み' },
+    { part: 'フレーム',         en: 'FRAME',                    desc: '外観・損傷・歪み' },
+    { part: '通信系統',         en: 'COMMUNICATION SYSTEM',     desc: '機体と操縦装置の通信品質の健全性' },
+    { part: '推進系統',         en: 'PROPULSION SYSTEM',        desc: 'モーター又は発動機の健全性' },
+    { part: '電源系統',         en: 'POWER SYSTEM',             desc: '機体及び操縦装置の電源の健全性' },
+    { part: '自動制御系統',     en: 'AUTOMATIC CONTROL SYSTEM', desc: '飛行制御装置の健全性' },
+    { part: '操縦装置',         en: 'FLIGHT CONTROL SYSTEM',    desc: '外観、スティック、スイッチの健全性' },
+    { part: 'バッテリー、燃料', en: 'BATTERY, FUEL',            desc: 'バッテリーの充電状況、燃料表示性能の健全性' },
   ];
 
   // 既存10項目 ＋ 日常点検9項目
@@ -665,11 +767,24 @@
           </svg>
         </span>
         <span class="check-content">
-          <span class="check-num">点検 ${String(idx + 1).padStart(2, '0')}</span>
+          <span class="check-num">点検 ${String(idx + 1).padStart(2, '0')}　${it.en}</span>
           <span class="check-title">${it.part}</span>
           <span class="check-sub">${it.desc}</span>
         </span>
       </label>
+      <div class="result-row">
+        <div class="result-field">
+          <label for="result-${n}">結果 RESULT</label>
+          <select class="result-input" id="result-${n}">
+            <option value="正常">正常</option>
+            <option value="異常">異常</option>
+          </select>
+        </div>
+        <div class="result-field remarks">
+          <label for="remarks-${n}">備考 REMARKS</label>
+          <input type="text" class="remarks-input" id="remarks-${n}" placeholder="異常時の内容など（任意）">
+        </div>
+      </div>
     </div>`;
     }).join('');
   }
@@ -710,11 +825,22 @@
     document.getElementById('btn-to-log').classList.toggle('done', count === TOTAL);
   }
 
+  // 様式２の追加項目（チェックボックス以外）。チェックボックスと同じ
+  // STORAGE_KEY オブジェクトに同居させる（旧データと後方互換）
+  const META_FIELDS = ['f-registration', 'f-notes', 'f-place', 'f-date', 'f-inspector'];
+  function metaInputs() {
+    return [
+      ...META_FIELDS.map(id => document.getElementById(id)),
+      ...document.querySelectorAll('.result-input, .remarks-input'),
+    ].filter(Boolean);
+  }
+
   function saveState() {
     const state = {};
     document.querySelectorAll('.check-input').forEach(input => {
       state[input.id] = input.checked;
     });
+    metaInputs().forEach(el => { state[el.id] = el.value; });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
 
@@ -734,6 +860,9 @@
         input.closest('.check-item').classList.add('is-checked');
       }
     });
+    metaInputs().forEach(el => {
+      if (typeof state[el.id] === 'string') el.value = state[el.id];
+    });
     updateProgress();
   }
 
@@ -744,6 +873,8 @@
       saveState();
     });
   });
+  // 様式２の入力欄は変更の都度保存する
+  metaInputs().forEach(el => el.addEventListener('input', saveState));
 
   // リスナー登録は初期化処理より先に行う
   // （初期化中に万一エラーが起きてもボタンが死なないように）
@@ -753,32 +884,42 @@
       input.checked = false;
       input.closest('.check-item').classList.remove('is-checked');
     });
+    // 点検結果（RESULT/REMARKS）も初期化する
+    document.querySelectorAll('.result-input').forEach(el => { el.value = '正常'; });
+    document.querySelectorAll('.remarks-input').forEach(el => { el.value = ''; });
     updateProgress();
     // 確実に空のデータでストレージを上書き同期する
     saveState();
   });
 
   // ===== 印刷（日常点検記録フォーマット） =====
+  function fmtDateJP(v) {
+    if (!v) return '';
+    const [y, m, d] = v.split('-');
+    return `${y}年${parseInt(m)}月${parseInt(d)}日`;
+  }
   function fillPrintDoc() {
-    const s = getSession();
-    const p = (s && s.plan) || {};
     const set = (id, v) => { document.getElementById(id).textContent = v || ''; };
-    set('pd-aircraft', p.aircraft);
-    set('pd-location', p.location);
-    set('pd-pilot', p.pilot);
-    let dateStr = '';
-    if (p.date) {
-      const [y, m, d] = p.date.split('-');
-      dateStr = `${y}年${parseInt(m)}月${parseInt(d)}日`;
-    } else {
-      const now = new Date();
-      dateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
-    }
-    set('pd-date', dateStr);
+    const val = id => (document.getElementById(id).value || '').trim();
+    set('pd-registration', val('f-registration'));
+    set('pd-notes', val('f-notes'));
+    set('pd-place', val('f-place'));
+    set('pd-inspector', val('f-inspector'));
+    set('pd-date', fmtDateJP(val('f-date')));
 
     document.getElementById('pd-rows').innerHTML = INSPECT_ITEMS.map((it, idx) => {
-      const checked = document.getElementById(`chk-${11 + idx}`).checked;
-      return `<tr><th>${it.part}</th><td>${it.desc}</td><td class="pd-result">${checked ? '正常' : ''}</td></tr>`;
+      const n = 11 + idx;
+      const result = document.getElementById(`result-${n}`).value || '';
+      const remarks = (document.getElementById(`remarks-${n}`).value || '').trim();
+      // 未点検（チェックなし）の場合は結果を空欄にする
+      const checked = document.getElementById(`chk-${n}`).checked;
+      const escHtml = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+      return `<tr>
+          <th>${it.part}<br><span style="font-size:8px;font-weight:600;color:#555;">${it.en}</span></th>
+          <td>${it.desc}</td>
+          <td class="pd-result">${checked ? result : ''}</td>
+          <td>${escHtml(remarks)}</td>
+        </tr>`;
     }).join('');
   }
   document.getElementById('btn-print').addEventListener('click', () => {
@@ -789,6 +930,17 @@
 
   try { initSession(); } catch (e) {}
   try { restoreState(); } catch (e) {}
+  // 様式２の記録欄が空なら計画書・当日から補完（保存済みの値があればそちらを優先）
+  try {
+    const p = (getSession() || {}).plan || {};
+    if (!document.getElementById('f-place').value && p.location) document.getElementById('f-place').value = p.location;
+    if (!document.getElementById('f-inspector').value && p.pilot) document.getElementById('f-inspector').value = p.pilot;
+    if (!document.getElementById('f-date').value) {
+      const now = new Date();
+      document.getElementById('f-date').value = p.date ||
+        `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+  } catch (e) {}
   updateProgress();
 </script>
 

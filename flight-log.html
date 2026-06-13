@@ -251,40 +251,64 @@
 
       .print-doc {
         display: block;
-        padding: 14mm 14mm 16mm;
+        padding: 10mm 10mm 12mm;
         color: #000;
       }
-      .print-doc .pd-title {
-        text-align: center;
-        font-size: 20px;
-        font-weight: 700;
-        letter-spacing: .1em;
-        margin-bottom: 4px;
+      .print-doc .pd-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 10px;
       }
-      .print-doc .pd-subtitle {
-        text-align: center;
+      .print-doc .pd-form-title {
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.4;
+      }
+      .print-doc .pd-form-en {
         font-size: 11px;
-        color: #555;
-        margin-bottom: 16px;
+        font-weight: 700;
+        color: #333;
+      }
+      .print-doc .pd-nr {
+        border: 1px solid #333;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        min-width: 90px;
+        text-align: center;
       }
       .print-doc table {
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
       }
       .print-doc th, .print-doc td {
         border: 1px solid #333;
-        padding: 6px 8px;
-        font-size: 11px;
+        padding: 4px 6px;
+        font-size: 10px;
         text-align: left;
         vertical-align: top;
+        line-height: 1.35;
       }
       .print-doc th {
         background: #eef0ea;
         font-weight: 700;
-        white-space: nowrap;
       }
-      .print-doc .c { text-align: center; white-space: nowrap; }
+      .print-doc th .en {
+        font-size: 8px;
+        font-weight: 600;
+        color: #555;
+      }
+      .print-doc .c { text-align: center; }
+      .print-doc .pd-main th, .print-doc .pd-main td { font-size: 9.5px; }
+      .print-doc .pd-meta td { font-weight: 700; font-size: 12px; }
+      .print-doc .pd-squawk-title {
+        font-size: 12px;
+        font-weight: 700;
+        margin: 4px 0 6px;
+      }
+      .print-doc tr { page-break-inside: avoid; }
     }
   </style>
 </head>
@@ -329,17 +353,32 @@
     <div id="session-summary"></div>
   </div>
 
+  <!-- 機体概要（様式１冒頭・ページに一度だけ） -->
+  <section class="card">
+    <h2>機体概要（様式１）</h2>
+    <div class="field-row">
+      <div class="field">
+        <label for="f-registration">無人航空機の登録記号 <span style="font-weight:400;color:var(--muted);">REGISTRATION ID OF UAS</span></label>
+        <input type="text" id="f-registration" placeholder="例：JU0123456789">
+      </div>
+      <div class="field">
+        <label for="f-carryover">繰越総飛行時間（分） <span style="font-weight:400;color:var(--muted);">前ページからの繰越</span></label>
+        <input type="number" id="f-carryover" min="0" step="1" placeholder="例：1200">
+      </div>
+    </div>
+  </section>
+
   <!-- 入力フォーム -->
   <section class="card">
     <h2 id="form-title">記録の入力</h2>
 
     <div class="field-row">
       <div class="field">
-        <label for="f-date">飛行日</label>
+        <label for="f-date">飛行年月日 <span style="font-weight:400;color:var(--muted);">FLIGHT DATE</span></label>
         <input type="date" id="f-date">
       </div>
       <div class="field">
-        <label for="f-pilot">操縦者</label>
+        <label for="f-pilot">飛行させた者の氏名 <span style="font-weight:400;color:var(--muted);">NAME OF PILOT</span></label>
         <select id="f-pilot"></select>
       </div>
     </div>
@@ -351,20 +390,20 @@
 
     <div class="tl-row">
       <div class="tl-box">
-        <div class="tl-label">離陸時刻</div>
+        <div class="tl-label">離陸時刻 OFF TIME</div>
         <input type="time" id="f-takeoff" aria-label="離陸時刻">
         <button type="button" class="btn-rec" id="btn-rec-takeoff">🛫 離陸を記録</button>
       </div>
       <div class="tl-box">
-        <div class="tl-label">着陸時刻</div>
+        <div class="tl-label">着陸時刻 ON TIME</div>
         <input type="time" id="f-landing" aria-label="着陸時刻">
         <button type="button" class="btn-rec" id="btn-rec-landing">🛬 着陸を記録</button>
       </div>
     </div>
-    <div class="auto-time">飛行時間（自動算出）：<span class="min" id="auto-time">―</span></div>
+    <div class="auto-time">飛行時間 FLIGHT TIME（自動算出）：<span class="min" id="auto-time">―</span></div>
 
     <div class="field">
-      <label for="f-location">離陸場所</label>
+      <label for="f-location">離陸場所 <span style="font-weight:400;color:var(--muted);">FROM</span></label>
       <input type="text" id="f-location" placeholder="離陸の[記録]時に自動入力（手修正可）">
       <div class="loc-btns">
         <button type="button" class="btn-small" data-loc="location" data-src="plan">📋 計画書の場所をコピー</button>
@@ -373,7 +412,7 @@
     </div>
 
     <div class="field">
-      <label for="f-landloc">着陸場所</label>
+      <label for="f-landloc">着陸場所 <span style="font-weight:400;color:var(--muted);">TO</span></label>
       <input type="text" id="f-landloc" placeholder="着陸の[記録]時に自動入力（手修正可）">
       <div class="loc-btns">
         <button type="button" class="btn-small" data-loc="landloc" data-src="plan">📋 計画書の場所をコピー</button>
@@ -383,32 +422,62 @@
 
     <div class="field-row">
       <div class="field">
-        <label for="f-weather">天候</label>
+        <label for="f-weather">天候 <span style="font-weight:400;color:var(--muted);">運用欄</span></label>
         <input type="text" id="f-weather" placeholder="例：晴れ">
       </div>
       <div class="field">
-        <label for="f-wind">風速</label>
+        <label for="f-wind">風速 <span style="font-weight:400;color:var(--muted);">運用欄</span></label>
         <input type="text" id="f-wind" placeholder="例：北風 2m/s">
       </div>
     </div>
 
     <div class="field">
-      <label for="f-battery">バッテリー番号</label>
+      <label for="f-battery">バッテリー番号 <span style="font-weight:400;color:var(--muted);">運用欄</span></label>
       <input type="text" id="f-battery" placeholder="例：#01, #03（複数可）">
     </div>
 
     <div class="field">
-      <label for="f-shoot">撮影内容</label>
-      <textarea id="f-shoot" placeholder="例：海岸線の夕景パン、橋梁上空からの俯瞰カットなど"></textarea>
+      <label for="f-shoot">飛行概要 <span style="font-weight:400;color:var(--muted);">NATURE OF FLIGHT</span></label>
+      <textarea id="f-shoot" placeholder="例：橋梁点検のための空撮、農地センシングなど（様式１の飛行概要）"></textarea>
     </div>
 
     <div class="field">
-      <label for="f-anomaly">異常記録</label>
-      <input type="text" id="f-anomaly" placeholder="異常なしの場合は空欄。例：GPS不安定、プロペラ交換">
+      <label for="f-anomaly">飛行の安全に影響のあった事項 <span style="font-weight:400;color:var(--muted);">MATTERS AFFECTED FLIGHT SAFETY</span></label>
+      <input type="text" id="f-anomaly" placeholder="該当なしの場合は空欄。例：GPS不安定、プロペラ交換">
     </div>
 
     <div class="field">
-      <label for="f-memo">メモ</label>
+      <label for="f-confirmer">確認者 <span style="font-weight:400;color:var(--muted);">CONFIRMER（任意）</span></label>
+      <input type="text" id="f-confirmer" placeholder="確認者の氏名（空欄でも印刷・出力可）">
+    </div>
+
+    <!-- 記事（不具合記録）：発生した場合のみ -->
+    <details class="field" style="margin-bottom:14px;">
+      <summary style="cursor:pointer; font-weight:700; color:var(--label); padding:4px 0;">記事（不具合記録）SQUAWK — 発生時のみ</summary>
+      <div style="margin-top:10px;">
+        <div class="field-row">
+          <div class="field">
+            <label for="f-squawkDate">発生年月日 <span style="font-weight:400;color:var(--muted);">SQUAWK DATE</span></label>
+            <input type="date" id="f-squawkDate">
+          </div>
+          <div class="field">
+            <label for="f-actionDate">処置年月日 <span style="font-weight:400;color:var(--muted);">ACTION DATE</span></label>
+            <input type="date" id="f-actionDate">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-squawk">不具合事項 <span style="font-weight:400;color:var(--muted);">FLIGHT SQUAWK</span></label>
+          <textarea id="f-squawk" placeholder="発生した不具合の内容"></textarea>
+        </div>
+        <div class="field">
+          <label for="f-action">処置その他 <span style="font-weight:400;color:var(--muted);">CORRECTIVE ACTION</span></label>
+          <textarea id="f-action" placeholder="実施した処置の内容"></textarea>
+        </div>
+      </div>
+    </details>
+
+    <div class="field">
+      <label for="f-memo">メモ <span style="font-weight:400;color:var(--muted);">運用欄（様式外）</span></label>
       <textarea id="f-memo" placeholder="飛行内容・特記事項など（任意）"></textarea>
     </div>
 
@@ -494,37 +563,54 @@
 
 </div>
 
-<!-- 印刷専用：飛行日誌（1日分） -->
+<!-- 印刷専用：様式１ 飛行記録（1日分） -->
 <div class="print-doc" id="print-doc">
-  <div class="pd-title">飛 行 記 録（飛行日誌）</div>
-  <div class="pd-subtitle">Flight Log</div>
+  <div class="pd-header">
+    <div class="pd-form-title">
+      <div>（様式１）飛行記録</div>
+      <div class="pd-form-en">無人航空機の飛行記録　JOURNEY LOG OF UAS</div>
+    </div>
+    <div class="pd-nr">NR.&nbsp;<span id="pd-nr">&nbsp;</span></div>
+  </div>
 
-  <table>
+  <table class="pd-meta">
     <tr>
-      <th style="width:14%;">飛行年月日</th><td style="width:22%;" id="pd-date"></td>
-      <th style="width:14%;">機体</th><td id="pd-aircraft"></td>
-    </tr>
-    <tr>
-      <th>操縦者</th><td id="pd-pilot"></td>
-      <th>案件名</th><td id="pd-project"></td>
+      <th style="width:30%;">無人航空機の登録記号<br><span class="en">REGISTRATION ID OF UAS</span></th>
+      <td id="pd-registration"></td>
     </tr>
   </table>
 
-  <table>
+  <table class="pd-main">
     <thead>
       <tr>
         <th class="c">No.</th>
-        <th>機体</th>
-        <th>操縦者</th>
-        <th>離陸場所</th>
-        <th>着陸場所</th>
-        <th class="c">離陸時刻</th>
-        <th class="c">着陸時刻</th>
-        <th class="c">飛行時間(分)</th>
-        <th>飛行の安全に影響のあった事項</th>
+        <th>飛行年月日<br><span class="en">FLIGHT DATE</span></th>
+        <th>飛行させた者の氏名<br><span class="en">NAME OF PILOT</span></th>
+        <th>飛行概要<br><span class="en">NATURE OF FLIGHT</span></th>
+        <th>離陸場所<br><span class="en">FROM</span></th>
+        <th>着陸場所<br><span class="en">TO</span></th>
+        <th class="c">離陸時刻<br><span class="en">OFF</span></th>
+        <th class="c">着陸時刻<br><span class="en">ON</span></th>
+        <th class="c">飛行時間<br><span class="en">FLIGHT TIME</span></th>
+        <th class="c">総飛行時間<br><span class="en">TOTAL</span></th>
+        <th>飛行の安全に影響のあった事項<br><span class="en">MATTERS AFFECTED FLIGHT SAFETY</span></th>
+        <th>確認者<br><span class="en">CONFIRMER</span></th>
       </tr>
     </thead>
     <tbody id="pd-rows"></tbody>
+  </table>
+
+  <div class="pd-squawk-title">記事（不具合記録）　SQUAWK</div>
+  <table class="pd-squawk">
+    <thead>
+      <tr>
+        <th style="width:14%;">発生年月日<br><span class="en">SQUAWK DATE</span></th>
+        <th style="width:36%;">不具合事項<br><span class="en">FLIGHT SQUAWK</span></th>
+        <th style="width:14%;">処置年月日<br><span class="en">ACTION DATE</span></th>
+        <th>処置その他<br><span class="en">CORRECTIVE ACTION</span></th>
+      </tr>
+    </thead>
+    <tbody id="pd-squawk-rows"></tbody>
   </table>
 </div>
 
@@ -535,7 +621,22 @@
 
   const $ = id => document.getElementById(id);
   // time（飛行時間・分）は離陸・着陸時刻から自動算出して保存する（旧記録の time もそのまま有効）
-  const FIELDS = ['date', 'pilot', 'takeoff', 'landing', 'location', 'landloc', 'aircraft', 'weather', 'wind', 'battery', 'shoot', 'anomaly', 'memo'];
+  const FIELDS = ['date', 'pilot', 'takeoff', 'landing', 'location', 'landloc', 'aircraft', 'weather', 'wind', 'battery', 'shoot', 'anomaly', 'confirmer', 'squawkDate', 'squawk', 'actionDate', 'action', 'memo'];
+  // ページ単位（様式１冒頭）の項目。レコードとは別キーで保存する
+  const HEADER_KEY = 'drone-flight-log-header';
+  function loadHeader() {
+    try {
+      const h = JSON.parse(localStorage.getItem(HEADER_KEY));
+      if (h && typeof h === 'object') return { registration: h.registration || '', carryover: h.carryover || '' };
+    } catch (e) {}
+    return { registration: '', carryover: '' };
+  }
+  function saveHeader() {
+    localStorage.setItem(HEADER_KEY, JSON.stringify({
+      registration: $('f-registration').value.trim(),
+      carryover: $('f-carryover').value.trim(),
+    }));
+  }
   const SESSION_KEY = 'drone-active-session';
   const AIRCRAFT_KEY = 'drone-aircraft-list';
   const PLAN_DRAFT_KEY = 'drone-flight-plan-draft';
@@ -895,6 +996,7 @@
       version: 1,
       exportedAt: new Date().toISOString(),
       date: date,
+      header: loadHeader(),
       plan: plan,
       checklist: checklist,
       records: dayRecords,
@@ -935,8 +1037,8 @@
   // ---- CSV 書き出し ----
   $('btn-export-csv').addEventListener('click', () => {
     if (records.length === 0) { alert('書き出す記録がありません。'); return; }
-    const COLS = ['date', 'pilot', 'takeoff', 'landing', 'time', 'location', 'landloc', 'aircraft', 'weather', 'wind', 'battery', 'shoot', 'anomaly', 'memo'];
-    const HEAD = ['飛行日', '操縦者', '離陸時刻', '着陸時刻', '飛行時間(分)', '離陸場所', '着陸場所', '機体', '天候', '風速', 'バッテリー番号', '撮影内容', '異常記録', 'メモ'];
+    const COLS = ['date', 'pilot', 'takeoff', 'landing', 'time', 'location', 'landloc', 'aircraft', 'shoot', 'anomaly', 'confirmer', 'squawkDate', 'squawk', 'actionDate', 'action', 'weather', 'wind', 'battery', 'memo'];
+    const HEAD = ['飛行年月日', '操縦者', '離陸時刻', '着陸時刻', '飛行時間(分)', '離陸場所', '着陸場所', '機体', '飛行概要', '安全に影響のあった事項', '確認者', '発生年月日', '不具合事項', '処置年月日', '処置その他', '天候', '風速', 'バッテリー番号', 'メモ'];
     const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const rows = [...records]
       .sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.id - b.id))
@@ -1019,25 +1121,41 @@
       .filter(r => r.date === date)
       .sort((a, b) => (a.takeoff || '').localeCompare(b.takeoff || '') || (a.id - b.id));
     const fmt = v => esc(v || '');
-    document.getElementById('pd-date').textContent = fmtDate(date);
-    document.getElementById('pd-project').textContent = plan.project || '';
-    document.getElementById('pd-aircraft').textContent =
-      [...new Set(dayRecords.map(r => r.aircraft).filter(Boolean))].join(' / ') || plan.aircraft || '';
-    document.getElementById('pd-pilot').textContent =
-      [...new Set(dayRecords.map(r => r.pilot).filter(Boolean))].join(' / ') || plan.pilot || '';
+    document.getElementById('pd-registration').textContent = $('f-registration').value.trim();
+
+    // 総飛行時間：繰越（分）＋ 当ページの累計
+    let running = parseInt($('f-carryover').value, 10) || 0;
     document.getElementById('pd-rows').innerHTML = dayRecords.length
-      ? dayRecords.map((r, i) => `<tr>
+      ? dayRecords.map((r, i) => {
+          const t = parseInt(r.time, 10) || 0;
+          running += t;
+          return `<tr>
           <td class="c">${i + 1}</td>
-          <td>${fmt(r.aircraft)}</td>
+          <td class="c">${fmt(r.date && fmtDate(r.date))}</td>
           <td>${fmt(r.pilot)}</td>
+          <td>${fmt(r.shoot)}</td>
           <td>${fmt(r.location)}</td>
           <td>${fmt(r.landloc)}</td>
           <td class="c">${fmt(r.takeoff)}</td>
           <td class="c">${fmt(r.landing)}</td>
-          <td class="c">${fmt(r.time)}</td>
+          <td class="c">${r.time ? fmt(r.time) + '分' : ''}</td>
+          <td class="c">${running}分</td>
           <td>${fmt(r.anomaly)}</td>
+          <td>${fmt(r.confirmer)}</td>
+        </tr>`;
+        }).join('')
+      : '<tr><td colspan="12" style="text-align:center; color:#777;">この日の飛行記録はありません</td></tr>';
+
+    // 記事（不具合記録）：いずれかの欄が入力されている記録のみ
+    const squawks = dayRecords.filter(r => r.squawkDate || r.squawk || r.actionDate || r.action);
+    document.getElementById('pd-squawk-rows').innerHTML = squawks.length
+      ? squawks.map(r => `<tr>
+          <td class="c">${fmt(r.squawkDate && fmtDate(r.squawkDate))}</td>
+          <td>${fmt(r.squawk)}</td>
+          <td class="c">${fmt(r.actionDate && fmtDate(r.actionDate))}</td>
+          <td>${fmt(r.action)}</td>
         </tr>`).join('')
-      : '<tr><td colspan="9" style="text-align:center; color:#777;">この日の飛行記録はありません</td></tr>';
+      : '<tr><td colspan="4" style="text-align:center; color:#777;">記載事項なし</td></tr>';
   }
   $('btn-print').addEventListener('click', () => {
     fillPrintDoc();
@@ -1052,6 +1170,9 @@
     editingId = null;
     persist();
     localStorage.removeItem(META_KEY);
+    localStorage.removeItem(HEADER_KEY);
+    $('f-registration').value = '';
+    $('f-carryover').value = '';
     meta = { lastExportAt: null, dirty: 0, snoozedAt: 0 };
     clearForm();
     setMode(false);
@@ -1077,6 +1198,13 @@
   // ---- 初期化 ----
   // 各初期化は独立して保護する（1つの失敗が他を巻き添えにしないように）
   load();
+  // 機体概要（登録記号・繰越時間）の復元と自動保存
+  try {
+    const h = loadHeader();
+    $('f-registration').value = h.registration;
+    $('f-carryover').value = h.carryover;
+    ['f-registration', 'f-carryover'].forEach(id => $(id).addEventListener('input', saveHeader));
+  } catch (e) {}
   try { buildSelects(); } catch (e) {}
   try { meta = loadMeta(); saveMeta(); } catch (e) {}
   try { updateBackupBanner(); } catch (e) {}
