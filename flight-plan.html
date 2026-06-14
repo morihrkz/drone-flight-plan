@@ -47,7 +47,7 @@
       margin-bottom: 10px;
       background: var(--bg);
     }
-    .ac-row select { margin-bottom: 8px; }
+    .ac-row select { margin-bottom: 0; }
     .ac-pair {
       display: grid;
       grid-template-columns: 1.5fr 1fr;
@@ -432,17 +432,15 @@
     </div>
 
     <div class="field">
-      <label for="pilot-select">操縦者氏名</label>
-      <select id="pilot-select" aria-label="機体管理の登録から操縦者を選ぶ" style="margin-bottom:8px;">
-        <option value="">機体管理の登録から選ぶ…</option>
-      </select>
-      <input type="text" id="f-pilot" placeholder="例：山田 太郎">
+      <label for="f-pilot">操縦者氏名</label>
+      <select id="f-pilot" aria-label="操縦者氏名（登録から選択または手入力）"></select>
+      <div class="hint">機体管理の登録から選択、または「＋手入力…」で直接入力できます。</div>
     </div>
 
     <div class="field">
       <label>機体（最大5機）</label>
       <div id="aircraft-rows"></div>
-      <div class="hint">機体管理タブの登録機体から選択できます（手入力も可）。1機入力すると次の欄が現れます。</div>
+      <div class="hint">各行で機体管理の登録から選択、または「＋手入力…」で直接入力できます。1機入力すると次の欄が現れます。</div>
     </div>
 
     <div class="field">
@@ -641,14 +639,20 @@
   const FIELD_IDS = fields.map(f => f.input);
 
   function readAircrafts() {
-    return [...document.querySelectorAll('#aircraft-rows .ac-row')].map(row => ({
-      name: row.querySelector('.ac-name').value.trim(),
-      regNo: row.querySelector('.ac-reg').value.trim(),
-    })).filter(a => a.name || a.regNo);
+    return [...document.querySelectorAll('#aircraft-rows .ac-row')].map(row => {
+      const nv = row.querySelector('.ac-name').value;
+      return {
+        name: (nv === MANUAL ? '' : nv).trim(),
+        regNo: row.querySelector('.ac-reg').value.trim(),
+      };
+    }).filter(a => a.name || a.regNo);
   }
   function readPlan() {
     const plan = {};
-    FIELD_IDS.forEach(id => plan[id.replace('f-', '')] = document.getElementById(id).value);
+    FIELD_IDS.forEach(id => {
+      const v = document.getElementById(id).value;
+      plan[id.replace('f-', '')] = (v === MANUAL ? '' : v);
+    });
     const acs = readAircrafts();
     plan.aircrafts = acs;
     // 旧スキーマ互換: 機体名の連結文字列も保持（チェックリスト・日誌への引き継ぎ、旧JSON互換）
@@ -667,12 +671,16 @@
     }
     if (acs) {
       document.querySelectorAll('#aircraft-rows .ac-row').forEach((row, i) => {
-        row.querySelector('.ac-name').value = (acs[i] && acs[i].name) || '';
+        const sel = row.querySelector('.ac-name');
+        const nm = (acs[i] && acs[i].name) || '';
+        if (nm) ensureOption(sel, nm); else sel.value = '';
         row.querySelector('.ac-reg').value = (acs[i] && acs[i].regNo) || '';
-        row.querySelector('.ac-select').value = '';
       });
       updateRowVisibility();
     }
+    // 操縦者（単一select）
+    if (plan.pilot) ensureOption(document.getElementById('f-pilot'), plan.pilot);
+    else document.getElementById('f-pilot').value = '';
   }
   function saveDraft() {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(readPlan()));
@@ -696,41 +704,58 @@
     return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
   }
 
+  // ===== 選択／自由入力の統一コントロール（飛行日誌の[機体]欄と同仕様） =====
+  const MANUAL = '__manual__';
+  function buildOptions(values, label) {
+    const uniq = [...new Set(values.map(v => (v || '').trim()).filter(Boolean))];
+    let html = `<option value="">（${label}を選択）</option>`;
+    uniq.forEach(v => { html += `<option value="${escAttr(v)}">${escAttr(v)}</option>`; });
+    html += `<option value="${MANUAL}">＋手入力…</option>`;
+    return html;
+  }
+  function ensureOption(sel, value) {
+    if (![...sel.options].some(o => o.value === value)) {
+      const o = document.createElement('option');
+      o.value = o.textContent = value;
+      sel.insertBefore(o, sel.lastElementChild);
+    }
+    sel.value = value;
+  }
+
   function buildAircraftRows() {
     const wrap = document.getElementById('aircraft-rows');
     const regs = loadAircraftList();
-    const options = '<option value="">機体管理の登録から選ぶ…</option>' +
-      regs.map((a, i) =>
-        `<option value="${i}">${escAttr(a.name)}${a.regNo ? '（' + escAttr(a.regNo) + '）' : ''}</option>`
-      ).join('');
+    const options = buildOptions(regs.map(a => a.name), '機体');
     wrap.innerHTML = '';
     for (let i = 0; i < MAX_AIRCRAFT; i++) {
       const row = document.createElement('div');
       row.className = 'ac-row';
       row.innerHTML = `
-        <select class="ac-select" aria-label="機体${i + 1}を機体管理の登録から選ぶ">${options}</select>
         <div class="ac-pair">
-          <input type="text" class="ac-name" placeholder="機体名" aria-label="機体${i + 1}の機体名">
+          <select class="ac-name" aria-label="機体${i + 1}（登録から選択または手入力）">${options}</select>
           <input type="text" class="ac-reg" placeholder="JU番号" aria-label="機体${i + 1}の機体番号">
         </div>`;
       wrap.appendChild(row);
     }
-    // 機体管理に登録がない場合は選択プルダウンを隠す（手入力のみ）
-    if (!regs.length) wrap.querySelectorAll('.ac-select').forEach(s => s.style.display = 'none');
 
     wrap.addEventListener('change', e => {
-      if (!e.target.classList.contains('ac-select')) return;
-      const a = loadAircraftList()[e.target.value];
-      if (!a) return;
-      const row = e.target.closest('.ac-row');
-      row.querySelector('.ac-name').value = a.name;
-      row.querySelector('.ac-reg').value = a.regNo || '';
+      if (!e.target.classList.contains('ac-name')) return;
+      const sel = e.target;
+      if (sel.value === MANUAL) {
+        const v = (prompt('機体名を入力してください') || '').trim();
+        if (v) ensureOption(sel, v); else sel.value = '';
+      } else if (sel.value) {
+        // 登録機体を選んだらJU番号を自動補完（空欄時のみ）
+        const reg = loadAircraftList().find(a => a.name === sel.value);
+        const regInput = sel.closest('.ac-row').querySelector('.ac-reg');
+        if (reg && reg.regNo && !regInput.value.trim()) regInput.value = reg.regNo;
+      }
       updateRowVisibility();
       update();
       saveDraft();
     });
     wrap.addEventListener('input', e => {
-      if (!e.target.matches('.ac-name, .ac-reg')) return;
+      if (!e.target.matches('.ac-reg')) return;
       updateRowVisibility();
       update();
       saveDraft();
@@ -742,24 +767,27 @@
     const rows = [...document.querySelectorAll('#aircraft-rows .ac-row')];
     let visible = 1;
     rows.forEach((row, i) => {
-      const filled = row.querySelector('.ac-name').value.trim() || row.querySelector('.ac-reg').value.trim();
+      const nv = row.querySelector('.ac-name').value;
+      const filled = (nv && nv !== MANUAL) || row.querySelector('.ac-reg').value.trim();
       if (filled) visible = Math.min(i + 2, MAX_AIRCRAFT);
     });
     rows.forEach((row, i) => { row.style.display = i < visible ? '' : 'none'; });
   }
 
-  // 操縦者の選択肢（機体管理の担当操縦者から重複を除いて作成）
+  // 操縦者（単一select：機体管理の担当操縦者から選択または手入力）
   function buildPilotSelect() {
-    const sel = document.getElementById('pilot-select');
-    const pilots = [...new Set(loadAircraftList().map(a => (a.pilot || '').trim()).filter(Boolean))];
-    sel.innerHTML = '<option value="">機体管理の登録から選ぶ…</option>' +
-      pilots.map(p => `<option value="${escAttr(p)}">${escAttr(p)}</option>`).join('');
-    sel.style.display = pilots.length ? '' : 'none';
+    const sel = document.getElementById('f-pilot');
+    const current = sel.value;
+    const pilots = loadAircraftList().map(a => a.pilot);
+    sel.innerHTML = buildOptions(pilots, '操縦者');
+    if (current && current !== MANUAL) ensureOption(sel, current);
   }
-  document.getElementById('pilot-select').addEventListener('change', e => {
-    if (!e.target.value) return;
-    document.getElementById('f-pilot').value = e.target.value;
-    e.target.value = '';
+  document.getElementById('f-pilot').addEventListener('change', e => {
+    const sel = e.target;
+    if (sel.value === MANUAL) {
+      const v = (prompt('操縦者氏名を入力してください') || '').trim();
+      if (v) ensureOption(sel, v); else sel.value = '';
+    }
     update();
     saveDraft();
   });
@@ -810,8 +838,8 @@
     notes.value = notes.value ? `${notes.value}\n\n${s.text}` : s.text;
     // 機体が未入力なら計算時の機体を1機目に反映
     const first = document.querySelector('#aircraft-rows .ac-name');
-    if (first && !first.value.trim() && s.aircraft && !s.aircraft.startsWith('（')) {
-      first.value = s.aircraft;
+    if (first && (!first.value || first.value === MANUAL) && s.aircraft && !s.aircraft.startsWith('（')) {
+      ensureOption(first, s.aircraft);
       updateRowVisibility();
     }
     update();
@@ -850,8 +878,8 @@
   document.getElementById('btn-clear').addEventListener('click', () => {
     if (!confirm('計画書の入力内容と保存データをクリアしますか？\nこの操作は取り消せません。')) return;
     FIELD_IDS.forEach(id => document.getElementById(id).value = '');
-    document.querySelectorAll('#aircraft-rows input').forEach(i => i.value = '');
-    document.querySelectorAll('#aircraft-rows .ac-select').forEach(s => s.value = '');
+    document.querySelectorAll('#aircraft-rows .ac-reg').forEach(i => i.value = '');
+    document.querySelectorAll('#aircraft-rows .ac-name').forEach(s => s.value = '');
     localStorage.removeItem(DRAFT_KEY);
     updateRowVisibility();
     update();

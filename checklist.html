@@ -238,24 +238,25 @@
       margin-top: 2px;
     }
 
-    /* 結果・備考（様式２の RESULT / REMARKS） */
+    /* 異常時の備考（様式２の REMARKS）。チェックオン（正常）の場合は非表示 */
     .result-row {
       display: flex;
       gap: 12px;
       padding: 0 16px 14px;
       padding-left: calc(16px + 28px + 14px);
     }
+    .check-item.is-checked .result-row { display: none; }
     .result-field { display: flex; flex-direction: column; gap: 4px; }
     .result-field.remarks { flex: 1; }
     .result-field label {
       font-size: 11px;
       font-weight: 700;
-      color: var(--muted);
+      color: var(--danger-dark);
       letter-spacing: .04em;
     }
-    .result-input, .remarks-input {
+    .remarks-input {
       padding: 8px 10px;
-      border: 1px solid var(--border);
+      border: 1px solid var(--danger-dark);
       border-radius: 6px;
       font-size: 14px;
       font-family: inherit;
@@ -263,7 +264,6 @@
       color: var(--text);
       min-height: 40px;
     }
-    .result-input { min-width: 88px; }
     @media (max-width: 480px) {
       .result-row {
         padding: 0 12px 12px;
@@ -331,7 +331,7 @@
     @media print {
       @page {
         size: A4 portrait;
-        margin: 0; /* ブラウザのヘッダー/フッターを消す。紙余白は .print-doc の padding で確保 */
+        margin: 0; /* ブラウザのヘッダー/フッターを消す。紙余白は .pd-page の padding で確保 */
       }
       * {
         -webkit-print-color-adjust: exact !important;
@@ -340,11 +340,12 @@
       body { background: #fff; }
       .site-header, .site-nav, .container { display: none !important; }
 
-      .print-doc {
-        display: block;
+      .print-doc { display: block; color: #000; }
+      .pd-page {
         padding: 14mm 14mm 16mm;
-        color: #000;
+        break-after: page;
       }
+      .pd-page:last-child { break-after: auto; }
       .print-doc .pd-header {
         display: flex;
         align-items: flex-start;
@@ -393,6 +394,11 @@
       }
       .print-doc .pd-meta td { font-weight: 700; font-size: 13px; }
       .print-doc .pd-result { text-align: center; font-weight: 700; }
+      .print-doc .pd-section-title {
+        font-size: 13px;
+        font-weight: 700;
+        margin: 4px 0 6px;
+      }
       .print-doc .pd-notes-label {
         font-size: 12px;
         font-weight: 700;
@@ -431,7 +437,7 @@
   <div class="progress-area">
     <div class="progress-meta">
       <span>チェック済み</span>
-      <span id="progress-count">0 / 10</span>
+      <span id="progress-count">0 / 0</span>
     </div>
     <div class="progress-track">
       <div class="progress-fill" id="progress-bar"></div>
@@ -446,219 +452,27 @@
     <div id="session-summary"></div>
   </div>
 
-  <!-- 機体概要（様式２冒頭・ページに一度だけ） -->
+  <!-- 機体概要（実施年月日＋登録記号をキーに複数登録） -->
   <section class="card">
-    <h2>機体概要（様式２）</h2>
-    <div class="field">
-      <label for="f-registration">無人航空機の登録記号 <span style="font-weight:400;color:var(--muted);">REGISTRATION ID OF UAS</span></label>
-      <input type="text" id="f-registration" placeholder="例：JU0123456789">
-    </div>
-  </section>
-
-  <div class="checklist">
-
-    <div class="check-item" id="item-1">
-      <label class="check-label" for="chk-1">
-        <input type="checkbox" class="check-input" id="chk-1">
-        <span class="check-box">
-          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </span>
-        <span class="check-content">
-          <span class="check-num">01</span>
-          <span class="check-title">操縦者の体調確認（飲酒・薬物なし）</span>
-        </span>
-      </label>
-    </div>
-
-    <div class="check-item" id="item-2">
-      <label class="check-label" for="chk-2">
-        <input type="checkbox" class="check-input" id="chk-2">
-        <span class="check-box">
-          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </span>
-        <span class="check-content">
-          <span class="check-num">02</span>
-          <span class="check-title">機体の外観点検（プロペラ・フレームの破損なし）</span>
-        </span>
-      </label>
-    </div>
-
-    <div class="check-item" id="item-3">
-      <label class="check-label" for="chk-3">
-        <input type="checkbox" class="check-input" id="chk-3">
-        <span class="check-box">
-          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </span>
-        <span class="check-content">
-          <span class="check-num">03</span>
-          <span class="check-title">バッテリー残量の確認</span>
-        </span>
-      </label>
-    </div>
-
-    <div class="check-item" id="item-4">
-      <label class="check-label" for="chk-4">
-        <input type="checkbox" class="check-input" id="chk-4">
-        <span class="check-box">
-          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </span>
-        <span class="check-content">
-          <span class="check-num">04</span>
-          <span class="check-title">気象状況の確認（風速・天候）</span>
-        </span>
-      </label>
-    </div>
-
-    <div class="check-item" id="item-5">
-      <label class="check-label" for="chk-5">
-        <input type="checkbox" class="check-input" id="chk-5">
-        <span class="check-box">
-          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </span>
-        <span class="check-content">
-          <span class="check-num">05</span>
-          <span class="check-title">飛行空域の確認（DID・150m制限・空港周辺など）</span>
-        </span>
-      </label>
-    </div>
-
-    <div class="check-item" id="item-6">
-      <label class="check-label" for="chk-6">
-        <input type="checkbox" class="check-input" id="chk-6">
-        <span class="check-box">
-          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </span>
-        <span class="check-content">
-          <span class="check-num">06</span>
-          <span class="check-title">周囲の安全確認（第三者・障害物）</span>
-        </span>
-      </label>
-    </div>
-
-    <div class="check-item" id="item-7">
-      <label class="check-label" for="chk-7">
-        <input type="checkbox" class="check-input" id="chk-7">
-        <span class="check-box">
-          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </span>
-        <span class="check-content">
-          <span class="check-num">07</span>
-          <span class="check-title">飛行時間が昼間であること</span>
-        </span>
-      </label>
-    </div>
-
-    <div class="check-item" id="item-8">
-      <label class="check-label" for="chk-8">
-        <input type="checkbox" class="check-input" id="chk-8">
-        <span class="check-box">
-          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </span>
-        <span class="check-content">
-          <span class="check-num">08</span>
-          <span class="check-title">目視内飛行が保てること</span>
-        </span>
-      </label>
-    </div>
-
-    <div class="check-item" id="item-9">
-      <label class="check-label" for="chk-9">
-        <input type="checkbox" class="check-input" id="chk-9">
-        <span class="check-box">
-          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </span>
-        <span class="check-content">
-          <span class="check-num">09</span>
-          <span class="check-title">特例申請の確認</span>
-        </span>
-      </label>
-      <div class="check-desc">
-        <div class="desc-box">
-          <div class="desc-subtitle">申請区分の判断基準</div>
-          <ul class="desc-list">
-            <li>
-              <span>飛行する場所が特定できず広範囲・反復的に飛ばす
-                <span class="tag tag-ok">包括申請で対応可能</span>
-              </span>
-            </li>
-            <li>
-              <span>特定の場所・日時・イベント上空・催し物上空など
-                <span class="tag tag-required">個別申請が必要</span>
-              </span>
-            </li>
-            <li>
-              <span>夜間飛行・目視外飛行・人や物件から30m未満の飛行
-                <span class="tag tag-caution">該当する場合は承認が必要</span>
-              </span>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <div class="check-item" id="item-10">
-      <label class="check-label" for="chk-10">
-        <input type="checkbox" class="check-input" id="chk-10">
-        <span class="check-box">
-          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </span>
-        <span class="check-content">
-          <span class="check-num">10</span>
-          <span class="check-title">地元警察への事前連絡</span>
-        </span>
-      </label>
-      <div class="check-desc">
-        <div class="note-warn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/>
-            <line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
-          <span>地元警察署への事前連絡は、飛行当日より前の<strong>平日午後4時が締め切り</strong>。それを過ぎると当日の飛行に間に合わない場合があるため、余裕をもって連絡すること。</span>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="section-title">日常点検記録（国土交通省様式に基づく必須点検）</div>
-  <div class="checklist" id="daily-checklist"></div>
-
-  <!-- 点検後の記録（様式２） -->
-  <section class="card" style="margin-top:20px;">
-    <h2>点検記録（様式２）</h2>
-    <div class="field">
-      <label for="f-notes">特記事項 <span style="font-weight:400;color:var(--muted);">NOTES（任意）</span></label>
-      <textarea id="f-notes" placeholder="点検で気づいた事項など（任意）"></textarea>
-    </div>
-    <div class="field">
-      <label for="f-place">実施場所 <span style="font-weight:400;color:var(--muted);">PLACE</span></label>
-      <input type="text" id="f-place" placeholder="点検を実施した場所">
-    </div>
+    <h2>機体概要</h2>
+    <p style="font-size:12px; color:var(--muted); margin:-6px 0 14px; line-height:1.6;">
+      <strong>実施年月日</strong>と<strong>無人航空機の登録記号</strong>の組み合わせを1件として保存します。
+      日付・登録記号を変えると、その組み合わせの保存内容を呼び出します（一覧・削除はデータ管理タブ）。
+    </p>
     <div class="field-row">
       <div class="field">
         <label for="f-date">実施年月日 <span style="font-weight:400;color:var(--muted);">DATE</span></label>
         <input type="date" id="f-date">
+      </div>
+      <div class="field">
+        <label for="f-place">実施場所 <span style="font-weight:400;color:var(--muted);">PLACE</span></label>
+        <input type="text" id="f-place" placeholder="点検を実施した場所">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="f-registration">無人航空機の登録記号 <span style="font-weight:400;color:var(--muted);">REGISTRATION ID OF UAS</span></label>
+        <input type="text" id="f-registration" placeholder="例：JU0123456789">
       </div>
       <div class="field">
         <label for="f-inspector">実施者 <span style="font-weight:400;color:var(--muted);">INSPECTOR</span></label>
@@ -667,7 +481,25 @@
     </div>
   </section>
 
-  <button class="reset-btn" id="reset-btn">すべてリセット</button>
+  <div class="section-title">飛行前確認事項</div>
+  <div class="checklist" id="preflight-checklist"></div>
+
+  <div class="section-title">日常点検記録（国土交通省様式２に基づく必須点検）</div>
+  <p style="font-size:12px; color:var(--muted); margin:-4px 0 12px; line-height:1.6;">
+    各項目は<strong>チェックオン＝正常</strong>、<strong>チェックオフ＝異常</strong>として扱います。異常（オフ）の場合のみ備考欄が表示されます。
+  </p>
+  <div class="checklist" id="daily-checklist"></div>
+
+  <!-- 点検記録（特記事項のみ。実施場所・年月日・実施者は機体概要へ移動） -->
+  <section class="card" style="margin-top:20px;">
+    <h2>点検記録（様式２）</h2>
+    <div class="field" style="margin-bottom:0;">
+      <label for="f-notes">特記事項 <span style="font-weight:400;color:var(--muted);">NOTES（任意）</span></label>
+      <textarea id="f-notes" placeholder="点検で気づいた事項など（任意）"></textarea>
+    </div>
+  </section>
+
+  <button class="reset-btn" id="reset-btn">この点検をリセット</button>
 
   <button type="button" class="btn-print" id="btn-print">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -675,7 +507,7 @@
       <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
       <rect x="6" y="14" width="12" height="8"/>
     </svg>
-    印刷（日常点検記録）
+    印刷（実施年月日の全件・登録記号ごとに改ページ）
   </button>
 
   <a id="btn-to-log" class="btn-next-log" href="flight-log.html">
@@ -687,260 +519,387 @@
 
 </div>
 
-<!-- 印刷専用：様式２ 日常点検記録 -->
-<div class="print-doc" id="print-doc">
-  <div class="pd-header">
-    <div class="pd-form-title">
-      <div>（様式２）日常点検記録</div>
-      <div class="pd-form-en">無人航空機の日常点検記録　DAILY INSPECTION RECORD OF UAS</div>
-    </div>
-    <div class="pd-nr">NR.&nbsp;<span id="pd-nr">&nbsp;</span></div>
-  </div>
-
-  <table class="pd-meta">
-    <tr>
-      <th style="width:30%;">無人航空機の登録記号<br><span class="en">REGISTRATION ID OF UAS</span></th>
-      <td id="pd-registration"></td>
-    </tr>
-  </table>
-
-  <table class="pd-main">
-    <thead>
-      <tr>
-        <th style="width:22%;">点検箇所<br><span class="en">INSPECTION POINT</span></th>
-        <th>点検内容<br><span class="en">DETAILS</span></th>
-        <th class="pd-result" style="width:14%;">結果<br><span class="en">RESULT</span></th>
-        <th style="width:24%;">備考<br><span class="en">REMARKS</span></th>
-      </tr>
-    </thead>
-    <tbody id="pd-rows"></tbody>
-  </table>
-
-  <div class="pd-notes-label">特記事項　NOTES</div>
-  <div class="pd-notes-box" id="pd-notes"></div>
-
-  <table class="pd-foot">
-    <tr>
-      <th style="width:16%;">実施場所<br><span class="en">PLACE</span></th>
-      <td id="pd-place"></td>
-      <th style="width:16%;">実施年月日<br><span class="en">DATE</span></th>
-      <td id="pd-date" style="width:18%;"></td>
-      <th style="width:14%;">実施者<br><span class="en">INSPECTOR</span></th>
-      <td id="pd-inspector" style="width:16%;"></td>
-    </tr>
-  </table>
-</div>
+<!-- 印刷専用：様式２ 日常点検記録（実施年月日＋登録記号ごとにページ生成） -->
+<div class="print-doc" id="print-doc"></div>
 
 <script>
-  const STORAGE_KEY = 'drone-checklist-state';
-
+  // ===== データキー =====
+  // 旧キー drone-checklist-state（単一状態）から drone-checklist-records（複数登録）へ移行
+  const RECORDS_KEY = 'drone-checklist-records';
   const SESSION_KEY = 'drone-active-session';
+  const AIRCRAFT_KEY = 'drone-aircraft-list';
+  const PLAN_DRAFT_KEY = 'drone-flight-plan-draft';
+  const EDIT_KEY = 'drone-checklist-edit-request';
 
-  // ===== 日常点検記録（国土交通省様式）の点検項目 =====
-  const INSPECT_ITEMS = [
-    { part: '機体全般',         en: 'UAS GENERAL',              desc: '機器の取付状態（ネジ・コネクタ・ケーブル等）' },
-    { part: 'プロペラ',         en: 'PROPELLER(S)',             desc: '外観・損傷・歪み' },
-    { part: 'フレーム',         en: 'FRAME',                    desc: '外観・損傷・歪み' },
-    { part: '通信系統',         en: 'COMMUNICATION SYSTEM',     desc: '機体と操縦装置の通信品質の健全性' },
-    { part: '推進系統',         en: 'PROPULSION SYSTEM',        desc: 'モーター又は発動機の健全性' },
-    { part: '電源系統',         en: 'POWER SYSTEM',             desc: '機体及び操縦装置の電源の健全性' },
-    { part: '自動制御系統',     en: 'AUTOMATIC CONTROL SYSTEM', desc: '飛行制御装置の健全性' },
-    { part: '操縦装置',         en: 'FLIGHT CONTROL SYSTEM',    desc: '外観、スティック、スイッチの健全性' },
-    { part: 'バッテリー、燃料', en: 'BATTERY, FUEL',            desc: 'バッテリーの充電状況、燃料表示性能の健全性' },
+  const $ = id => document.getElementById(id);
+
+  // ===== 飛行前確認事項（様式２独自追加項目のうち 外観点検・バッテリー残量・昼間飛行・目視内飛行 を削除） =====
+  const SPECIAL_DESC = `
+    <div class="check-desc"><div class="desc-box">
+      <div class="desc-subtitle">申請区分の判断基準</div>
+      <ul class="desc-list">
+        <li><span>飛行する場所が特定できず広範囲・反復的に飛ばす<span class="tag tag-ok">包括申請で対応可能</span></span></li>
+        <li><span>特定の場所・日時・イベント上空・催し物上空など<span class="tag tag-required">個別申請が必要</span></span></li>
+        <li><span>夜間飛行・目視外飛行・人や物件から30m未満の飛行<span class="tag tag-caution">該当する場合は承認が必要</span></span></li>
+      </ul>
+    </div></div>`;
+  const POLICE_DESC = `
+    <div class="check-desc"><div class="note-warn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <span>地元警察署への事前連絡は、飛行当日より前の<strong>平日午後4時が締め切り</strong>。それを過ぎると当日の飛行に間に合わない場合があるため、余裕をもって連絡すること。</span>
+    </div></div>`;
+
+  const PREFLIGHT = [
+    { key: 'pilot_condition',     title: '操縦者の体調確認（飲酒・薬物なし）' },
+    { key: 'weather_check',       title: '気象状況の確認（風速・天候）' },
+    { key: 'airspace_check',      title: '飛行空域の確認（DID・150m制限・空港周辺など）' },
+    { key: 'surroundings_check',  title: '周囲の安全確認（第三者・障害物）' },
+    { key: 'special_application', title: '特例申請の確認', desc: SPECIAL_DESC },
+    { key: 'police_contact',      title: '地元警察への事前連絡', desc: POLICE_DESC },
   ];
 
-  // 既存10項目 ＋ 日常点検9項目
-  const TOTAL = 10 + INSPECT_ITEMS.length;
+  // ===== 日常点検記録（国土交通省様式２） =====
+  const DAILY = [
+    { key: 'uas_general',              part: '機体全般',         en: 'UAS GENERAL',              desc: '機器の取付状態（ネジ・コネクタ・ケーブル等）' },
+    { key: 'propeller',                part: 'プロペラ',         en: 'PROPELLER(S)',             desc: '外観・損傷・歪み' },
+    { key: 'frame',                    part: 'フレーム',         en: 'FRAME',                    desc: '外観・損傷・歪み' },
+    { key: 'communication_system',     part: '通信系統',         en: 'COMMUNICATION SYSTEM',     desc: '機体と操縦装置の通信品質の健全性' },
+    { key: 'propulsion_system',        part: '推進系統',         en: 'PROPULSION SYSTEM',        desc: 'モーター又は発動機の健全性' },
+    { key: 'power_system',             part: '電源系統',         en: 'POWER SYSTEM',             desc: '機体及び操縦装置の電源の健全性' },
+    { key: 'automatic_control_system', part: '自動制御系統',     en: 'AUTOMATIC CONTROL SYSTEM', desc: '飛行制御装置の健全性' },
+    { key: 'flight_control_system',    part: '操縦装置',         en: 'FLIGHT CONTROL SYSTEM',    desc: '外観、スティック、スイッチの健全性' },
+    { key: 'battery_fuel',             part: 'バッテリー、燃料', en: 'BATTERY, FUEL',            desc: 'バッテリーの充電状況、燃料表示性能の健全性' },
+  ];
 
-  // 日常点検項目を生成（id は chk-11〜chk-19。保存形式は既存と同じ）
-  function buildDailyChecklist() {
-    const wrap = document.getElementById('daily-checklist');
-    wrap.innerHTML = INSPECT_ITEMS.map((it, idx) => {
-      const n = 11 + idx;
-      return `
-    <div class="check-item" id="item-${n}">
-      <label class="check-label" for="chk-${n}">
-        <input type="checkbox" class="check-input" id="chk-${n}">
-        <span class="check-box">
-          <svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </span>
-        <span class="check-content">
-          <span class="check-num">点検 ${String(idx + 1).padStart(2, '0')}　${it.en}</span>
-          <span class="check-title">${it.part}</span>
-          <span class="check-sub">${it.desc}</span>
-        </span>
-      </label>
-      <div class="result-row">
-        <div class="result-field">
-          <label for="result-${n}">結果 RESULT</label>
-          <select class="result-input" id="result-${n}">
-            <option value="正常">正常</option>
-            <option value="異常">異常</option>
-          </select>
-        </div>
-        <div class="result-field remarks">
-          <label for="remarks-${n}">備考 REMARKS</label>
-          <input type="text" class="remarks-input" id="remarks-${n}" placeholder="異常時の内容など（任意）">
-        </div>
-      </div>
-    </div>`;
-    }).join('');
+  const ALL_KEYS = [...PREFLIGHT.map(i => i.key), ...DAILY.map(i => i.key)];
+  const TOTAL = ALL_KEYS.length;
+
+  function escHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s == null ? '' : s;
+    return d.innerHTML;
   }
-  buildDailyChecklist();
+
+  // ===== チェック項目の生成 =====
+  function checkboxSvg() {
+    return `<span class="check-box"><svg class="checkmark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>`;
+  }
+  function buildPreflight() {
+    $('preflight-checklist').innerHTML = PREFLIGHT.map((it, i) => `
+      <div class="check-item" id="item-${it.key}">
+        <label class="check-label" for="chk-${it.key}">
+          <input type="checkbox" class="check-input" id="chk-${it.key}" data-key="${it.key}">
+          ${checkboxSvg()}
+          <span class="check-content">
+            <span class="check-num">${String(i + 1).padStart(2, '0')}</span>
+            <span class="check-title">${it.title}</span>
+          </span>
+        </label>
+        ${it.desc || ''}
+      </div>`).join('');
+  }
+  function buildDaily() {
+    $('daily-checklist').innerHTML = DAILY.map((it, i) => `
+      <div class="check-item is-checked" id="item-${it.key}">
+        <label class="check-label" for="chk-${it.key}">
+          <input type="checkbox" class="check-input" id="chk-${it.key}" data-key="${it.key}" checked>
+          ${checkboxSvg()}
+          <span class="check-content">
+            <span class="check-num">点検 ${String(i + 1).padStart(2, '0')}　${it.en}</span>
+            <span class="check-title">${it.part}</span>
+            <span class="check-sub">${it.desc}</span>
+          </span>
+        </label>
+        <div class="result-row">
+          <div class="result-field remarks">
+            <label for="remarks-${it.key}">異常の内容 REMARKS（チェックを外した＝異常の場合に記入）</label>
+            <input type="text" class="remarks-input" id="remarks-${it.key}" data-key="${it.key}" placeholder="異常箇所・内容など">
+          </div>
+        </div>
+      </div>`).join('');
+  }
+  buildPreflight();
+  buildDaily();
+
+  // ===== レコードの読み書き =====
+  let records = [];
+  let currentId = null;
+  function loadRecords() {
+    try { records = JSON.parse(localStorage.getItem(RECORDS_KEY)) || []; }
+    catch (e) { records = []; }
+  }
+  function persist() {
+    localStorage.setItem(RECORDS_KEY, JSON.stringify(records));
+  }
 
   function getSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
     catch (e) { return null; }
   }
-
-  // 計画書から来た場合：計画の概要を表示し、完了時に日誌への導線を出す
-  function initSession() {
+  function getPlan() {
     const s = getSession();
-    if (!s || !s.plan) return;
-    const p = s.plan;
-    const parts = [p.project, p.date, p.location, p.aircraft].filter(Boolean);
-    if (parts.length) {
-      document.getElementById('session-summary').textContent = parts.join('　／　');
-      document.getElementById('session-banner').style.display = 'block';
+    if (s && s.plan) return s.plan;
+    try { return JSON.parse(localStorage.getItem(PLAN_DRAFT_KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  function getRegistry() {
+    try { return JSON.parse(localStorage.getItem(AIRCRAFT_KEY)) || []; }
+    catch (e) { return []; }
+  }
+  function todayISO() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  // ===== フォーム ⇔ レコード =====
+  function readForm() {
+    const checks = {}, remarks = {};
+    ALL_KEYS.forEach(k => { checks[k] = $('chk-' + k).checked; });
+    DAILY.forEach(it => {
+      const v = ($('remarks-' + it.key).value || '').trim();
+      if (v) remarks[it.key] = v;
+    });
+    return {
+      date: $('f-date').value,
+      registration: $('f-registration').value.trim(),
+      place: $('f-place').value.trim(),
+      inspector: $('f-inspector').value.trim(),
+      notes: $('f-notes').value.trim(),
+      checks, remarks,
+    };
+  }
+  function applyChecks(checks, remarks) {
+    ALL_KEYS.forEach(k => {
+      const input = $('chk-' + k);
+      // 日常点検は既定で正常（チェックオン）。保存値があればそれを優先
+      const def = DAILY.some(d => d.key === k);
+      const v = checks && (k in checks) ? !!checks[k] : def;
+      input.checked = v;
+      input.closest('.check-item').classList.toggle('is-checked', v);
+    });
+    DAILY.forEach(it => {
+      $('remarks-' + it.key).value = (remarks && remarks[it.key]) || '';
+    });
+  }
+  function loadRecord(rec) {
+    $('f-date').value = rec.date || '';
+    $('f-registration').value = rec.registration || '';
+    $('f-place').value = rec.place || '';
+    $('f-inspector').value = rec.inspector || '';
+    $('f-notes').value = rec.notes || '';
+    applyChecks(rec.checks, rec.remarks);
+    currentId = rec.id;
+    updateProgress();
+  }
+  function blankChecks() {
+    // 日付・登録記号・実施場所・実施者は保持し、チェックと特記事項のみ初期化
+    applyChecks(null, null);
+    $('f-notes').value = '';
+    currentId = null;
+    updateProgress();
+  }
+
+  // 現在の (実施年月日 + 登録記号) でレコードを保存（upsert）
+  function save() {
+    const data = readForm();
+    // すべて空（日付も登録記号もチェックもなし）なら保存しない
+    const anyCheck = Object.values(data.checks).some(v => v) ||
+      Object.keys(data.remarks).length || data.notes;
+    if (!data.date && !data.registration && !anyCheck) return;
+    let rec = currentId != null ? records.find(r => r.id === currentId) : null;
+    // 既存の同一キー（日付＋登録記号）があれば再利用
+    if (!rec) rec = records.find(r => r.date === data.date && r.registration === data.registration);
+    if (rec) {
+      Object.assign(rec, data);
+      currentId = rec.id;
+    } else {
+      rec = { id: Date.now(), ...data };
+      records.push(rec);
+      currentId = rec.id;
     }
-    // 新しいセッションで来たらチェックを自動リセット
-    if (s.step === 'checklist') {
-      document.querySelectorAll('.check-input').forEach(input => {
-        input.checked = false;
-        input.closest('.check-item').classList.remove('is-checked');
-      });
-      saveState();
-      s.step = 'checking';
-      localStorage.setItem(SESSION_KEY, JSON.stringify(s));
-    }
+    persist();
+  }
+
+  // 日付・登録記号が変わったらコンテキストを切り替える
+  function switchContext() {
+    const date = $('f-date').value;
+    const reg = $('f-registration').value.trim();
+    const rec = records.find(r => r.date === date && r.registration === reg);
+    if (rec) loadRecord(rec);
+    else { currentId = null; updateProgress(); }
   }
 
   function updateProgress() {
     const count = document.querySelectorAll('.check-input:checked').length;
-    document.getElementById('progress-count').textContent = `${count} / ${TOTAL}`;
-    document.getElementById('progress-bar').style.width = `${(count / TOTAL) * 100}%`;
-    // 全チェック完了で日誌ボタンを強調表示（ボタン自体は常時表示）
-    document.getElementById('btn-to-log').classList.toggle('done', count === TOTAL);
+    $('progress-count').textContent = `${count} / ${TOTAL}`;
+    $('progress-bar').style.width = `${(count / TOTAL) * 100}%`;
+    $('btn-to-log').classList.toggle('done', count === TOTAL);
   }
 
-  // 様式２の追加項目（チェックボックス以外）。チェックボックスと同じ
-  // STORAGE_KEY オブジェクトに同居させる（旧データと後方互換）
-  const META_FIELDS = ['f-registration', 'f-notes', 'f-place', 'f-date', 'f-inspector'];
-  function metaInputs() {
-    return [
-      ...META_FIELDS.map(id => document.getElementById(id)),
-      ...document.querySelectorAll('.result-input, .remarks-input'),
-    ].filter(Boolean);
-  }
-
-  function saveState() {
-    const state = {};
-    document.querySelectorAll('.check-input').forEach(input => {
-      state[input.id] = input.checked;
-    });
-    metaInputs().forEach(el => { state[el.id] = el.value; });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
-
-  function restoreState() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return;
-    let state = null;
-    try { state = JSON.parse(saved); } catch (e) {
-      // 壊れたデータは捨てて初期状態から始める
-      localStorage.removeItem(STORAGE_KEY);
-      return;
-    }
-    if (!state || typeof state !== 'object') return;
-    document.querySelectorAll('.check-input').forEach(input => {
-      if (state[input.id]) {
-        input.checked = true;
-        input.closest('.check-item').classList.add('is-checked');
-      }
-    });
-    metaInputs().forEach(el => {
-      if (typeof state[el.id] === 'string') el.value = state[el.id];
-    });
-    updateProgress();
-  }
-
+  // ===== イベント =====
   document.querySelectorAll('.check-input').forEach(input => {
     input.addEventListener('change', () => {
       input.closest('.check-item').classList.toggle('is-checked', input.checked);
       updateProgress();
-      saveState();
+      save();
     });
   });
-  // 様式２の入力欄は変更の都度保存する
-  metaInputs().forEach(el => el.addEventListener('input', saveState));
+  document.querySelectorAll('.remarks-input').forEach(el => el.addEventListener('input', save));
+  ['f-place', 'f-inspector', 'f-notes'].forEach(id => $(id).addEventListener('input', save));
+  ['f-date', 'f-registration'].forEach(id => $(id).addEventListener('change', switchContext));
 
-  // リスナー登録は初期化処理より先に行う
-  // （初期化中に万一エラーが起きてもボタンが死なないように）
-  document.getElementById('reset-btn').addEventListener('click', () => {
-    if (!confirm('すべてのチェックを外しますか？')) return;
-    document.querySelectorAll('.check-input').forEach(input => {
-      input.checked = false;
-      input.closest('.check-item').classList.remove('is-checked');
-    });
-    // 点検結果（RESULT/REMARKS）も初期化する
-    document.querySelectorAll('.result-input').forEach(el => { el.value = '正常'; });
-    document.querySelectorAll('.remarks-input').forEach(el => { el.value = ''; });
-    updateProgress();
-    // 確実に空のデータでストレージを上書き同期する
-    saveState();
+  $('reset-btn').addEventListener('click', () => {
+    if (!confirm('この点検（実施年月日＋登録記号）のチェックと特記事項をリセットしますか？')) return;
+    blankChecks();
+    save();
   });
 
-  // ===== 印刷（日常点検記録フォーマット） =====
+  // ===== 印刷（実施年月日の全件・登録記号ごとに改ページ） =====
   function fmtDateJP(v) {
     if (!v) return '';
     const [y, m, d] = v.split('-');
     return `${y}年${parseInt(m)}月${parseInt(d)}日`;
   }
-  function fillPrintDoc() {
-    const set = (id, v) => { document.getElementById(id).textContent = v || ''; };
-    const val = id => (document.getElementById(id).value || '').trim();
-    set('pd-registration', val('f-registration'));
-    set('pd-notes', val('f-notes'));
-    set('pd-place', val('f-place'));
-    set('pd-inspector', val('f-inspector'));
-    set('pd-date', fmtDateJP(val('f-date')));
-
-    document.getElementById('pd-rows').innerHTML = INSPECT_ITEMS.map((it, idx) => {
-      const n = 11 + idx;
-      const result = document.getElementById(`result-${n}`).value || '';
-      const remarks = (document.getElementById(`remarks-${n}`).value || '').trim();
-      // 未点検（チェックなし）の場合は結果を空欄にする
-      const checked = document.getElementById(`chk-${n}`).checked;
-      const escHtml = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+  function recordToPage(rec) {
+    const checks = rec.checks || {};
+    const remarks = rec.remarks || {};
+    const dailyRows = DAILY.map(it => {
+      const ok = checks[it.key];
       return `<tr>
-          <th>${it.part}<br><span style="font-size:8px;font-weight:600;color:#555;">${it.en}</span></th>
+          <th>${it.part}<br><span class="en">${it.en}</span></th>
           <td>${it.desc}</td>
-          <td class="pd-result">${checked ? result : ''}</td>
-          <td>${escHtml(remarks)}</td>
+          <td class="pd-result">${ok ? '正常' : '異常'}</td>
+          <td>${escHtml(remarks[it.key] || '')}</td>
         </tr>`;
     }).join('');
+    const preRows = PREFLIGHT.map(it => `<tr>
+          <td>${it.title}</td>
+          <td class="pd-result">${checks[it.key] ? '✓ 確認済' : '未確認'}</td>
+        </tr>`).join('');
+    return `<div class="pd-page">
+      <div class="pd-header">
+        <div class="pd-form-title">
+          <div>（様式２）日常点検記録</div>
+          <div class="pd-form-en">無人航空機の日常点検記録　DAILY INSPECTION RECORD OF UAS</div>
+        </div>
+        <div class="pd-nr">NR.&nbsp;&nbsp;</div>
+      </div>
+      <table class="pd-meta">
+        <tr>
+          <th style="width:30%;">無人航空機の登録記号<br><span class="en">REGISTRATION ID OF UAS</span></th>
+          <td>${escHtml(rec.registration)}</td>
+        </tr>
+      </table>
+      <table class="pd-main">
+        <thead><tr>
+          <th style="width:22%;">点検箇所<br><span class="en">INSPECTION POINT</span></th>
+          <th>点検内容<br><span class="en">DETAILS</span></th>
+          <th class="pd-result" style="width:14%;">結果<br><span class="en">RESULT</span></th>
+          <th style="width:24%;">備考<br><span class="en">REMARKS</span></th>
+        </tr></thead>
+        <tbody>${dailyRows}</tbody>
+      </table>
+
+      <div class="pd-section-title">飛行前確認事項</div>
+      <table>
+        <thead><tr><th>確認項目</th><th class="pd-result" style="width:20%;">確認</th></tr></thead>
+        <tbody>${preRows}</tbody>
+      </table>
+
+      <div class="pd-notes-label">特記事項　NOTES</div>
+      <div class="pd-notes-box">${escHtml(rec.notes)}</div>
+
+      <table class="pd-foot">
+        <tr>
+          <th style="width:16%;">実施場所<br><span class="en">PLACE</span></th>
+          <td>${escHtml(rec.place)}</td>
+          <th style="width:16%;">実施年月日<br><span class="en">DATE</span></th>
+          <td style="width:18%;">${fmtDateJP(rec.date)}</td>
+          <th style="width:14%;">実施者<br><span class="en">INSPECTOR</span></th>
+          <td style="width:16%;">${escHtml(rec.inspector)}</td>
+        </tr>
+      </table>
+    </div>`;
   }
-  document.getElementById('btn-print').addEventListener('click', () => {
-    fillPrintDoc();
-    window.print();
-  });
+  function fillPrintDoc() {
+    save(); // 印刷前に現在の入力を保存
+    const date = $('f-date').value;
+    const dayRecords = records
+      .filter(r => r.date === date)
+      .sort((a, b) => (a.registration || '').localeCompare(b.registration || '') || (a.id - b.id));
+    $('print-doc').innerHTML = dayRecords.length
+      ? dayRecords.map(recordToPage).join('')
+      : '<div class="pd-page"><div class="pd-form-title">（様式２）日常点検記録</div><p style="margin-top:16px;">この実施年月日の点検記録がありません。</p></div>';
+  }
+  $('btn-print').addEventListener('click', () => { fillPrintDoc(); window.print(); });
   window.addEventListener('beforeprint', fillPrintDoc);
 
-  try { initSession(); } catch (e) {}
-  try { restoreState(); } catch (e) {}
-  // 様式２の記録欄が空なら計画書・当日から補完（保存済みの値があればそちらを優先）
-  try {
-    const p = (getSession() || {}).plan || {};
-    if (!document.getElementById('f-place').value && p.location) document.getElementById('f-place').value = p.location;
-    if (!document.getElementById('f-inspector').value && p.pilot) document.getElementById('f-inspector').value = p.pilot;
-    if (!document.getElementById('f-date').value) {
-      const now = new Date();
-      document.getElementById('f-date').value = p.date ||
-        `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  // ===== 初期化 =====
+  function initSessionBanner() {
+    const s = getSession();
+    if (!s || !s.plan) return;
+    const p = s.plan;
+    const parts = [p.project, p.date, p.location, p.aircraft].filter(Boolean);
+    if (parts.length) {
+      $('session-summary').textContent = parts.join('　／　');
+      $('session-banner').style.display = 'block';
     }
-  } catch (e) {}
+  }
+
+  // 他タブからの初期値転記（保存値がない新規時のみ。利用者は手動上書き可）
+  function applyInitialValues() {
+    const plan = getPlan();
+    const reg = getRegistry();
+    // 登録記号・実施者の取得元（計画書の1機目が登録機体に一致すればそれ、なければ先頭）
+    let target = null;
+    const planAircrafts = Array.isArray(plan.aircrafts) ? plan.aircrafts : [];
+    if (planAircrafts.length && planAircrafts[0].name) {
+      target = reg.find(a => a.name === planAircrafts[0].name) || null;
+    }
+    if (!target && reg.length) target = reg[0];
+
+    if (!$('f-date').value) $('f-date').value = plan.date || todayISO();
+    if (!$('f-place').value) $('f-place').value = plan.location || '';
+    if (!$('f-registration').value) $('f-registration').value = (target && target.regNo) || (planAircrafts[0] && planAircrafts[0].regNo) || '';
+    if (!$('f-inspector').value) $('f-inspector').value = (target && target.pilot) || plan.pilot || '';
+  }
+
+  // データ管理タブからの編集リクエスト
+  function initEditRequest() {
+    const raw = sessionStorage.getItem(EDIT_KEY);
+    sessionStorage.removeItem(EDIT_KEY);
+    if (!raw) return false;
+    const rec = records.find(r => r.id === Number(raw));
+    if (!rec) return false;
+    loadRecord(rec);
+    return true;
+  }
+
+  loadRecords();
+  try { initSessionBanner(); } catch (e) {}
+
+  let handled = false;
+  try { handled = initEditRequest(); } catch (e) {}
+
+  if (!handled) {
+    // 新しいセッション（計画書→チェックリスト）なら当日の新規点検を開始
+    const s = getSession();
+    const isNewSession = s && s.step === 'checklist';
+    try { applyInitialValues(); } catch (e) {}
+    if (isNewSession) {
+      // チェックを初期化し、当日＋登録記号の既存記録があれば読み込む
+      blankChecks();
+      switchContext();
+      s.step = 'checking';
+      localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    } else {
+      // 当日＋登録記号の保存があれば復元、なければ初期状態
+      switchContext();
+    }
+  }
   updateProgress();
 </script>
 

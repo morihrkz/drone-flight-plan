@@ -12,6 +12,18 @@
     .container { max-width: 640px; }
     .note-warn { margin-bottom: 20px; }
 
+    /* グループ見出し */
+    .group-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+      margin: 24px 0 14px;
+    }
+    .group-title:first-of-type { margin-top: 4px; }
+
     .btn-cancel {
       background: transparent;
       color: var(--muted);
@@ -126,7 +138,6 @@
       color: var(--muted);
       line-height: 1.7;
     }
-    #import-file { display: none; }
 
     /* ===== 離陸・着陸の記録 ===== */
     .tl-row {
@@ -193,8 +204,8 @@
       color: var(--accent);
     }
 
-    /* 場所コピー・GPSボタン */
-    .loc-btns { display: flex; gap: 6px; margin-top: 6px; }
+    /* 場所コピー・GPS・概要コピーボタン */
+    .loc-btns { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
     .btn-small {
       padding: 8px 12px;
       min-height: 36px;
@@ -236,11 +247,11 @@
       .summary-box .num { font-size: 19px; }
     }
 
-    /* ===== 印刷（飛行日誌フォーマット・1日分） ===== */
+    /* ===== 印刷（飛行日誌フォーマット・1日分・機体番号ごとに改ページ） ===== */
     @media print {
       @page {
         size: A4 landscape;
-        margin: 0; /* ブラウザのヘッダー/フッターを消す。紙余白は .print-doc の padding で確保 */
+        margin: 0; /* ブラウザのヘッダー/フッターを消す。紙余白は .pd-page の padding で確保 */
       }
       * {
         -webkit-print-color-adjust: exact !important;
@@ -249,11 +260,12 @@
       body { background: #fff; }
       .site-header, .site-nav, .container { display: none !important; }
 
-      .print-doc {
-        display: block;
+      .print-doc { display: block; color: #000; }
+      .pd-page {
         padding: 10mm 10mm 12mm;
-        color: #000;
+        break-after: page;
       }
+      .pd-page:last-child { break-after: auto; }
       .print-doc .pd-header {
         display: flex;
         align-items: flex-start;
@@ -303,11 +315,6 @@
       .print-doc .c { text-align: center; }
       .print-doc .pd-main th, .print-doc .pd-main td { font-size: 9.5px; }
       .print-doc .pd-meta td { font-weight: 700; font-size: 12px; }
-      .print-doc .pd-squawk-title {
-        font-size: 12px;
-        font-weight: 700;
-        margin: 4px 0 6px;
-      }
       .print-doc tr { page-break-inside: avoid; }
     }
   </style>
@@ -336,16 +343,7 @@
       <line x1="12" y1="9" x2="12" y2="13"/>
       <line x1="12" y1="17" x2="12.01" y2="17"/>
     </svg>
-    <span>記録はこのブラウザ内に自動保存されます。ブラウザのデータ削除等で消えることがあるため、<strong>定期的に「JSON書き出し」でバックアップ</strong>してください。飛行日誌は3年間の保存が求められます。</span>
-  </div>
-
-  <!-- 進行中セッション（計画書→チェックリストから遷移してきた場合） -->
-  <div id="backup-banner" style="display:none; margin-bottom:20px; padding:12px 14px; background:var(--accent-light); border:1.5px solid var(--accent); border-radius:var(--radius); font-size:13px; line-height:1.7;">
-    <strong>バックアップのおすすめ：</strong><span id="backup-msg"></span>
-    <div style="display:flex; gap:10px; margin-top:8px;">
-      <button id="backup-now" style="flex:1; padding:8px 12px; background:var(--accent); color:#fff; border:2px solid var(--accent); border-radius:var(--radius); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer;">今すぐ書き出す</button>
-      <button id="backup-later" style="flex:1; padding:8px 12px; background:transparent; color:var(--muted); border:2px solid var(--border); border-radius:var(--radius); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer;">あとで</button>
-    </div>
+    <span>記録はこのブラウザ内に自動保存されます。ブラウザのデータ削除等で消えることがあるため、<strong>定期的にデータ管理タブでJSONバックアップ</strong>してください。飛行日誌は3年間の保存が求められます。</span>
   </div>
 
   <div id="session-banner" style="display:none; margin-bottom:20px; padding:12px 14px; background:var(--accent-light); border:1.5px solid var(--accent); border-radius:var(--radius); font-size:13px; line-height:1.7;">
@@ -353,9 +351,49 @@
     <div id="session-summary"></div>
   </div>
 
-  <!-- 機体概要（様式１冒頭・ページに一度だけ） -->
+  <!-- 入力フォーム -->
   <section class="card">
-    <h2>機体概要（様式１）</h2>
+    <h2 id="form-title">記録の入力</h2>
+
+    <!-- 環境概要 -->
+    <div class="group-title">環境概要</div>
+
+    <div class="field">
+      <label for="f-summary">飛行概要（総括） <span style="font-weight:400;color:var(--muted);">計画書の案件名を初期表示</span></label>
+      <input type="text" id="f-summary" placeholder="例：〇〇橋梁点検業務">
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="f-date">飛行年月日 <span style="font-weight:400;color:var(--muted);">FLIGHT DATE</span></label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="field">
+        <label for="f-flightplace">飛行場所 <span style="font-weight:400;color:var(--muted);">計画書の飛行場所を初期表示</span></label>
+        <input type="text" id="f-flightplace" placeholder="例：東京都千代田区丸の内">
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="f-weather">天候 <span style="font-weight:400;color:var(--muted);">運用欄</span></label>
+        <input type="text" id="f-weather" placeholder="例：晴れ">
+      </div>
+      <div class="field">
+        <label for="f-wind">風速 <span style="font-weight:400;color:var(--muted);">運用欄</span></label>
+        <input type="text" id="f-wind" placeholder="例：北風 2m/s">
+      </div>
+    </div>
+
+    <!-- 機体概要 -->
+    <div class="group-title">機体概要</div>
+
+    <div class="field">
+      <label for="f-aircraft">機体</label>
+      <select id="f-aircraft"></select>
+      <div class="hint">機体を選ぶと、登録記号・繰越総飛行時間・操縦者名を機体管理から自動入力します（手修正可）。</div>
+    </div>
+
     <div class="field-row">
       <div class="field">
         <label for="f-registration">無人航空機の登録記号 <span style="font-weight:400;color:var(--muted);">REGISTRATION ID OF UAS</span></label>
@@ -366,27 +404,14 @@
         <input type="number" id="f-carryover" min="0" step="1" placeholder="例：1200">
       </div>
     </div>
-  </section>
-
-  <!-- 入力フォーム -->
-  <section class="card">
-    <h2 id="form-title">記録の入力</h2>
-
-    <div class="field-row">
-      <div class="field">
-        <label for="f-date">飛行年月日 <span style="font-weight:400;color:var(--muted);">FLIGHT DATE</span></label>
-        <input type="date" id="f-date">
-      </div>
-      <div class="field">
-        <label for="f-pilot">飛行させた者の氏名 <span style="font-weight:400;color:var(--muted);">NAME OF PILOT</span></label>
-        <select id="f-pilot"></select>
-      </div>
-    </div>
 
     <div class="field">
-      <label for="f-aircraft">機体</label>
-      <select id="f-aircraft"></select>
+      <label for="f-pilot">飛行させた者の氏名 <span style="font-weight:400;color:var(--muted);">NAME OF PILOT</span></label>
+      <select id="f-pilot"></select>
     </div>
+
+    <!-- 記録の入力 -->
+    <div class="group-title">記録の入力</div>
 
     <div class="tl-row">
       <div class="tl-box">
@@ -406,7 +431,7 @@
       <label for="f-location">離陸場所 <span style="font-weight:400;color:var(--muted);">FROM</span></label>
       <input type="text" id="f-location" placeholder="離陸の[記録]時に自動入力（手修正可）">
       <div class="loc-btns">
-        <button type="button" class="btn-small" data-loc="location" data-src="plan">📋 計画書の場所をコピー</button>
+        <button type="button" class="btn-small" data-loc="location" data-src="place">📋 飛行場所をコピー</button>
         <button type="button" class="btn-small" data-loc="location" data-src="gps">📍 GPS座標を取得</button>
       </div>
     </div>
@@ -415,30 +440,17 @@
       <label for="f-landloc">着陸場所 <span style="font-weight:400;color:var(--muted);">TO</span></label>
       <input type="text" id="f-landloc" placeholder="着陸の[記録]時に自動入力（手修正可）">
       <div class="loc-btns">
-        <button type="button" class="btn-small" data-loc="landloc" data-src="plan">📋 計画書の場所をコピー</button>
+        <button type="button" class="btn-small" data-loc="landloc" data-src="place">📋 飛行場所をコピー</button>
         <button type="button" class="btn-small" data-loc="landloc" data-src="gps">📍 GPS座標を取得</button>
       </div>
-    </div>
-
-    <div class="field-row">
-      <div class="field">
-        <label for="f-weather">天候 <span style="font-weight:400;color:var(--muted);">運用欄</span></label>
-        <input type="text" id="f-weather" placeholder="例：晴れ">
-      </div>
-      <div class="field">
-        <label for="f-wind">風速 <span style="font-weight:400;color:var(--muted);">運用欄</span></label>
-        <input type="text" id="f-wind" placeholder="例：北風 2m/s">
-      </div>
-    </div>
-
-    <div class="field">
-      <label for="f-battery">バッテリー番号 <span style="font-weight:400;color:var(--muted);">運用欄</span></label>
-      <input type="text" id="f-battery" placeholder="例：#01, #03（複数可）">
     </div>
 
     <div class="field">
       <label for="f-shoot">飛行概要 <span style="font-weight:400;color:var(--muted);">NATURE OF FLIGHT</span></label>
       <textarea id="f-shoot" placeholder="例：橋梁点検のための空撮、農地センシングなど（様式１の飛行概要）"></textarea>
+      <div class="loc-btns">
+        <button type="button" class="btn-small" id="btn-copy-summary">📋 飛行概要をコピー</button>
+      </div>
     </div>
 
     <div class="field">
@@ -451,8 +463,18 @@
       <input type="text" id="f-confirmer" placeholder="確認者の氏名（空欄でも印刷・出力可）">
     </div>
 
-    <!-- 記事（不具合記録）：発生した場合のみ -->
-    <details class="field" style="margin-bottom:14px;">
+    <div class="field">
+      <label for="f-memo">メモ <span style="font-weight:400;color:var(--muted);">運用欄（様式外）</span></label>
+      <textarea id="f-memo" placeholder="飛行内容・特記事項など（任意）"></textarea>
+    </div>
+
+    <button class="btn btn-primary" id="btn-save">記録を追加</button>
+    <button class="btn btn-cancel" id="btn-cancel">編集をやめる</button>
+
+    <!--
+      記事（不具合記録）SQUAWK：独立した管理が必要で現行仕様への追加が難しいため、
+      当面は「不具合なし」扱いとして非表示。将来的な有効化を前提にコードは残す。
+    <details class="field" style="margin-top:14px;">
       <summary style="cursor:pointer; font-weight:700; color:var(--label); padding:4px 0;">記事（不具合記録）SQUAWK — 発生時のみ</summary>
       <div style="margin-top:10px;">
         <div class="field-row">
@@ -475,42 +497,35 @@
         </div>
       </div>
     </details>
-
-    <div class="field">
-      <label for="f-memo">メモ <span style="font-weight:400;color:var(--muted);">運用欄（様式外）</span></label>
-      <textarea id="f-memo" placeholder="飛行内容・特記事項など（任意）"></textarea>
-    </div>
-
-    <button class="btn btn-primary" id="btn-save">記録を追加</button>
-    <button class="btn btn-cancel" id="btn-cancel">編集をやめる</button>
+    -->
   </section>
 
-  <!-- 記録一覧 -->
+  <!-- 記録一覧（飛行年月日の1日分） -->
   <section>
     <div class="summary">
       <div class="summary-box">
         <div class="num" id="sum-count">0<span class="unit"> 件</span></div>
-        <div class="label">記録件数</div>
+        <div class="label">この日の記録件数</div>
       </div>
       <div class="summary-box">
         <div class="num" id="sum-time">0<span class="unit"> 分</span></div>
-        <div class="label">累計飛行時間</div>
+        <div class="label">この日の累計飛行時間</div>
       </div>
     </div>
 
     <div class="log-list" id="log-list"></div>
   </section>
 
-  <!-- データ管理 -->
+  <!-- データ管理（この1日分の出力・印刷のみ） -->
   <section class="card data-card" style="margin-top:24px;">
-    <h2>出力・データ管理</h2>
+    <h2>出力・印刷（この1日分）</h2>
     <div class="btn-row">
       <button class="btn btn-outline" id="btn-export">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
           <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
-        JSON出力（この1日分）
+        JSON出力（計画書＋チェックリスト＋日誌）
       </button>
       <button class="btn btn-outline" id="btn-print">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -518,101 +533,21 @@
           <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
           <rect x="6" y="14" width="12" height="8"/>
         </svg>
-        印刷（飛行日誌）
-      </button>
-    </div>
-    <div class="btn-row" style="margin-bottom:10px;">
-      <button class="btn btn-outline" id="btn-export-csv">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-        </svg>
-        CSV書き出し
-      </button>
-      <button class="btn btn-outline" id="btn-import">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-        </svg>
-        JSON読み込み
-      </button>
-      <input type="file" id="import-file" accept=".json,application/json">
-    </div>
-    <div class="btn-row" style="margin-bottom:10px;">
-      <a class="btn btn-outline" href="data.html" style="text-decoration:none;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        データ管理・検索
-      </a>
-      <button class="btn btn-outline" id="btn-export-all">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        全記録バックアップ
+        印刷（機体番号ごとに改ページ）
       </button>
     </div>
     <p class="data-hint">
-      JSON出力（この1日分）：計画書・チェックリスト・選択中の飛行日の日誌をまとめた「1日分（1計画分）」のファイルを保存します。飛行の都度保存し、書類が必要になったらデータ管理タブで読み込んでください。<br>
-      全記録バックアップ：このブラウザ内の全記録を1ファイルに保存します。JSON読み込みで統合できます（重複はスキップ）。
+      JSON出力：選択中の「飛行年月日」1日分の計画書・チェックリスト・日誌をまとめて1ファイルに保存します。<br>
+      全記録のバックアップ・検索・取り込み・全データ消去は<a href="data.html">データ管理タブ</a>で行います。
     </p>
 
-    <button type="button" class="btn-clear" id="btn-clear">データクリア（このタブの入力と全記録を消去）</button>
+    <button type="button" class="btn-clear" id="btn-clear">入力欄をリセット（このタブの入力のみ／記録は消えません）</button>
   </section>
 
 </div>
 
-<!-- 印刷専用：様式１ 飛行記録（1日分） -->
-<div class="print-doc" id="print-doc">
-  <div class="pd-header">
-    <div class="pd-form-title">
-      <div>（様式１）飛行記録</div>
-      <div class="pd-form-en">無人航空機の飛行記録　JOURNEY LOG OF UAS</div>
-    </div>
-    <div class="pd-nr">NR.&nbsp;<span id="pd-nr">&nbsp;</span></div>
-  </div>
-
-  <table class="pd-meta">
-    <tr>
-      <th style="width:30%;">無人航空機の登録記号<br><span class="en">REGISTRATION ID OF UAS</span></th>
-      <td id="pd-registration"></td>
-    </tr>
-  </table>
-
-  <table class="pd-main">
-    <thead>
-      <tr>
-        <th class="c">No.</th>
-        <th>飛行年月日<br><span class="en">FLIGHT DATE</span></th>
-        <th>飛行させた者の氏名<br><span class="en">NAME OF PILOT</span></th>
-        <th>飛行概要<br><span class="en">NATURE OF FLIGHT</span></th>
-        <th>離陸場所<br><span class="en">FROM</span></th>
-        <th>着陸場所<br><span class="en">TO</span></th>
-        <th class="c">離陸時刻<br><span class="en">OFF</span></th>
-        <th class="c">着陸時刻<br><span class="en">ON</span></th>
-        <th class="c">飛行時間<br><span class="en">FLIGHT TIME</span></th>
-        <th class="c">総飛行時間<br><span class="en">TOTAL</span></th>
-        <th>飛行の安全に影響のあった事項<br><span class="en">MATTERS AFFECTED FLIGHT SAFETY</span></th>
-        <th>確認者<br><span class="en">CONFIRMER</span></th>
-      </tr>
-    </thead>
-    <tbody id="pd-rows"></tbody>
-  </table>
-
-  <div class="pd-squawk-title">記事（不具合記録）　SQUAWK</div>
-  <table class="pd-squawk">
-    <thead>
-      <tr>
-        <th style="width:14%;">発生年月日<br><span class="en">SQUAWK DATE</span></th>
-        <th style="width:36%;">不具合事項<br><span class="en">FLIGHT SQUAWK</span></th>
-        <th style="width:14%;">処置年月日<br><span class="en">ACTION DATE</span></th>
-        <th>処置その他<br><span class="en">CORRECTIVE ACTION</span></th>
-      </tr>
-    </thead>
-    <tbody id="pd-squawk-rows"></tbody>
-  </table>
-</div>
+<!-- 印刷専用：様式１ 飛行記録（1日分・機体番号ごとにページ生成） -->
+<div class="print-doc" id="print-doc"></div>
 
 <script>
   const STORAGE_KEY = 'drone-flight-log-records';
@@ -620,30 +555,17 @@
   let editingId = null;
 
   const $ = id => document.getElementById(id);
-  // time（飛行時間・分）は離陸・着陸時刻から自動算出して保存する（旧記録の time もそのまま有効）
-  const FIELDS = ['date', 'pilot', 'takeoff', 'landing', 'location', 'landloc', 'aircraft', 'weather', 'wind', 'battery', 'shoot', 'anomaly', 'confirmer', 'squawkDate', 'squawk', 'actionDate', 'action', 'memo'];
-  // ページ単位（様式１冒頭）の項目。レコードとは別キーで保存する
-  const HEADER_KEY = 'drone-flight-log-header';
-  function loadHeader() {
-    try {
-      const h = JSON.parse(localStorage.getItem(HEADER_KEY));
-      if (h && typeof h === 'object') return { registration: h.registration || '', carryover: h.carryover || '' };
-    } catch (e) {}
-    return { registration: '', carryover: '' };
-  }
-  function saveHeader() {
-    localStorage.setItem(HEADER_KEY, JSON.stringify({
-      registration: $('f-registration').value.trim(),
-      carryover: $('f-carryover').value.trim(),
-    }));
-  }
+
+  // time（飛行時間・分）は離陸・着陸時刻から自動算出して保存
+  // ※ battery / squawk系 は廃止（記事は当面「不具合なし」扱い・コメントアウト）
+  const FIELDS = ['date', 'summary', 'flightplace', 'weather', 'wind', 'aircraft', 'registration', 'carryover', 'pilot', 'takeoff', 'landing', 'location', 'landloc', 'shoot', 'anomaly', 'confirmer', 'memo'];
+
   const SESSION_KEY = 'drone-active-session';
   const AIRCRAFT_KEY = 'drone-aircraft-list';
   const PLAN_DRAFT_KEY = 'drone-flight-plan-draft';
-  const CHECKLIST_KEY = 'drone-checklist-state';
+  const CHECKLIST_KEY = 'drone-checklist-records';
 
   function getPlan() {
-    // 進行中セッション優先、なければ計画書の下書き
     try {
       const s = JSON.parse(localStorage.getItem(SESSION_KEY));
       if (s && s.plan) return s.plan;
@@ -656,19 +578,19 @@
     catch (e) { return []; }
   }
 
-  // ===== 機体・操縦者の選択肢（計画書＝機体管理経由） =====
+  // ===== 機体・操縦者の選択肢（選択または手入力） =====
   const MANUAL = '__manual__';
   function buildSelect(id, values, label) {
     const sel = $(id);
     const current = sel.value;
     const uniq = [...new Set(values.map(v => (v || '').trim()).filter(Boolean))];
     sel.innerHTML = `<option value="">（${label}を選択）</option>` +
-      uniq.map(v => `<option></option>`).join('') +
+      uniq.map(() => `<option></option>`).join('') +
       `<option value="${MANUAL}">＋手入力…</option>`;
     [...sel.options].forEach((o, i) => {
       if (i > 0 && i <= uniq.length) { o.value = uniq[i - 1]; o.textContent = uniq[i - 1]; }
     });
-    if (current) ensureOption(sel, current);
+    if (current && current !== MANUAL) ensureOption(sel, current);
   }
   function ensureOption(sel, value) {
     if (![...sel.options].some(o => o.value === value)) {
@@ -689,61 +611,37 @@
     buildSelect('f-pilot',
       [plan.pilot, ...reg.map(a => a.pilot), ...records.map(r => r.pilot)], '操縦者');
   }
-  ['f-aircraft', 'f-pilot'].forEach(id => {
-    $(id).addEventListener('change', e => {
-      if (e.target.value !== MANUAL) return;
-      const v = (prompt(id === 'f-aircraft' ? '機体名を入力してください' : '操縦者氏名を入力してください') || '').trim();
-      if (v) ensureOption(e.target, v);
-      else e.target.value = '';
-    });
+
+  // 機体選択：手入力／登録機体からの自動転記
+  $('f-aircraft').addEventListener('change', e => {
+    const sel = e.target;
+    if (sel.value === MANUAL) {
+      const v = (prompt('機体名を入力してください') || '').trim();
+      if (v) ensureOption(sel, v); else sel.value = '';
+      return;
+    }
+    if (!sel.value) return;
+    const a = getAircraftRegistry().find(x => x.name === sel.value);
+    if (a) {
+      // 機体管理タブの値で自動上書き入力
+      $('f-registration').value = a.regNo || '';
+      $('f-carryover').value = (a.carryoverMinutes != null && a.carryoverMinutes !== '') ? a.carryoverMinutes : '';
+      if (a.pilot) ensureOption($('f-pilot'), a.pilot);
+    }
+  });
+  $('f-pilot').addEventListener('change', e => {
+    if (e.target.value !== MANUAL) return;
+    const v = (prompt('操縦者氏名を入力してください') || '').trim();
+    if (v) ensureOption(e.target, v); else e.target.value = '';
   });
 
   // ---- 保存・読み出し ----
   function load() {
-    try {
-      records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    } catch (e) {
-      records = [];
-    }
+    try { records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch (e) { records = []; }
   }
   function persist() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  }
-
-  // ---- バックアップ催促 ----
-  const META_KEY = 'drone-flight-log-meta';
-  const DIRTY_THRESHOLD = 5; // 未バックアップの変更がこの件数に達したら催促
-
-  function loadMeta() {
-    try {
-      const m = JSON.parse(localStorage.getItem(META_KEY));
-      if (m && typeof m === 'object') return { lastExportAt: m.lastExportAt || null, dirty: m.dirty || 0, snoozedAt: m.snoozedAt || 0 };
-    } catch (e) {}
-    // メタ情報がない（この機能の導入前から使っている）場合は、
-    // 既存の全記録を「未バックアップ」とみなして出発する
-    return { lastExportAt: null, dirty: records.length, snoozedAt: 0 };
-  }
-  let meta = { lastExportAt: null, dirty: 0, snoozedAt: 0 };
-  function saveMeta() {
-    localStorage.setItem(META_KEY, JSON.stringify(meta));
-  }
-  function markDirty(n) {
-    meta.dirty += n;
-    saveMeta();
-    updateBackupBanner();
-  }
-  function updateBackupBanner() {
-    const banner = $('backup-banner');
-    // 「あとで」を押した時点の件数を超えて変更が積まれたら再表示する
-    const show = meta.dirty >= DIRTY_THRESHOLD && meta.dirty > meta.snoozedAt;
-    if (!show) { banner.style.display = 'none'; return; }
-    const last = meta.lastExportAt
-      ? `前回の書き出し（${meta.lastExportAt.slice(0, 10)}）以降、`
-      : 'まだ一度も書き出しされていません。';
-    $('backup-msg').textContent = meta.lastExportAt
-      ? `${last}${meta.dirty} 件の変更がバックアップされていません。`
-      : `${last}${meta.dirty} 件の記録が未バックアップです。`;
-    banner.style.display = 'block';
   }
 
   // ---- 表示 ----
@@ -757,30 +655,37 @@
     const [y, m, d] = v.split('-');
     return `${y}年${parseInt(m)}月${parseInt(d)}日`;
   }
+  function todayISO() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  // 表示中の飛行年月日（1日分の絞り込みキー）
+  function currentDate() {
+    return $('f-date').value || '';
+  }
 
   function render() {
     const list = $('log-list');
-    // 飛行日の新しい順（同日なら登録の新しい順）
-    const sorted = [...records].sort((a, b) =>
-      (b.date || '').localeCompare(a.date || '') || (b.id - a.id)
-    );
+    const date = currentDate();
+    // 飛行年月日の1日分のみ絞り込み（同日内は離陸の新しい順）
+    const dayRecords = records
+      .filter(r => (r.date || '') === date)
+      .sort((a, b) => (b.takeoff || '').localeCompare(a.takeoff || '') || (b.id - a.id));
 
-    if (sorted.length === 0) {
-      list.innerHTML = '<div class="empty-msg">まだ記録がありません。上のフォームから最初の飛行を記録しましょう。</div>';
+    if (dayRecords.length === 0) {
+      list.innerHTML = `<div class="empty-msg">${date ? fmtDate(date) + ' の記録はまだありません。' : '飛行年月日を入力すると、その日の記録が表示されます。'}上のフォームから記録を追加できます。</div>`;
     } else {
-      list.innerHTML = sorted.map(r => {
-        const meta = [r.pilot, r.location ? '離陸 ' + r.location : '', r.landloc ? '着陸 ' + r.landloc : '', [r.weather, r.wind].filter(Boolean).join('・'), r.battery ? 'バッテリー ' + r.battery : '']
-          .filter(Boolean)
-          .map(esc)
-          .join('<span class="sep">｜</span>');
-        // 離陸→着陸時刻と飛行時間（分）
+      list.innerHTML = dayRecords.map(r => {
+        const meta = [r.pilot, r.aircraft, r.location ? '離陸 ' + r.location : '', r.landloc ? '着陸 ' + r.landloc : '', [r.weather, r.wind].filter(Boolean).join('・')]
+          .filter(Boolean).map(esc).join('<span class="sep">｜</span>');
         const tl = (r.takeoff || r.landing)
           ? `${esc(r.takeoff || '--:--')} → ${esc(r.landing || '--:--')}` + (r.time ? `（${esc(r.time)} 分）` : '')
           : (r.time ? esc(r.time) + ' 分' : '');
         return `
         <div class="log-item${r.id === editingId ? ' editing' : ''}">
           <div class="log-head">
-            <span class="log-date">${fmtDate(r.date)}${r.aircraft ? '　' + esc(r.aircraft) : ''}</span>
+            <span class="log-date">${fmtDate(r.date)}${r.registration ? '　' + esc(r.registration) : ''}</span>
             <span class="log-time">${tl}</span>
           </div>
           ${meta ? `<div class="log-meta">${meta}</div>` : ''}
@@ -795,20 +700,20 @@
       }).join('');
     }
 
-    $('sum-count').innerHTML = `${records.length}<span class="unit"> 件</span>`;
-    const total = records.reduce((s, r) => s + (parseInt(r.time) || 0), 0);
+    $('sum-count').innerHTML = `${dayRecords.length}<span class="unit"> 件</span>`;
+    const total = dayRecords.reduce((s, r) => s + (parseInt(r.time) || 0), 0);
     $('sum-time').innerHTML = total >= 60
       ? `${Math.floor(total / 60)}<span class="unit"> 時間 </span>${total % 60}<span class="unit"> 分</span>`
       : `${total}<span class="unit"> 分</span>`;
   }
 
-  // ---- 離陸・着陸時刻と飛行時間の自動算出 ----
+  // ---- 飛行時間の自動算出 ----
   function calcMinutes(takeoff, landing) {
     if (!takeoff || !landing) return null;
     const [sh, sm] = takeoff.split(':').map(Number);
     const [eh, em] = landing.split(':').map(Number);
     let min = (eh * 60 + em) - (sh * 60 + sm);
-    if (min < 0) min += 24 * 60; // 日跨ぎ
+    if (min < 0) min += 24 * 60;
     return min;
   }
   function updateAutoTime() {
@@ -816,17 +721,14 @@
     $('auto-time').textContent = min === null ? '―' : `${min} 分`;
   }
   ['f-takeoff', 'f-landing'].forEach(id => $(id).addEventListener('input', updateAutoTime));
+  // 飛行年月日の変更で当日の一覧を更新
+  $('f-date').addEventListener('change', render);
 
   function nowHHMM() {
     const d = new Date();
     return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   }
-  function todayISO() {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }
 
-  // GPS座標の取得（外部APIは使わない・座標のみ）
   function fillGPS(inputId) {
     if (!navigator.geolocation) { alert('この端末ではGPS（位置情報）を利用できません。'); return; }
     const input = $(inputId);
@@ -845,37 +747,37 @@
     );
   }
 
-  // 離陸・着陸の[記録]：現在時刻＋場所（未入力なら計画書の飛行場所をコピー）
+  // 離陸・着陸の[記録]：現在時刻＋場所（未入力なら飛行場所をコピー）
   $('btn-rec-takeoff').addEventListener('click', () => {
     $('f-takeoff').value = nowHHMM();
-    if (!$('f-date').value) $('f-date').value = todayISO();
-    if (!$('f-location').value.trim()) {
-      const p = getPlan();
-      if (p.location) $('f-location').value = p.location;
-    }
+    if (!$('f-date').value) { $('f-date').value = todayISO(); render(); }
+    if (!$('f-location').value.trim() && $('f-flightplace').value.trim()) $('f-location').value = $('f-flightplace').value.trim();
     updateAutoTime();
   });
   $('btn-rec-landing').addEventListener('click', () => {
     $('f-landing').value = nowHHMM();
-    if (!$('f-landloc').value.trim()) {
-      const p = getPlan();
-      if (p.location) $('f-landloc').value = p.location;
-    }
+    if (!$('f-landloc').value.trim() && $('f-flightplace').value.trim()) $('f-landloc').value = $('f-flightplace').value.trim();
     updateAutoTime();
   });
 
-  // 場所コピー・GPSボタン
-  document.querySelectorAll('.loc-btns button').forEach(btn => {
+  // 場所コピー（飛行場所→離着陸場所）・GPS
+  document.querySelectorAll('.loc-btns button[data-loc]').forEach(btn => {
     btn.addEventListener('click', () => {
       const inputId = 'f-' + btn.dataset.loc;
-      if (btn.dataset.src === 'plan') {
-        const p = getPlan();
-        if (!p.location) { alert('計画書に飛行場所が入力されていません。'); return; }
-        $(inputId).value = p.location;
+      if (btn.dataset.src === 'place') {
+        const v = $('f-flightplace').value.trim();
+        if (!v) { alert('環境概要の「飛行場所」が入力されていません。'); return; }
+        $(inputId).value = v;
       } else {
         fillGPS(inputId);
       }
     });
+  });
+  // 飛行概要（総括）→ 飛行概要（NATURE OF FLIGHT）へコピー
+  $('btn-copy-summary').addEventListener('click', () => {
+    const v = $('f-summary').value.trim();
+    if (!v) { alert('環境概要の「飛行概要（総括）」が入力されていません。'); return; }
+    $('f-shoot').value = v;
   });
 
   // ---- フォーム ----
@@ -902,7 +804,6 @@
     FIELDS.forEach(k => $('f-' + k).value = '');
     updateAutoTime();
   }
-  // [記録を追加]後：時刻のみクリアし、機体・操縦者・場所などは次の飛行に引き継ぐ
   function clearTimesOnly() {
     $('f-takeoff').value = '';
     $('f-landing').value = '';
@@ -917,13 +818,12 @@
   $('btn-save').addEventListener('click', () => {
     const data = readForm();
     if (!data.date && !data.location && !data.aircraft && !data.memo) {
-      alert('飛行日など、いずれかの項目を入力してください。');
+      alert('飛行年月日など、いずれかの項目を入力してください。');
       return;
     }
     if (editingId !== null) {
       const i = records.findIndex(r => r.id === editingId);
       if (i !== -1) {
-        // 時刻が未入力の旧記録を編集した場合は、既存の飛行時間（分）を保持する
         if (data.time === undefined) delete data.time;
         records[i] = { ...records[i], ...data };
       }
@@ -931,13 +831,9 @@
       setMode(false);
     } else {
       records.push({ id: Date.now(), ...data });
-      // セッションは閉じない（1日に複数回の飛行を繰り返すため。
-      // 場所コピーや「JSON出力（1日分）」でも計画書の内容を使う）
     }
     persist();
-    markDirty(1);
     buildSelects();
-    // 時刻のみクリア。機体・操縦者・場所は保持して次の飛行へ
     clearTimesOnly();
     render();
   });
@@ -949,7 +845,7 @@
     render();
   });
 
-  // 一覧内の編集・削除（イベント委任）
+  // 一覧内の編集・削除
   $('log-list').addEventListener('click', e => {
     const btn = e.target.closest('button[data-act]');
     if (!btn) return;
@@ -968,7 +864,6 @@
       records = records.filter(r => r.id !== id);
       if (editingId === id) { editingId = null; setMode(false); clearForm(); }
       persist();
-      markDirty(1);
       render();
     }
   });
@@ -983,20 +878,20 @@
     URL.revokeObjectURL(a.href);
   }
 
-  // 1日分（1計画分）：計画書・チェックリスト・当日の日誌をまとめて出力
+  // 1日分：計画書・チェックリスト・当日の日誌をまとめて1ファイルに出力
   function exportDailyJSON() {
     const plan = getPlan();
-    const date = $('f-date').value || plan.date || todayISO();
+    const date = currentDate() || plan.date || todayISO();
     const dayRecords = records.filter(r => r.date === date);
-    if (dayRecords.length === 0 && !confirm(`${date} の飛行記録がまだありません。計画書・チェックリストのみで出力しますか？`)) return;
-    let checklist = null;
-    try { checklist = JSON.parse(localStorage.getItem(CHECKLIST_KEY)); } catch (e) {}
+    let checklist = [];
+    try { checklist = (JSON.parse(localStorage.getItem(CHECKLIST_KEY)) || []).filter(c => c.date === date); } catch (e) {}
+    if (dayRecords.length === 0 && checklist.length === 0 &&
+        !confirm(`${date} の飛行記録・チェックリストがまだありません。計画書のみで出力しますか？`)) return;
     const payload = {
       app: 'drone-daily-record',
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
       date: date,
-      header: loadHeader(),
       plan: plan,
       checklist: checklist,
       records: dayRecords,
@@ -1005,179 +900,126 @@
   }
   $('btn-export').addEventListener('click', exportDailyJSON);
 
-  // 全記録バックアップ（従来形式。データ管理タブや JSON読み込みと互換）
-  function exportAllJSON() {
-    if (records.length === 0) {
-      alert('書き出す記録がありません。');
-      return;
-    }
-    const payload = {
-      app: 'drone-flight-log',
-      exportedAt: new Date().toISOString(),
-      records: records
-    };
-    const d = new Date();
-    const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
-    downloadJSON(payload, `flight-log-${stamp}.json`);
-    // 全件書き出し＝バックアップ完了として催促をリセット
-    meta.lastExportAt = new Date().toISOString();
-    meta.dirty = 0;
-    meta.snoozedAt = 0;
-    saveMeta();
-    updateBackupBanner();
-  }
-  $('btn-export-all').addEventListener('click', exportAllJSON);
-  $('backup-now').addEventListener('click', exportAllJSON);
-  $('backup-later').addEventListener('click', () => {
-    meta.snoozedAt = meta.dirty;
-    saveMeta();
-    updateBackupBanner();
-  });
-
-  // ---- CSV 書き出し ----
-  $('btn-export-csv').addEventListener('click', () => {
-    if (records.length === 0) { alert('書き出す記録がありません。'); return; }
-    const COLS = ['date', 'pilot', 'takeoff', 'landing', 'time', 'location', 'landloc', 'aircraft', 'shoot', 'anomaly', 'confirmer', 'squawkDate', 'squawk', 'actionDate', 'action', 'weather', 'wind', 'battery', 'memo'];
-    const HEAD = ['飛行年月日', '操縦者', '離陸時刻', '着陸時刻', '飛行時間(分)', '離陸場所', '着陸場所', '機体', '飛行概要', '安全に影響のあった事項', '確認者', '発生年月日', '不具合事項', '処置年月日', '処置その他', '天候', '風速', 'バッテリー番号', 'メモ'];
-    const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const rows = [...records]
-      .sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.id - b.id))
-      .map(r => COLS.map(k => q(r[k])).join(','));
-    // Excel で文字化けしないよう BOM 付き UTF-8
-    const csv = '\uFEFF' + HEAD.map(q).join(',') + '\r\n' + rows.join('\r\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    const d = new Date();
-    const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
-    a.download = `flight-log-${stamp}.csv`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  });
-
-  // ---- 読み込み（統合・重複なし）----
-  $('btn-import').addEventListener('click', () => $('import-file').click());
-
-  $('import-file').addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const parsed = JSON.parse(reader.result);
-        // 新形式 { records: [...] } と、配列そのものの両方を受け付ける
-        const imported = Array.isArray(parsed) ? parsed : parsed.records;
-        if (!Array.isArray(imported)) throw new Error('形式が違います');
-
-        const existing = new Set(records.map(r => r.id));
-        let added = 0;
-        imported.forEach(r => {
-          if (typeof r !== 'object' || r === null) return;
-          if (!r.id) r.id = Date.now() + Math.floor(Math.random() * 1000);
-          if (!existing.has(r.id)) {
-            records.push(r);
-            existing.add(r.id);
-            added++;
-          }
-        });
-        persist();
-        markDirty(added);
-        render();
-        alert(`読み込み完了：${added} 件を追加しました（重複 ${imported.length - added} 件はスキップ）。`);
-      } catch (err) {
-        alert('JSONファイルを読み込めませんでした。書き出したファイルか確認してください。');
-      }
-      e.target.value = '';
-    };
-    reader.readAsText(file);
-  });
-
   // ---- 計画書からの引き継ぎ ----
   function initSession() {
-    let s = null;
-    try { s = JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) {}
-    if (!s || !s.plan) return;
-    const p = s.plan;
-    if (p.date)     $('f-date').value = p.date;
-    if (p.location) $('f-location').value = p.location;
-    if (p.pilot)    ensureOption($('f-pilot'), p.pilot);
-    // 機体が1機だけなら自動選択（複数機の場合は飛行ごとに選ぶ）
+    // 引き継ぎ初期値は計画書（進行中セッション優先、なければ下書き）から。
+    // 未入力欄のみ補完し、手入力を上書きしない。
+    const p = getPlan();
+    if (!p || !Object.keys(p).length) return;
+    if (!$('f-date').value && p.date)            $('f-date').value = p.date;
+    if (!$('f-summary').value && p.project)      $('f-summary').value = p.project;
+    if (!$('f-flightplace').value && p.location) $('f-flightplace').value = p.location;
+    if (!$('f-pilot').value && p.pilot)          ensureOption($('f-pilot'), p.pilot);
     const planAircrafts = Array.isArray(p.aircrafts)
       ? p.aircrafts.map(a => a.name).filter(Boolean)
       : (p.aircraft ? String(p.aircraft).split(' / ') : []);
-    if (planAircrafts.length === 1) ensureOption($('f-aircraft'), planAircrafts[0]);
+    if (!$('f-aircraft').value && planAircrafts.length === 1) {
+      ensureOption($('f-aircraft'), planAircrafts[0]);
+      const a = getAircraftRegistry().find(x => x.name === planAircrafts[0]);
+      if (a) {
+        $('f-registration').value = a.regNo || '';
+        $('f-carryover').value = (a.carryoverMinutes != null && a.carryoverMinutes !== '') ? a.carryoverMinutes : '';
+      }
+    }
+    // 「引き継ぎました」バナーは進行中セッションがある場合のみ表示
+    let hasSession = false;
+    try { const s = JSON.parse(localStorage.getItem(SESSION_KEY)); hasSession = !!(s && s.plan); } catch (e) {}
     const parts = [p.project, p.date, p.location, p.aircraft].filter(Boolean);
-    if (parts.length) {
-      document.getElementById('session-summary').textContent = parts.join('　／　');
-      document.getElementById('session-banner').style.display = 'block';
+    if (hasSession && parts.length) {
+      $('session-summary').textContent = parts.join('　／　');
+      $('session-banner').style.display = 'block';
     }
   }
 
-  // ---- 印刷（飛行日誌フォーマット・選択中の飛行日1日分） ----
+  // ---- 印刷（様式１・1日分・機体番号ごとに改ページ） ----
+  function fmtDateJa(v) {
+    if (!v) return '';
+    const [y, m, d] = v.split('-');
+    if (!y || !m || !d) return v;
+    return `${y}年${parseInt(m)}月${parseInt(d)}日`;
+  }
   function fillPrintDoc() {
-    const plan = getPlan();
-    const date = $('f-date').value || plan.date || todayISO();
+    const date = currentDate() || todayISO();
     const dayRecords = records
       .filter(r => r.date === date)
       .sort((a, b) => (a.takeoff || '').localeCompare(b.takeoff || '') || (a.id - b.id));
     const fmt = v => esc(v || '');
-    document.getElementById('pd-registration').textContent = $('f-registration').value.trim();
 
-    // 総飛行時間：繰越（分）＋ 当ページの累計
-    let running = parseInt($('f-carryover').value, 10) || 0;
-    document.getElementById('pd-rows').innerHTML = dayRecords.length
-      ? dayRecords.map((r, i) => {
-          const t = parseInt(r.time, 10) || 0;
-          running += t;
-          return `<tr>
-          <td class="c">${i + 1}</td>
-          <td class="c">${fmt(r.date && fmtDate(r.date))}</td>
-          <td>${fmt(r.pilot)}</td>
-          <td>${fmt(r.shoot)}</td>
-          <td>${fmt(r.location)}</td>
-          <td>${fmt(r.landloc)}</td>
-          <td class="c">${fmt(r.takeoff)}</td>
-          <td class="c">${fmt(r.landing)}</td>
-          <td class="c">${r.time ? fmt(r.time) + '分' : ''}</td>
-          <td class="c">${running}分</td>
-          <td>${fmt(r.anomaly)}</td>
-          <td>${fmt(r.confirmer)}</td>
-        </tr>`;
+    // 機体番号（登録記号）単位でグループ化
+    const groups = {};
+    dayRecords.forEach(r => {
+      const key = (r.registration || '').trim() || (r.aircraft || '').trim() || '（登録記号未記入）';
+      (groups[key] = groups[key] || []).push(r);
+    });
+
+    $('print-doc').innerHTML = Object.keys(groups).length
+      ? Object.entries(groups).map(([key, recs]) => {
+          // 繰越総飛行時間：記録または機体管理から
+          const carry = recs.reduce((c, r) => c || (parseInt(r.carryover, 10) || 0), 0);
+          let running = carry;
+          const rows = recs.map((r, i) => {
+            const t = parseInt(r.time, 10) || 0;
+            running += t;
+            return `<tr>
+              <td class="c">${i + 1}</td>
+              <td class="c">${fmt(r.date && fmtDateJa(r.date))}</td>
+              <td>${fmt(r.pilot)}</td>
+              <td>${fmt(r.shoot)}</td>
+              <td>${fmt(r.location)}</td>
+              <td>${fmt(r.landloc)}</td>
+              <td class="c">${fmt(r.takeoff)}</td>
+              <td class="c">${fmt(r.landing)}</td>
+              <td class="c">${r.time ? fmt(r.time) + '分' : ''}</td>
+              <td class="c">${running}分</td>
+              <td>${fmt(r.anomaly)}</td>
+              <td>${fmt(r.confirmer)}</td>
+            </tr>`;
+          }).join('');
+          return `<div class="pd-page">
+            <div class="pd-header">
+              <div class="pd-form-title">
+                <div>（様式１）飛行記録</div>
+                <div class="pd-form-en">無人航空機の飛行記録　JOURNEY LOG OF UAS</div>
+              </div>
+              <div class="pd-nr">NR.&nbsp;&nbsp;</div>
+            </div>
+            <table class="pd-meta">
+              <tr>
+                <th style="width:30%;">無人航空機の登録記号<br><span class="en">REGISTRATION ID OF UAS</span></th>
+                <td>${fmt(key)}</td>
+              </tr>
+            </table>
+            <table class="pd-main">
+              <thead><tr>
+                <th class="c">No.</th>
+                <th>飛行年月日<br><span class="en">FLIGHT DATE</span></th>
+                <th>飛行させた者の氏名<br><span class="en">NAME OF PILOT</span></th>
+                <th>飛行概要<br><span class="en">NATURE OF FLIGHT</span></th>
+                <th>離陸場所<br><span class="en">FROM</span></th>
+                <th>着陸場所<br><span class="en">TO</span></th>
+                <th class="c">離陸時刻<br><span class="en">OFF</span></th>
+                <th class="c">着陸時刻<br><span class="en">ON</span></th>
+                <th class="c">飛行時間<br><span class="en">FLIGHT TIME</span></th>
+                <th class="c">総飛行時間<br><span class="en">TOTAL</span></th>
+                <th>飛行の安全に影響のあった事項<br><span class="en">MATTERS AFFECTED FLIGHT SAFETY</span></th>
+                <th>確認者<br><span class="en">CONFIRMER</span></th>
+              </tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
         }).join('')
-      : '<tr><td colspan="12" style="text-align:center; color:#777;">この日の飛行記録はありません</td></tr>';
-
-    // 記事（不具合記録）：いずれかの欄が入力されている記録のみ
-    const squawks = dayRecords.filter(r => r.squawkDate || r.squawk || r.actionDate || r.action);
-    document.getElementById('pd-squawk-rows').innerHTML = squawks.length
-      ? squawks.map(r => `<tr>
-          <td class="c">${fmt(r.squawkDate && fmtDate(r.squawkDate))}</td>
-          <td>${fmt(r.squawk)}</td>
-          <td class="c">${fmt(r.actionDate && fmtDate(r.actionDate))}</td>
-          <td>${fmt(r.action)}</td>
-        </tr>`).join('')
-      : '<tr><td colspan="4" style="text-align:center; color:#777;">記載事項なし</td></tr>';
+      : `<div class="pd-page"><div class="pd-form-title">（様式１）飛行記録</div><p style="margin-top:16px;">${fmtDateJa(date)} の飛行記録はありません。</p></div>`;
   }
-  $('btn-print').addEventListener('click', () => {
-    fillPrintDoc();
-    window.print();
-  });
+  $('btn-print').addEventListener('click', () => { fillPrintDoc(); window.print(); });
   window.addEventListener('beforeprint', fillPrintDoc);
 
-  // ---- データクリア ----
+  // ---- データクリア（このタブの入力欄のみ。記録・全データは消さない） ----
   $('btn-clear').addEventListener('click', () => {
-    if (!confirm(`日誌の全記録（${records.length} 件）と入力内容を削除しますか？\nこの操作は取り消せません。必要なら先にバックアップしてください。`)) return;
-    records = [];
+    if (!confirm('このタブの入力欄をリセットしますか？\n（保存済みの記録は消えません。全データ消去はデータ管理タブで行います）')) return;
     editingId = null;
-    persist();
-    localStorage.removeItem(META_KEY);
-    localStorage.removeItem(HEADER_KEY);
-    $('f-registration').value = '';
-    $('f-carryover').value = '';
-    meta = { lastExportAt: null, dirty: 0, snoozedAt: 0 };
     clearForm();
     setMode(false);
     buildSelects();
-    updateBackupBanner();
     render();
   });
 
@@ -1196,32 +1038,18 @@
   }
 
   // ---- 初期化 ----
-  // 各初期化は独立して保護する（1つの失敗が他を巻き添えにしないように）
   load();
-  // 機体概要（登録記号・繰越時間）の復元と自動保存
-  try {
-    const h = loadHeader();
-    $('f-registration').value = h.registration;
-    $('f-carryover').value = h.carryover;
-    ['f-registration', 'f-carryover'].forEach(id => $(id).addEventListener('input', saveHeader));
-  } catch (e) {}
   try { buildSelects(); } catch (e) {}
-  try { meta = loadMeta(); saveMeta(); } catch (e) {}
-  try { updateBackupBanner(); } catch (e) {}
-  // ブラウザに「このサイトのデータを自動削除しないで」と要請する
-  // （対応ブラウザのみ・拒否されても害はない）
   try {
-    if (navigator.storage && navigator.storage.persist) {
-      navigator.storage.persist();
-    }
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
   } catch (e) {}
   let editRequested = false;
   try { editRequested = initEditRequest(); } catch (e) {}
-  // 編集リクエストがある場合は計画書の引き継ぎより優先する
-  // （initSession がフォームを上書きしてしまうのを防ぐ）
   if (!editRequested) {
     try { initSession(); } catch (e) {}
   }
+  // 飛行年月日が未設定なら当日にして一覧を表示
+  if (!$('f-date').value) $('f-date').value = todayISO();
   render();
 </script>
 

@@ -11,6 +11,52 @@
     /* ===== ページ固有スタイル（共通部分は theme.css 参照） ===== */
     .container { max-width: 720px; }
 
+    /* ===== タブ ===== */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      margin-bottom: -2px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* 折りたたみ */
+    details.collapsible {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--white);
+      margin-bottom: 20px;
+      padding: 0;
+    }
+    details.collapsible > summary {
+      cursor: pointer;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      list-style: none;
+    }
+    details.collapsible > summary::-webkit-details-marker { display: none; }
+    details.collapsible > summary::before { content: "▸ "; }
+    details.collapsible[open] > summary::before { content: "▾ "; }
+    details.collapsible > .collapsible-body { padding: 0 16px 16px; }
+
     .result-meta {
       display: flex;
       justify-content: space-between;
@@ -55,7 +101,6 @@
     tr:nth-child(even) td { background: #fafaf5; }
     td.anomaly { color: var(--danger); font-weight: 700; }
 
-    /* 操作列 */
     td.ops { white-space: nowrap; }
     .op-btn {
       background: none;
@@ -74,68 +119,54 @@
     .op-delete { color: var(--danger); }
     .op-delete:hover { background: #f8e8e8; text-decoration: underline; }
 
-    /* 総飛行時間の集計：狭い画面でも枠内に収める（横スクロール） */
     .summary-scroll { overflow-x: auto; }
     .summary-scroll table { min-width: 420px; }
 
-    #import-files { display: none; }
+    .checklist-table table { min-width: 560px; }
+
+    #import-files, #import-all { display: none; }
+
+    .btn-clear-all {
+      width: 100%;
+      margin-top: 4px;
+      padding: 12px;
+      background: transparent;
+      color: var(--danger-dark);
+      border: 2px solid var(--danger-dark);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .btn-clear-all:hover { background: var(--danger-dark); color: #fff; }
+
+    /* 計画書プレビュー */
+    .plan-view { font-size: 14px; line-height: 1.9; }
+    .plan-view .k { color: var(--muted); font-size: 12px; display: inline-block; min-width: 6em; }
 
     /* ===== 印刷用（画面では非表示） ===== */
     .print-doc { display: none; }
 
     /* ===== 印刷（飛行日誌フォーマット・機体ごとに改ページ） ===== */
     @media print {
-      @page {
-        size: A4 landscape;
-        margin: 0; /* ブラウザのヘッダー/フッターを消す。紙余白は .pd-page の padding で確保 */
-      }
-      * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
+      @page { size: A4 landscape; margin: 0; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       body { background: #fff; }
       .site-header, .site-nav, .container { display: none !important; }
 
       .print-doc { display: block; color: #000; }
-      .pd-page {
-        padding: 14mm 14mm 16mm;
-        break-after: page;
-      }
+      .pd-page { padding: 14mm 14mm 16mm; break-after: page; }
       .pd-page:last-child { break-after: auto; }
-      .pd-title {
-        text-align: center;
-        font-size: 20px;
-        font-weight: 700;
-        letter-spacing: .1em;
-        margin-bottom: 4px;
-      }
-      .pd-subtitle {
-        text-align: center;
-        font-size: 11px;
-        color: #555;
-        margin-bottom: 16px;
-      }
-      .print-doc table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 14px;
-        min-width: 0;
-      }
+      .pd-title { text-align: center; font-size: 20px; font-weight: 700; letter-spacing: .1em; margin-bottom: 4px; }
+      .pd-subtitle { text-align: center; font-size: 11px; color: #555; margin-bottom: 16px; }
+      .print-doc table { width: 100%; border-collapse: collapse; margin-bottom: 14px; min-width: 0; }
       .print-doc th, .print-doc td {
-        border: 1px solid #333;
-        padding: 6px 8px;
-        font-size: 11px;
-        text-align: left;
-        vertical-align: top;
-        background: none;
-        color: #000;
-        white-space: normal;
+        border: 1px solid #333; padding: 6px 8px; font-size: 11px;
+        text-align: left; vertical-align: top; background: none; color: #000; white-space: normal;
       }
-      .print-doc th {
-        background: #eef0ea;
-        font-weight: 700;
-        white-space: nowrap;
-      }
+      .print-doc th { background: #eef0ea; font-weight: 700; white-space: nowrap; }
       .print-doc .c { text-align: center; white-space: nowrap; }
       .print-doc tr { break-inside: avoid; }
     }
@@ -159,100 +190,146 @@
 
 <div class="container">
 
-  <!-- 検索 -->
-  <section class="card">
-    <h2>検索・絞り込み</h2>
-    <div class="field-row">
-      <div class="field">
-        <label for="s-from">日付（から）</label>
-        <input type="date" id="s-from">
-      </div>
-      <div class="field">
-        <label for="s-to">日付（まで）</label>
-        <input type="date" id="s-to">
-      </div>
-    </div>
-    <div class="field-row">
-      <div class="field">
-        <label for="s-location">場所</label>
-        <input type="text" id="s-location" placeholder="例：中野区">
-      </div>
-      <div class="field">
-        <label for="s-aircraft">機体</label>
-        <input type="text" id="s-aircraft" placeholder="例：Neo">
-      </div>
-    </div>
-    <div class="field" style="margin-bottom:0;">
-      <label for="s-keyword">キーワード（撮影内容・メモ・バッテリー・異常記録）</label>
-      <input type="text" id="s-keyword" placeholder="例：夕景、#01、GPS">
-    </div>
-  </section>
-
-  <!-- 総飛行時間集計（DIPS申請の総飛行時間記入用） -->
-  <section class="card" style="margin-bottom:20px;">
-    <h2>総飛行時間の集計（全記録・機体別）</h2>
-    <div id="summary-box" style="font-size:14px;"></div>
-    <p style="font-size:11px; color:var(--muted); margin-top:8px;">
-      DIPS申請・飛行日誌制度の「総飛行時間」記入の参考にできます（このブラウザに記録された日誌が対象）。
-    </p>
-  </section>
-
-  <!-- 結果 -->
-  <div class="result-meta">
-    <span><strong id="r-count">0</strong> 件　／　累計 <strong id="r-time">0</strong> 分</span>
-    <span id="r-filtered"></span>
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="plan" role="tab">データ管理（計画書）</button>
+    <button class="tab-btn" data-tab="checklist" role="tab">データ管理（チェックリスト）</button>
+    <button class="tab-btn" data-tab="log" role="tab">データ管理（日誌）</button>
   </div>
 
-  <div class="table-wrap" id="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>飛行日</th><th>時間(分)</th><th>場所</th><th>機体</th>
-          <th>天候・風速</th><th>バッテリー</th><th>撮影内容</th><th>異常</th><th>操作</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
+  <!-- ============ 計画書タブ ============ -->
+  <div class="tab-panel active" id="tab-plan">
+    <section class="card">
+      <h2>飛行計画書（現在の下書き）</h2>
+      <div class="plan-view" id="plan-view"></div>
+      <p style="font-size:12px; color:var(--muted); margin-top:10px; line-height:1.7;">
+        ※ 計画書の複数管理は将来対応予定です。現在は計画書タブの下書き1件を管理します。
+      </p>
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn btn-outline" id="btn-plan-export">JSON出力（計画書）</button>
+        <button class="btn btn-outline" id="btn-plan-import">JSON読込（計画書）</button>
+        <input type="file" id="plan-file" accept=".json,application/json" style="display:none;">
+      </div>
+    </section>
   </div>
-  <div class="empty-msg" id="empty-msg" style="display:none;"></div>
 
-  <!-- 読み込み -->
-  <section class="card" style="margin-top:20px;">
-    <h2>JSON読込（複数ファイル可）</h2>
-    <div class="btn-row">
-      <button class="btn btn-outline" id="btn-import" style="grid-column:1 / -1;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+  <!-- ============ チェックリストタブ ============ -->
+  <div class="tab-panel" id="tab-checklist">
+    <section class="card">
+      <h2>飛行前チェックリスト（実施年月日＋登録記号ごと）</h2>
+      <div class="table-wrap checklist-table" id="cl-wrap">
+        <table>
+          <thead>
+            <tr><th>実施年月日</th><th>登録記号</th><th>実施場所</th><th>実施者</th><th>異常</th><th>操作</th></tr>
+          </thead>
+          <tbody id="cl-tbody"></tbody>
+        </table>
+      </div>
+      <div class="empty-msg" id="cl-empty" style="display:none;">チェックリストの記録がまだありません。</div>
+      <div class="btn-row" style="margin-top:14px;">
+        <button class="btn btn-outline" id="btn-cl-export">JSON出力（チェックリスト）</button>
+        <button class="btn btn-outline" id="btn-cl-import">JSON読込（チェックリスト）</button>
+        <input type="file" id="cl-file" accept=".json,application/json" style="display:none;">
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ 日誌タブ ============ -->
+  <div class="tab-panel" id="tab-log">
+
+    <details class="collapsible">
+      <summary>検索・絞り込み</summary>
+      <div class="collapsible-body">
+        <div class="field-row">
+          <div class="field">
+            <label for="s-from">日付（から）</label>
+            <input type="date" id="s-from">
+          </div>
+          <div class="field">
+            <label for="s-to">日付（まで）</label>
+            <input type="date" id="s-to">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="s-location">場所</label>
+            <input type="text" id="s-location" placeholder="例：中野区">
+          </div>
+          <div class="field">
+            <label for="s-aircraft">機体</label>
+            <input type="text" id="s-aircraft" placeholder="例：Neo">
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="s-keyword">キーワード（飛行概要・メモ・異常記録）</label>
+          <input type="text" id="s-keyword" placeholder="例：夕景、GPS">
+        </div>
+      </div>
+    </details>
+
+    <details class="collapsible">
+      <summary>総飛行時間の集計（全記録・機体別）</summary>
+      <div class="collapsible-body">
+        <div id="summary-box" style="font-size:14px;"></div>
+        <p style="font-size:11px; color:var(--muted); margin-top:8px;">
+          DIPS申請・飛行日誌制度の「総飛行時間」記入の参考にできます（このブラウザに記録された日誌が対象）。
+        </p>
+      </div>
+    </details>
+
+    <div class="result-meta">
+      <span><strong id="r-count">0</strong> 件　／　累計 <strong id="r-time">0</strong> 分</span>
+      <span id="r-filtered"></span>
+    </div>
+
+    <div class="table-wrap" id="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>飛行日</th><th>時間(分)</th><th>場所</th><th>機体</th>
+            <th>天候・風速</th><th>飛行概要</th><th>異常</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty-msg" id="empty-msg" style="display:none;"></div>
+
+    <section class="card" style="margin-top:20px;">
+      <h2>書き出し・印刷（表示中の結果のみ）</h2>
+      <div class="btn-row" style="margin-bottom:12px;">
+        <button class="btn btn-outline" id="btn-csv">CSV書き出し</button>
+        <button class="btn btn-outline" id="btn-json">JSON出力（日誌）</button>
+      </div>
+      <div class="btn-row" style="margin-bottom:12px;">
+        <button class="btn btn-outline" id="btn-import" style="grid-column:1 / -1;">JSON読込（複数ファイル可・後勝ちマージ）</button>
+        <input type="file" id="import-files" accept=".json,application/json" multiple>
+      </div>
+      <button class="btn btn-primary" id="btn-print">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 6 2 18 2 18 9"/>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+          <rect x="6" y="14" width="12" height="8"/>
         </svg>
-        JSONファイルを選んで読み込む
+        印刷（飛行日誌・機体ごとに改ページ）
       </button>
-      <input type="file" id="import-files" accept=".json,application/json" multiple>
-    </div>
-    <p style="font-size:12px; color:var(--muted); margin-top:10px; line-height:1.7;">
-      日誌タブの「JSON出力（1日分）」で保存したファイル、または全記録バックアップを複数まとめて取り込めます。
-      記録は<strong>離陸日時＋操縦者</strong>の順に並べ替えられ、同じ記録は<strong>後から読み込んだ内容で上書き</strong>されます。
-    </p>
-  </section>
+      <p style="font-size:12px; color:var(--muted); margin-top:8px; line-height:1.7;">
+        総飛行時間は「機体管理タブの繰越値＋記録の累計」で算出されます。日誌JSONの取り込みは<strong>離陸日時＋操縦者</strong>の順に並べ替え、同じ記録は<strong>後勝ち</strong>で上書きします。
+      </p>
+    </section>
+  </div>
 
-  <!-- 書き出し -->
-  <section class="card" style="margin-top:20px;">
-    <h2>書き出し・印刷（表示中の結果のみ）</h2>
-    <div class="btn-row" style="margin-bottom:12px;">
-      <button class="btn btn-outline" id="btn-csv">CSV書き出し</button>
-      <button class="btn btn-outline" id="btn-json">JSON書き出し</button>
-    </div>
-    <button class="btn btn-primary" id="btn-print">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="6 9 6 2 18 2 18 9"/>
-        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-        <rect x="6" y="14" width="12" height="8"/>
-      </svg>
-      印刷（飛行日誌・機体ごとに改ページ）
-    </button>
-    <p style="font-size:12px; color:var(--muted); margin-top:8px; line-height:1.7;">
-      総飛行時間は「機体管理タブの繰越値＋記録の累計」で算出されます。
+  <!-- ============ 全データ（一括） ============ -->
+  <section class="card" style="margin-top:24px;">
+    <h2>全データ（一括バックアップ）</h2>
+    <p style="font-size:12px; color:var(--muted); margin-bottom:12px; line-height:1.7;">
+      計画書・チェックリスト・日誌・機体管理の<strong>全データを1つのJSONファイル</strong>で出力・読み込みします。端末の引っ越しや丸ごとバックアップに使えます。
     </p>
+    <div class="btn-row" style="margin-bottom:12px;">
+      <button class="btn btn-outline" id="btn-all-export">全データJSON出力</button>
+      <button class="btn btn-outline" id="btn-all-import">全データJSON読込（置き換え）</button>
+      <input type="file" id="import-all" accept=".json,application/json">
+    </div>
+    <button type="button" class="btn-clear-all" id="btn-clear-all">全データ消去（計画書・チェックリスト・日誌・機体管理）</button>
   </section>
 
   <div class="btn-row">
@@ -268,11 +345,17 @@
 <script>
   const STORAGE_KEY = 'drone-flight-log-records';
   const AIRCRAFT_KEY = 'drone-aircraft-list';
+  const PLAN_KEY = 'drone-flight-plan-draft';
+  const CHECKLIST_KEY = 'drone-checklist-records';
+  const CL_EDIT_KEY = 'drone-checklist-edit-request';
+  const EDIT_KEY = 'drone-edit-request';
+
+  const $ = id => document.getElementById(id);
 
   let records = [];
   try { records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) {}
-
-  const $ = id => document.getElementById(id);
+  let checklist = [];
+  try { checklist = JSON.parse(localStorage.getItem(CHECKLIST_KEY)) || []; } catch (e) {}
 
   function esc(s) {
     const d = document.createElement('div');
@@ -285,7 +368,156 @@
     if (!y || !m || !d) return v;
     return `${y}/${parseInt(m)}/${parseInt(d)}`;
   }
+  function fmtHourMin(min) {
+    const h = Math.floor(min / 60), m = Math.round(min % 60);
+    return h > 0 ? `${h}時間${m}分` : `${m}分`;
+  }
+  function stamp() {
+    const d = new Date();
+    return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+  }
+  function download(blob, name) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+  function downloadJSON(payload, name) {
+    download(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }), name);
+  }
 
+  // ===== タブ切り替え =====
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.tab-panel').forEach(p =>
+        p.classList.toggle('active', p.id === 'tab-' + btn.dataset.tab));
+    });
+  });
+
+  // ============================================================
+  // 計画書タブ
+  // ============================================================
+  function loadPlan() {
+    try { return JSON.parse(localStorage.getItem(PLAN_KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  function renderPlan() {
+    const p = loadPlan();
+    const v = $('plan-view');
+    const acs = Array.isArray(p.aircrafts)
+      ? p.aircrafts.map(a => a.regNo ? `${a.name}（${a.regNo}）` : a.name).filter(Boolean).join('、')
+      : (p.aircraft || '');
+    const rows = [
+      ['案件名', p.project], ['飛行日', p.date],
+      ['時刻', [p.start, p.end].filter(Boolean).join(' 〜 ')],
+      ['飛行場所', p.location], ['操縦者', p.pilot],
+      ['機体', acs], ['飛行目的', p.purpose], ['備考', p.notes],
+    ].filter(([, val]) => val);
+    v.innerHTML = rows.length
+      ? rows.map(([k, val]) => `<div><span class="k">${k}</span>${esc(val)}</div>`).join('')
+      : '<span style="color:var(--muted);">計画書の下書きがまだありません。計画書タブで入力してください。</span>';
+  }
+  $('btn-plan-export').addEventListener('click', () => {
+    const p = loadPlan();
+    if (!Object.keys(p).length) { alert('出力する計画書がありません。'); return; }
+    downloadJSON({ app: 'drone-flight-plan', savedAt: new Date().toISOString(), plan: p }, `flight-plan-${stamp()}.json`);
+  });
+  $('btn-plan-import').addEventListener('click', () => $('plan-file').click());
+  $('plan-file').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const plan = parsed.plan || parsed;
+        if (typeof plan !== 'object' || Array.isArray(plan)) throw new Error();
+        localStorage.setItem(PLAN_KEY, JSON.stringify(plan));
+        renderPlan();
+        alert('計画書を読み込みました。');
+      } catch (err) { alert('計画書JSONを読み込めませんでした。'); }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  // ============================================================
+  // チェックリストタブ
+  // ============================================================
+  function renderChecklist() {
+    const tbody = $('cl-tbody');
+    const sorted = [...checklist].sort((a, b) =>
+      (b.date || '').localeCompare(a.date || '') || (b.id - a.id));
+    $('cl-empty').style.display = sorted.length ? 'none' : 'block';
+    $('cl-wrap').style.display = sorted.length ? 'block' : 'none';
+    tbody.innerHTML = sorted.map(c => {
+      const abn = c.remarks ? Object.keys(c.remarks).length : 0;
+      return `<tr>
+        <td style="white-space:nowrap;">${fmtDate(c.date)}</td>
+        <td>${esc(c.registration)}</td>
+        <td>${esc(c.place)}</td>
+        <td>${esc(c.inspector)}</td>
+        <td class="${abn ? 'anomaly' : ''}">${abn ? abn + '件' : '―'}</td>
+        <td class="ops">
+          <button class="op-btn op-edit" data-act="cl-edit" data-id="${c.id}">✎ 編集</button>
+          <button class="op-btn op-delete" data-act="cl-delete" data-id="${c.id}">✕ 削除</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  $('cl-tbody').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    const id = Number(btn.dataset.id);
+    const rec = checklist.find(c => c.id === id);
+    if (!rec) return;
+    if (btn.dataset.act === 'cl-edit') {
+      sessionStorage.setItem(CL_EDIT_KEY, id);
+      location.href = 'checklist.html';
+    } else {
+      if (!confirm(`${fmtDate(rec.date)}（${rec.registration || '登録記号なし'}）のチェックリストを削除しますか？`)) return;
+      checklist = checklist.filter(c => c.id !== id);
+      localStorage.setItem(CHECKLIST_KEY, JSON.stringify(checklist));
+      renderChecklist();
+    }
+  });
+  $('btn-cl-export').addEventListener('click', () => {
+    if (!checklist.length) { alert('出力するチェックリストがありません。'); return; }
+    downloadJSON({ app: 'drone-checklist', exportedAt: new Date().toISOString(), checklist }, `checklist-${stamp()}.json`);
+  });
+  $('btn-cl-import').addEventListener('click', () => $('cl-file').click());
+  $('cl-file').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const incoming = Array.isArray(parsed) ? parsed : parsed.checklist;
+        if (!Array.isArray(incoming)) throw new Error();
+        const map = new Map(checklist.map(c => [c.id, c]));
+        let added = 0, updated = 0;
+        incoming.forEach(c => {
+          if (typeof c !== 'object' || c === null) return;
+          if (!c.id) c.id = Date.now() + Math.floor(Math.random() * 1000);
+          if (map.has(c.id)) updated++; else added++;
+          map.set(c.id, c);
+        });
+        checklist = [...map.values()];
+        localStorage.setItem(CHECKLIST_KEY, JSON.stringify(checklist));
+        renderChecklist();
+        alert(`読み込み完了：新規 ${added} 件・上書き ${updated} 件`);
+      } catch (err) { alert('チェックリストJSONを読み込めませんでした。'); }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  // ============================================================
+  // 日誌タブ
+  // ============================================================
   function getFiltered() {
     const from = $('s-from').value;
     const to   = $('s-to').value;
@@ -299,17 +531,11 @@
       if (loc && !(r.location || '').toLowerCase().includes(loc)) return false;
       if (ac  && !(r.aircraft || '').toLowerCase().includes(ac))  return false;
       if (kw) {
-        const hay = [r.shoot, r.memo, r.battery, r.anomaly, r.weather, r.wind]
-          .filter(Boolean).join(' ').toLowerCase();
+        const hay = [r.shoot, r.memo, r.anomaly, r.weather, r.wind].filter(Boolean).join(' ').toLowerCase();
         if (!hay.includes(kw)) return false;
       }
       return true;
     }).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.id - a.id));
-  }
-
-  function fmtHourMin(min) {
-    const h = Math.floor(min / 60), m = Math.round(min % 60);
-    return h > 0 ? `${h}時間${m}分` : `${m}分`;
   }
 
   function renderSummary() {
@@ -373,7 +599,6 @@
         <td>${esc(r.location)}</td>
         <td>${esc(r.aircraft)}</td>
         <td>${esc([r.weather, r.wind].filter(Boolean).join('・'))}</td>
-        <td>${esc(r.battery)}</td>
         <td>${esc(r.shoot)}</td>
         <td class="${r.anomaly ? 'anomaly' : ''}">${esc(r.anomaly)}</td>
         <td class="ops">
@@ -386,18 +611,13 @@
   ['s-from', 's-to', 's-location', 's-aircraft', 's-keyword'].forEach(id =>
     $(id).addEventListener('input', render));
 
-  // ---- 編集・削除（イベント委任） ----
-  const EDIT_KEY = 'drone-edit-request';
-
   $('tbody').addEventListener('click', e => {
     const btn = e.target.closest('button[data-act]');
     if (!btn) return;
     const id = Number(btn.dataset.id);
     const rec = records.find(r => r.id === id);
     if (!rec) return;
-
     if (btn.dataset.act === 'edit') {
-      // 編集は飛行日誌ページのフォームで行う（フォームの二重管理を避ける）
       sessionStorage.setItem(EDIT_KEY, id);
       location.href = 'flight-log.html';
     } else if (btn.dataset.act === 'delete') {
@@ -409,52 +629,33 @@
     }
   });
 
-  // ---- 書き出し（フィルタ結果のみ） ----
-  function stamp() {
-    const d = new Date();
-    return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
-  }
-  function download(blob, name) {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  }
-
   $('btn-csv').addEventListener('click', () => {
     const list = getFiltered();
     if (list.length === 0) { alert('書き出す記録がありません。'); return; }
-    const COLS = ['date', 'pilot', 'takeoff', 'landing', 'time', 'location', 'landloc', 'aircraft', 'weather', 'wind', 'battery', 'shoot', 'anomaly', 'memo'];
-    const HEAD = ['飛行日', '操縦者', '離陸時刻', '着陸時刻', '飛行時間(分)', '離陸場所', '着陸場所', '機体', '天候', '風速', 'バッテリー番号', '撮影内容', '異常記録', 'メモ'];
+    const COLS = ['date', 'pilot', 'takeoff', 'landing', 'time', 'location', 'landloc', 'aircraft', 'weather', 'wind', 'shoot', 'anomaly', 'memo'];
+    const HEAD = ['飛行日', '操縦者', '離陸時刻', '着陸時刻', '飛行時間(分)', '離陸場所', '着陸場所', '機体', '天候', '風速', '飛行概要', '異常記録', 'メモ'];
     const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const rows = list.map(r => COLS.map(k => q(r[k])).join(','));
-    const csv = '\uFEFF' + HEAD.map(q).join(',') + '\r\n' + rows.join('\r\n');
+    const csv = '﻿' + HEAD.map(q).join(',') + '\r\n' + rows.join('\r\n');
     download(new Blob([csv], { type: 'text/csv' }), `flight-log-${stamp()}.csv`);
   });
 
   $('btn-json').addEventListener('click', () => {
     const list = getFiltered();
     if (list.length === 0) { alert('書き出す記録がありません。'); return; }
-    const payload = { app: 'drone-flight-log', exportedAt: new Date().toISOString(), records: list };
-    download(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }), `flight-log-${stamp()}.json`);
+    downloadJSON({ app: 'drone-flight-log', exportedAt: new Date().toISOString(), records: list }, `flight-log-${stamp()}.json`);
   });
 
-  // ---- JSON読込（複数ファイル・結合・後勝ち） ----
-  // 1日分ファイル（drone-daily-record）と全記録バックアップ（drone-flight-log）の両形式を受け付ける
+  // ---- 日誌JSON読込（複数ファイル・後勝ち） ----
   function recordKey(r) {
-    return r.id != null
-      ? 'id:' + r.id
+    return r.id != null ? 'id:' + r.id
       : ['k', r.date, r.takeoff, r.aircraft, r.pilot].map(v => v || '').join('|');
   }
-  // ソートキー：離陸日時（日付＋離陸時刻）→ 操縦者
   function sortRecords(list) {
     return list.sort((a, b) =>
       ((a.date || '') + ' ' + (a.takeoff || '')).localeCompare((b.date || '') + ' ' + (b.takeoff || '')) ||
-      (a.pilot || '').localeCompare(b.pilot || '') ||
-      ((a.id || 0) - (b.id || 0)));
+      (a.pilot || '').localeCompare(b.pilot || '') || ((a.id || 0) - (b.id || 0)));
   }
-
   $('btn-import').addEventListener('click', () => $('import-files').click());
   $('import-files').addEventListener('change', async e => {
     const files = [...e.target.files];
@@ -462,7 +663,6 @@
     const map = new Map(records.map(r => [recordKey(r), r]));
     let added = 0, updated = 0;
     const failed = [];
-    // 「後勝ち」を保証するため選択順に逐次処理する
     for (const f of files) {
       try {
         const parsed = JSON.parse(await f.text());
@@ -472,11 +672,9 @@
           if (typeof r !== 'object' || r === null) return;
           const key = recordKey(r);
           if (map.has(key)) updated++; else added++;
-          map.set(key, r); // 重複は後から読み込んだ内容で上書き
+          map.set(key, r);
         });
-      } catch (err) {
-        failed.push(f.name);
-      }
+      } catch (err) { failed.push(f.name); }
     }
     records = sortRecords([...map.values()]);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
@@ -487,7 +685,7 @@
     e.target.value = '';
   });
 
-  // ---- 印刷（飛行日誌フォーマット・機体ごとに改ページ） ----
+  // ---- 印刷（飛行日誌・機体ごとに改ページ） ----
   function getAircraftInfo() {
     let reg = [];
     try { reg = JSON.parse(localStorage.getItem(AIRCRAFT_KEY)) || []; } catch (e) {}
@@ -511,7 +709,7 @@
     const info = getAircraftInfo();
     $('print-doc').innerHTML = Object.entries(byAircraft).map(([name, recs]) => {
       const inf = info[name] || { carry: 0, regNo: '' };
-      let cum = inf.carry; // 総飛行時間 ＝ 機体管理の繰越値 ＋ 記録の累計
+      let cum = inf.carry;
       const rows = recs.map((r, i) => {
         const t = parseInt(r.time) || 0;
         cum += t;
@@ -550,13 +748,69 @@
     }).join('') ||
     '<div class="pd-page"><div class="pd-title">飛 行 記 録（飛行日誌）</div><p style="text-align:center;">出力対象の記録がありません。</p></div>';
   }
-  $('btn-print').addEventListener('click', () => {
-    fillPrintDoc();
-    window.print();
-  });
+  $('btn-print').addEventListener('click', () => { fillPrintDoc(); window.print(); });
   window.addEventListener('beforeprint', fillPrintDoc);
 
-  // 初期表示の失敗が書き出しボタン等を巻き添えにしないよう保護
+  // ============================================================
+  // 全データ（一括）
+  // ============================================================
+  function loadArr(key) {
+    try { return JSON.parse(localStorage.getItem(key)) || []; } catch (e) { return []; }
+  }
+  $('btn-all-export').addEventListener('click', () => {
+    const payload = {
+      app: 'drone-all-data',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      data: {
+        aircraft: loadArr(AIRCRAFT_KEY),
+        plan: loadPlan(),
+        checklist: loadArr(CHECKLIST_KEY),
+        records: loadArr(STORAGE_KEY),
+      },
+    };
+    downloadJSON(payload, `drone-all-data-${stamp()}.json`);
+  });
+  $('btn-all-import').addEventListener('click', () => $('import-all').click());
+  $('import-all').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const d = parsed.data || parsed;
+        if (typeof d !== 'object') throw new Error();
+        if (!confirm('全データを読み込んだ内容で置き換えます。現在のデータは上書きされます。よろしいですか？')) { e.target.value = ''; return; }
+        if (Array.isArray(d.aircraft)) localStorage.setItem(AIRCRAFT_KEY, JSON.stringify(d.aircraft));
+        if (d.plan && typeof d.plan === 'object') localStorage.setItem(PLAN_KEY, JSON.stringify(d.plan));
+        if (Array.isArray(d.checklist)) localStorage.setItem(CHECKLIST_KEY, JSON.stringify(d.checklist));
+        if (Array.isArray(d.records)) localStorage.setItem(STORAGE_KEY, JSON.stringify(d.records));
+        // メモリ上のデータを再読込
+        records = loadArr(STORAGE_KEY);
+        checklist = loadArr(CHECKLIST_KEY);
+        renderPlan(); renderChecklist(); render();
+        alert('全データを読み込みました。');
+      } catch (err) { alert('全データJSONを読み込めませんでした。'); }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  // ---- 全データ消去（日誌タブから移管） ----
+  $('btn-clear-all').addEventListener('click', () => {
+    if (!confirm('計画書・チェックリスト・日誌・機体管理の全データを消去します。\nこの操作は取り消せません。必要なら先にバックアップしてください。\n\n本当に消去しますか？')) return;
+    [STORAGE_KEY, CHECKLIST_KEY, PLAN_KEY, AIRCRAFT_KEY,
+     'drone-flight-log-header', 'drone-flight-log-meta', 'drone-checklist-state', 'drone-active-session']
+      .forEach(k => localStorage.removeItem(k));
+    records = []; checklist = [];
+    renderPlan(); renderChecklist(); render();
+    alert('全データを消去しました。');
+  });
+
+  // ===== 初期表示 =====
+  try { renderPlan(); } catch (e) {}
+  try { renderChecklist(); } catch (e) {}
   try { render(); } catch (e) {}
 </script>
 

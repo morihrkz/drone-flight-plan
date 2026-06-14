@@ -140,8 +140,15 @@
   </div>
 
   <div class="card">
-    <h2>登録済みの機体</h2>
-    <div class="aircraft-list" id="list"></div>
+    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+      <h2 style="margin-bottom:0;">登録済みの機体</h2>
+      <div class="ac-actions">
+        <button type="button" class="btn-small" id="btn-export">JSON出力</button>
+        <button type="button" class="btn-small" id="btn-import">JSON読込</button>
+        <input type="file" id="import-file" accept="application/json,.json" style="display:none;">
+      </div>
+    </div>
+    <div class="aircraft-list" id="list" style="margin-top:12px;"></div>
     <div class="empty-msg" id="empty" style="display:none;">登録された機体はまだありません。<br>上のフォームから追加してください。</div>
     <p class="hint-block">
       総飛行時間 ＝ 繰越値 ＋ 日誌に記録された当該機体の飛行時間の累計。<br>
@@ -299,6 +306,55 @@
       save();
       render();
     }
+  });
+
+  // ===== JSON 入出力 =====
+  $('btn-export').addEventListener('click', () => {
+    if (!aircraft.length) { alert('出力する機体データがありません。'); return; }
+    const payload = { app: 'drone-aircraft', exportedAt: new Date().toISOString(), aircraft };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `機体管理_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  $('btn-import').addEventListener('click', () => $('import-file').click());
+
+  $('import-file').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const incoming = Array.isArray(parsed) ? parsed : parsed.aircraft;
+        if (!Array.isArray(incoming)) throw new Error('形式不正');
+        // 重複は後勝ち（機体名で判定し、後から読み込んだデータで上書き）
+        let added = 0, updated = 0;
+        incoming.forEach(item => {
+          if (!item || !item.name) return;
+          const data = {
+            name: String(item.name).trim(),
+            regNo: (item.regNo || '').toString().trim(),
+            pilot: (item.pilot || '').toString().trim(),
+            carryoverMinutes: parseInt(item.carryoverMinutes, 10) || 0,
+          };
+          const i = aircraft.findIndex(a => a.name === data.name);
+          if (i >= 0) { aircraft[i] = { ...aircraft[i], ...data }; updated++; }
+          else { aircraft.push({ id: 'ac-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), ...data }); added++; }
+        });
+        save();
+        render();
+        alert(`読み込み完了：新規 ${added} 件、上書き ${updated} 件`);
+      } catch (err) {
+        alert('JSONの読み込みに失敗しました。ファイル形式を確認してください。');
+      }
+      $('import-file').value = '';
+    };
+    reader.readAsText(file);
   });
 
   load();
