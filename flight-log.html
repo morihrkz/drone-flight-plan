@@ -353,8 +353,6 @@
 
   <!-- 入力フォーム -->
   <section class="card">
-    <h2 id="form-title">記録の入力</h2>
-
     <!-- 環境概要 -->
     <div class="group-title">環境概要</div>
 
@@ -810,7 +808,6 @@
     updateAutoTime();
   }
   function setMode(editing) {
-    $('form-title').textContent = editing ? '記録の編集' : '記録の入力';
     $('btn-save').textContent = editing ? '変更を保存' : '記録を追加';
     $('btn-cancel').style.display = editing ? 'block' : 'none';
   }
