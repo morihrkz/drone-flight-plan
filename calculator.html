@@ -80,12 +80,13 @@
     .btn-copy:hover { background: var(--accent-light); }
     .btn-copy.copied { background: #F2F7EA; border-color: #9DB87C; color: #3E5226; }
     .btn-mini {
-      padding: 6px 10px; font-size: 12px; font-weight: 700; white-space: nowrap;
+      padding: 8px 14px; min-height: 44px; font-size: 13px; font-weight: 700; white-space: nowrap;
       border: 1px solid var(--border); border-radius: 6px; background: #fff;
       color: var(--accent); cursor: pointer; font-family: inherit;
     }
     .btn-mini:hover { background: var(--accent); color: #fff; }
-    .btn-mini.danger { color: #8a2f2f; }
+    /* 破壊的操作の削除は保存ボタンから離し、誤タップを防止 */
+    .btn-mini.danger { color: #8a2f2f; border-color: #d8b6b6; margin-left: 6px; }
     .btn-mini.danger:hover { background: #8a2f2f; color: #fff; }
     .actual-box {
       margin-top: 4px; padding: 10px 12px; background: var(--accent-light);

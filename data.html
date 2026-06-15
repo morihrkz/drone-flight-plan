@@ -106,15 +106,18 @@
       background: none;
       border: none;
       font-family: inherit;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
-      padding: 3px 6px;
+      padding: 8px 12px;
+      min-height: 44px;
+      min-width: 44px;
       letter-spacing: .03em;
-      border-radius: 4px;
+      border-radius: 6px;
       -webkit-tap-highlight-color: transparent;
     }
-    .op-edit { color: var(--accent); }
+    /* 編集と削除の誤タップ防止：間に余白を確保 */
+    .op-edit { color: var(--accent); margin-right: 10px; }
     .op-edit:hover { background: var(--accent-light); text-decoration: underline; }
     .op-delete { color: var(--danger); }
     .op-delete:hover { background: #f8e8e8; text-decoration: underline; }
