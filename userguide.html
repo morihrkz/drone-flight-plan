@@ -46,14 +46,14 @@
   .chapter{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
 
   .ch-head{
-    width:100%;text-align:left;background:var(--accent);color:#fff;border:none;cursor:pointer;
+    width:100%;text-align:left;background:transparent;color:var(--accent);border:none;cursor:pointer;
     font:inherit;font-weight:700;font-size:16px;letter-spacing:.02em;padding:15px 18px;
     display:flex;align-items:center;gap:10px;min-height:52px;
   }
-  .ch-head:hover{background:#2c4054;}
-  .ch-head::before{content:"\25B6";font-size:.72em;line-height:1;color:rgba(255,255,255,.85);flex-shrink:0;}
-  .ch-head[aria-expanded="true"]::before{content:"\25BC";}
-  .ch-head:focus-visible{outline:3px solid #9DB87C;outline-offset:-3px;}
+  .ch-head:hover{color:#3a5168;}
+  .ch-head::before{content:"\25B6";font-size:.72em;line-height:1;color:var(--muted);flex-shrink:0;}
+  .ch-head[aria-expanded="true"]::before{content:"\25BC";color:var(--accent);}
+  .ch-head:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
 
   .ch-body{display:none;padding:6px 16px 16px;}
   .ch-head[aria-expanded="true"]+.ch-body{display:block;}
