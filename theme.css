@@ -123,6 +123,22 @@ input[type="date"], input[type="time"] { min-height: 44px; }
   background: var(--white); border: 1px dashed var(--border); border-radius: var(--radius);
 }
 
+/* 情報・案内ノート（青系）: データ保存先の注意喚起など */
+.note-info {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 12px 14px; margin-bottom: 24px;
+  background: #eaf1f8; border: 1px solid #aecbe6;
+  border-left: 4px solid #3f6fa3; border-radius: 6px;
+  font-size: 13px; color: #2f4a66; line-height: 1.65;
+}
+.note-info svg { flex-shrink: 0; margin-top: 1px; }
+.note-info strong { color: #1f3a5c; }
+.note-info-title { display: block; font-weight: 700; color: #1f3a5c; margin-bottom: 6px; }
+.note-info ul { margin: 0; padding-left: 18px; }
+.note-info li { margin-bottom: 4px; }
+.note-info li:last-child { margin-bottom: 0; }
+.note-info a { color: #1f3a5c; font-weight: 700; }
+
 /* ===== レスポンシブ ===== */
 @media (max-width: 480px) {
   .site-header { padding: 12px 16px; }
