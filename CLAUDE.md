@@ -19,12 +19,12 @@
 - ページ: `index.html`（ハブ）, `aircraft.html`（機体管理）, `flight-plan.html`, `calculator.html`, `checklist.html`, `flight-log.html`, `data.html`（データ管理）
 - 共通: `flight-calc.js`（計算ロジック）, `theme.css`（スタイル）
 - PWA: `sw.js`（Service Worker）, `manifest.json`, `icon-192.png`, `icon-512.png`
-- ドキュメント: `specification.md`（spec）, `userguide.md`（操作マニュアル）, `DESIGN-GUIDELINES.md`
+- ドキュメント: `specification.md`（spec）, `userguide.html`（操作マニュアル）, `DESIGN-GUIDELINES.md`
 - `etc/`: 上記ドキュメントの変換生成物（docx/pdf/html 等）と補助スクリプト。手で直接編集しない。元の .md を直し、変換し直す。
 
 ## 設計原則（非交渉）
 - データ永続化は localStorage を使う。サーバDBやCookieに置き換えない。
-- 機能を変更したら、`specification.md` と `userguide.md` も必ず同時に更新する。
+- 機能を変更したら、`specification.md` と `userguide.html` も必ず同時に更新する。
 - データ管理ページ（`data.html`）は「機体管理 / 飛行ログ / 設定（インポート・エクスポート）」の3タブ構成を維持する。
 - 国土交通省の様式1・様式2の項目と整合させる。
 - 見た目・UI は `DESIGN-GUIDELINES.md` に従う。

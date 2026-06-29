@@ -113,7 +113,7 @@
 | `icon-192.png` | PWA | アイコン 192×192 |
 | `icon-512.png` | PWA | アイコン 512×512 |
 | `.gitignore` | その他 | Git 無視設定 |
-| `specification.md` / `userguide.md` / `DESIGN-GUIDELINES.md` | ドキュメント | 本書・操作マニュアル・UI指針 |
+| `specification.md` / `userguide.html` / `DESIGN-GUIDELINES.md` | ドキュメント | 本書・操作マニュアル・UI指針 |
 
 > `flight-calc.js` を読み込むのは `calculator.html` のみ。他ページは計算関数を必要としない（機体プリセットの共有は localStorage 経由）。
 
@@ -974,5 +974,5 @@ self.addEventListener('fetch', e => {
 
 - 計画書の複数管理は将来対応予定（現在は下書き1件）。データ構造（キー設計）は拡張しやすい形を維持する。
 - クラウド同期・複数アカウント対応を検討する場合は、localStorage キーの互換維持またはマイグレーション方針を別途設計する。
-- 機能を変更したら、本書（specification.md）と `userguide.md` を必ず同時更新する。UI 変更は `DESIGN-GUIDELINES.md` に従う。
+- 機能を変更したら、本書（specification.md）と `userguide.html` を必ず同時更新する。UI 変更は `DESIGN-GUIDELINES.md` に従う。
 - キャッシュ対象ファイルの増減・改名時は `sw.js` の `ASSETS` 更新と `CACHE_NAME` のバージョンアップを忘れない。

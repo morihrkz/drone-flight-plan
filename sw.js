@@ -1,5 +1,5 @@
 /* Service Worker — オフライン対応（キャッシュ優先＋バックグラウンド更新） */
-const CACHE_NAME = 'drone-tools-v8';
+const CACHE_NAME = 'drone-tools-v9';
 const ASSETS = [
   './',
   './theme.css',
