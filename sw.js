@@ -1,5 +1,5 @@
 /* Service Worker — オフライン対応（キャッシュ優先＋バックグラウンド更新） */
-const CACHE_NAME = 'drone-tools-v6';
+const CACHE_NAME = 'drone-tools-v7';
 const ASSETS = [
   './',
   './theme.css',
@@ -10,6 +10,7 @@ const ASSETS = [
   './checklist.html',
   './flight-log.html',
   './data.html',
+  './userguide.html',
   './flight-calc.js',
   './manifest.json',
   './icon-192.png',
