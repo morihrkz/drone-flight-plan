@@ -567,7 +567,8 @@
 
     </div></section>
 
-</div><script>
+</div><script src="storage-keys.js"></script>
+<script>
   const fields = [
     { input: 'f-project',  preview: 'p-project',  format: v => v || null },
     { input: 'f-date',     preview: 'p-date',     format: formatDate },
@@ -634,9 +635,6 @@
   }
 
   // ===== 自動保存（下書き） =====
-  const DRAFT_KEY   = 'drone-flight-plan-draft';
-  const SESSION_KEY = 'drone-active-session';
-
   const FIELD_IDS = fields.map(f => f.input);
 
   function readAircrafts() {
@@ -684,21 +682,20 @@
     else document.getElementById('f-pilot').value = '';
   }
   function saveDraft() {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(readPlan()));
+    localStorage.setItem(DRONE_KEYS.flightPlanDraft, JSON.stringify(readPlan()));
   }
   function loadDraft() {
     try {
-      const d = JSON.parse(localStorage.getItem(DRAFT_KEY));
+      const d = JSON.parse(localStorage.getItem(DRONE_KEYS.flightPlanDraft));
       if (d) fillPlan(d);
     } catch (e) {}
   }
 
   // ===== 機体管理タブの登録内容から選択 =====
-  const AIRCRAFT_KEY = 'drone-aircraft-list';
   const MAX_AIRCRAFT = 5;
 
   function loadAircraftList() {
-    try { return JSON.parse(localStorage.getItem(AIRCRAFT_KEY)) || []; }
+    try { return JSON.parse(localStorage.getItem(DRONE_KEYS.aircraftList)) || []; }
     catch (e) { return []; }
   }
   function escAttr(s) {
@@ -795,7 +792,7 @@
 
   // ===== JSON 保存・読込 =====
   document.getElementById('btn-json-save').addEventListener('click', () => {
-    const payload = { app: 'drone-flight-plan', savedAt: new Date().toISOString(), plan: readPlan() };
+    const payload = { app: DRONE_FORMATS.flightPlan, savedAt: new Date().toISOString(), plan: readPlan() };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -827,10 +824,9 @@
   });
 
   // ===== 飛行計算結果の挿入 =====
-  const CALC_SUMMARY_KEY = 'drone-calc-summary';
   document.getElementById('btn-insert-calc').addEventListener('click', () => {
     let s = null;
-    try { s = JSON.parse(localStorage.getItem(CALC_SUMMARY_KEY)); } catch (e) {}
+    try { s = JSON.parse(localStorage.getItem(DRONE_KEYS.calcSummary)); } catch (e) {}
     if (!s || !s.text) {
       alert('保存された計算結果がありません。\n先に「飛行計算」ページで計算し、「計算結果を計画書の備考へ送る」を押してください。');
       return;
@@ -850,7 +846,7 @@
   // ===== チェックリストへ進む（運用フロー） =====
   document.getElementById('btn-to-checklist').addEventListener('click', () => {
     const plan = readPlan();
-    localStorage.setItem(SESSION_KEY, JSON.stringify({
+    localStorage.setItem(DRONE_KEYS.activeSession, JSON.stringify({
       createdAt: Date.now(),
       step: 'checklist',
       plan: plan
@@ -881,7 +877,7 @@
     FIELD_IDS.forEach(id => document.getElementById(id).value = '');
     document.querySelectorAll('#aircraft-rows .ac-reg').forEach(i => i.value = '');
     document.querySelectorAll('#aircraft-rows .ac-name').forEach(s => s.value = '');
-    localStorage.removeItem(DRAFT_KEY);
+    localStorage.removeItem(DRONE_KEYS.flightPlanDraft);
     updateRowVisibility();
     update();
   });

@@ -362,20 +362,14 @@
 <!-- 印刷専用：飛行日誌（機体ごとに改ページ） -->
 <div class="print-doc" id="print-doc"></div>
 
+<script src="storage-keys.js"></script>
 <script>
-  const STORAGE_KEY = 'drone-flight-log-records';
-  const AIRCRAFT_KEY = 'drone-aircraft-list';
-  const PLAN_KEY = 'drone-flight-plan-draft';
-  const CHECKLIST_KEY = 'drone-checklist-records';
-  const CL_EDIT_KEY = 'drone-checklist-edit-request';
-  const EDIT_KEY = 'drone-edit-request';
-
   const $ = id => document.getElementById(id);
 
   let records = [];
-  try { records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) {}
+  try { records = JSON.parse(localStorage.getItem(DRONE_KEYS.flightLogRecords)) || []; } catch (e) {}
   let checklist = [];
-  try { checklist = JSON.parse(localStorage.getItem(CHECKLIST_KEY)) || []; } catch (e) {}
+  try { checklist = JSON.parse(localStorage.getItem(DRONE_KEYS.checklistRecords)) || []; } catch (e) {}
 
   function esc(s) {
     const d = document.createElement('div');
@@ -420,7 +414,7 @@
   // 計画書タブ
   // ============================================================
   function loadPlan() {
-    try { return JSON.parse(localStorage.getItem(PLAN_KEY)) || {}; }
+    try { return JSON.parse(localStorage.getItem(DRONE_KEYS.flightPlanDraft)) || {}; }
     catch (e) { return {}; }
   }
   function renderPlan() {
@@ -442,7 +436,7 @@
   $('btn-plan-export').addEventListener('click', () => {
     const p = loadPlan();
     if (!Object.keys(p).length) { alert('出力する計画書がありません。'); return; }
-    downloadJSON({ app: 'drone-flight-plan', savedAt: new Date().toISOString(), plan: p }, `flight-plan-${stamp()}.json`);
+    downloadJSON({ app: DRONE_FORMATS.flightPlan, savedAt: new Date().toISOString(), plan: p }, `flight-plan-${stamp()}.json`);
   });
   $('btn-plan-import').addEventListener('click', () => $('plan-file').click());
   $('plan-file').addEventListener('change', e => {
@@ -454,7 +448,7 @@
         const parsed = JSON.parse(reader.result);
         const plan = parsed.plan || parsed;
         if (typeof plan !== 'object' || Array.isArray(plan)) throw new Error();
-        localStorage.setItem(PLAN_KEY, JSON.stringify(plan));
+        localStorage.setItem(DRONE_KEYS.flightPlanDraft, JSON.stringify(plan));
         renderPlan();
         alert('計画書を読み込みました。');
       } catch (err) { alert('計画書JSONを読み込めませんでした。'); }
@@ -494,18 +488,18 @@
     const rec = checklist.find(c => c.id === id);
     if (!rec) return;
     if (btn.dataset.act === 'cl-edit') {
-      sessionStorage.setItem(CL_EDIT_KEY, id);
+      sessionStorage.setItem(DRONE_KEYS.checklistEditRequest, id);
       location.href = 'checklist.html';
     } else {
       if (!confirm(`${fmtDate(rec.date)}（${rec.registration || '登録記号なし'}）のチェックリストを削除しますか？`)) return;
       checklist = checklist.filter(c => c.id !== id);
-      localStorage.setItem(CHECKLIST_KEY, JSON.stringify(checklist));
+      localStorage.setItem(DRONE_KEYS.checklistRecords, JSON.stringify(checklist));
       renderChecklist();
     }
   });
   $('btn-cl-export').addEventListener('click', () => {
     if (!checklist.length) { alert('出力するチェックリストがありません。'); return; }
-    downloadJSON({ app: 'drone-checklist', exportedAt: new Date().toISOString(), checklist }, `checklist-${stamp()}.json`);
+    downloadJSON({ app: DRONE_FORMATS.checklist, exportedAt: new Date().toISOString(), checklist }, `checklist-${stamp()}.json`);
   });
   $('btn-cl-import').addEventListener('click', () => $('cl-file').click());
   $('cl-file').addEventListener('change', e => {
@@ -526,7 +520,7 @@
           map.set(c.id, c);
         });
         checklist = [...map.values()];
-        localStorage.setItem(CHECKLIST_KEY, JSON.stringify(checklist));
+        localStorage.setItem(DRONE_KEYS.checklistRecords, JSON.stringify(checklist));
         renderChecklist();
         alert(`読み込み完了：新規 ${added} 件・上書き ${updated} 件`);
       } catch (err) { alert('チェックリストJSONを読み込めませんでした。'); }
@@ -638,13 +632,13 @@
     const rec = records.find(r => r.id === id);
     if (!rec) return;
     if (btn.dataset.act === 'edit') {
-      sessionStorage.setItem(EDIT_KEY, id);
+      sessionStorage.setItem(DRONE_KEYS.editRequest, id);
       location.href = 'flight-log.html';
     } else if (btn.dataset.act === 'delete') {
       const label = [fmtDate(rec.date), rec.location, rec.aircraft].filter(s => s && s !== '―').join('　');
       if (!confirm(`この記録を削除しますか？\n${label}`)) return;
       records = records.filter(r => r.id !== id);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      localStorage.setItem(DRONE_KEYS.flightLogRecords, JSON.stringify(records));
       render();
     }
   });
@@ -663,7 +657,7 @@
   $('btn-json').addEventListener('click', () => {
     const list = getFiltered();
     if (list.length === 0) { alert('書き出す記録がありません。'); return; }
-    downloadJSON({ app: 'drone-flight-log', exportedAt: new Date().toISOString(), records: list }, `flight-log-${stamp()}.json`);
+    downloadJSON({ app: DRONE_FORMATS.flightLog, exportedAt: new Date().toISOString(), records: list }, `flight-log-${stamp()}.json`);
   });
 
   // ---- 日誌JSON読込（複数ファイル・後勝ち） ----
@@ -697,7 +691,7 @@
       } catch (err) { failed.push(f.name); }
     }
     records = sortRecords([...map.values()]);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    localStorage.setItem(DRONE_KEYS.flightLogRecords, JSON.stringify(records));
     render();
     let msg = `読み込み完了：追加 ${added} 件・上書き ${updated} 件（合計 ${records.length} 件）`;
     if (failed.length) msg += `\n読み込めなかったファイル：${failed.join(', ')}`;
@@ -708,7 +702,7 @@
   // ---- 印刷（飛行日誌・機体ごとに改ページ） ----
   function getAircraftInfo() {
     let reg = [];
-    try { reg = JSON.parse(localStorage.getItem(AIRCRAFT_KEY)) || []; } catch (e) {}
+    try { reg = JSON.parse(localStorage.getItem(DRONE_KEYS.aircraftList)) || []; } catch (e) {}
     const m = {};
     reg.forEach(a => m[a.name] = { carry: parseInt(a.carryoverMinutes, 10) || 0, regNo: a.regNo || '' });
     return m;
@@ -779,14 +773,14 @@
   }
   $('btn-all-export').addEventListener('click', () => {
     const payload = {
-      app: 'drone-all-data',
+      app: DRONE_FORMATS.allData,
       version: 1,
       exportedAt: new Date().toISOString(),
       data: {
-        aircraft: loadArr(AIRCRAFT_KEY),
+        aircraft: loadArr(DRONE_KEYS.aircraftList),
         plan: loadPlan(),
-        checklist: loadArr(CHECKLIST_KEY),
-        records: loadArr(STORAGE_KEY),
+        checklist: loadArr(DRONE_KEYS.checklistRecords),
+        records: loadArr(DRONE_KEYS.flightLogRecords),
       },
     };
     downloadJSON(payload, `drone-all-data-${stamp()}.json`);
@@ -802,13 +796,13 @@
         const d = parsed.data || parsed;
         if (typeof d !== 'object') throw new Error();
         if (!confirm('全データを読み込んだ内容で置き換えます。現在のデータは上書きされます。よろしいですか？')) { e.target.value = ''; return; }
-        if (Array.isArray(d.aircraft)) localStorage.setItem(AIRCRAFT_KEY, JSON.stringify(d.aircraft));
-        if (d.plan && typeof d.plan === 'object') localStorage.setItem(PLAN_KEY, JSON.stringify(d.plan));
-        if (Array.isArray(d.checklist)) localStorage.setItem(CHECKLIST_KEY, JSON.stringify(d.checklist));
-        if (Array.isArray(d.records)) localStorage.setItem(STORAGE_KEY, JSON.stringify(d.records));
+        if (Array.isArray(d.aircraft)) localStorage.setItem(DRONE_KEYS.aircraftList, JSON.stringify(d.aircraft));
+        if (d.plan && typeof d.plan === 'object') localStorage.setItem(DRONE_KEYS.flightPlanDraft, JSON.stringify(d.plan));
+        if (Array.isArray(d.checklist)) localStorage.setItem(DRONE_KEYS.checklistRecords, JSON.stringify(d.checklist));
+        if (Array.isArray(d.records)) localStorage.setItem(DRONE_KEYS.flightLogRecords, JSON.stringify(d.records));
         // メモリ上のデータを再読込
-        records = loadArr(STORAGE_KEY);
-        checklist = loadArr(CHECKLIST_KEY);
+        records = loadArr(DRONE_KEYS.flightLogRecords);
+        checklist = loadArr(DRONE_KEYS.checklistRecords);
         renderPlan(); renderChecklist(); render();
         alert('全データを読み込みました。');
       } catch (err) { alert('全データJSONを読み込めませんでした。'); }
@@ -820,8 +814,8 @@
   // ---- 全データ消去（日誌タブから移管） ----
   $('btn-clear-all').addEventListener('click', () => {
     if (!confirm('計画書・チェックリスト・日誌・機体管理の全データを消去します。\nこの操作は取り消せません。必要なら先にバックアップしてください。\n\n本当に消去しますか？')) return;
-    [STORAGE_KEY, CHECKLIST_KEY, PLAN_KEY, AIRCRAFT_KEY,
-     'drone-flight-log-header', 'drone-flight-log-meta', 'drone-checklist-state', 'drone-active-session']
+    [DRONE_KEYS.flightLogRecords, DRONE_KEYS.checklistRecords, DRONE_KEYS.flightPlanDraft, DRONE_KEYS.aircraftList,
+     DRONE_KEYS.flightLogHeader, DRONE_KEYS.flightLogMeta, DRONE_KEYS.checklistState, DRONE_KEYS.activeSession]
       .forEach(k => localStorage.removeItem(k));
     records = []; checklist = [];
     renderPlan(); renderChecklist(); render();

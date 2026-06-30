@@ -89,7 +89,7 @@
 - **日誌** の `drone-flight-log-records` を、機体管理（総飛行時間集計）・データ管理・計算（実測比較）が読む。
 - **機体の紐付けは「機体名の文字列完全一致」**で行う（外部キーIDではない）。機体名の変更・重複に注意が必要、という制約はこの設計に由来する。
 
-### 2.4 全ファイル一覧（14ファイル＋ドキュメント）
+### 2.4 全ファイル一覧（15ファイル＋ドキュメント）
 
 | ファイル | 種別 | 内容 |
 |---|---|---|
@@ -101,6 +101,7 @@
 | `data.html` | ページ | データ管理 |
 | `calculator.html` | ページ | 飛行計算 |
 | `theme.css` | 共通 | 全ページ共通スタイル（第7章） |
+| `storage-keys.js` | 共通 | localStorage/sessionStorage キーとエクスポート書式識別子の正本（`DRONE_KEYS`/`DRONE_FORMATS`、第5.1）。キーを使う全ページがインラインスクリプトより前に読み込む |
 | `flight-calc.js` | 共通 | 計算ロジック純粋関数群＋プリセット（第9章）。calculator.html のみが読み込む |
 | `manifest.json` | PWA | Webアプリマニフェスト（第11章） |
 | `sw.js` | PWA | Service Worker（第11章） |
@@ -414,6 +415,24 @@ input[type="date"], input[type="time"]{ min-height:44px; }   /* タッチター�
 | `drone-aircraft-presets-v2` | localStorage | 配列 | 飛行計算のユーザー機体プリセット |
 | `drone-edit-request` | sessionStorage | 文字列 | データ管理→日誌 の編集対象 id |
 | `drone-checklist-edit-request` | sessionStorage | 文字列 | データ管理→チェックリスト の編集対象 id |
+| `drone-flight-log-header` / `drone-flight-log-meta` / `drone-checklist-state` | localStorage | （レガシー） | 旧版の補助キー。現行コードは書き込まず、データ管理の全消去でクリーンアップ対象に含めるのみ |
+
+> **キーの一元管理（`storage-keys.js`）**：上記キー文字列とエクスポート書式識別子（`app` フィールド）は `storage-keys.js` の2オブジェクトに集約し、各ページはここを参照する（キー文字列を直書きしない＝表記ゆれ・タイプミスによるページ間データ不整合の防止）。`storage-keys.js` をインラインスクリプトより前に読み込むこと（通常スクリプトなのでトップレベル `const` が後続スクリプトから参照可能）。互換のため文字列は安易に変更しない。
+>
+> | JS参照 | キー文字列 |
+> |---|---|
+> | `DRONE_KEYS.aircraftList` | `drone-aircraft-list` |
+> | `DRONE_KEYS.flightLogRecords` | `drone-flight-log-records` |
+> | `DRONE_KEYS.flightPlanDraft` | `drone-flight-plan-draft` |
+> | `DRONE_KEYS.checklistRecords` | `drone-checklist-records` |
+> | `DRONE_KEYS.activeSession` | `drone-active-session` |
+> | `DRONE_KEYS.calcDraft` | `drone-calc-draft` |
+> | `DRONE_KEYS.calcSummary` | `drone-calc-summary` |
+> | `DRONE_KEYS.aircraftPresets` | `drone-aircraft-presets-v2` |
+> | `DRONE_KEYS.editRequest` | `drone-edit-request` |
+> | `DRONE_KEYS.checklistEditRequest` | `drone-checklist-edit-request` |
+> | `DRONE_KEYS.flightLogHeader` / `flightLogMeta` / `checklistState` | （同名のレガシー補助キー） |
+> | `DRONE_FORMATS.aircraft` / `flightPlan` / `checklist` / `flightLog` / `dailyRecord` / `allData` | エクスポート JSON の `app` 値（`drone-aircraft` 等） |
 
 ### 5.2 `drone-aircraft-list`（機体）
 配列。各要素：
@@ -682,12 +701,11 @@ cruiseFactor = isPos(p.cruiseFactor) ? p.cruiseFactor : 1.15
 
 ### 6.9 プリセット入出力・日誌統計
 ```js
-const USER_PRESET_KEY = 'drone-aircraft-presets-v2';
-function loadUserPresets(){ try{ return JSON.parse(localStorage.getItem(USER_PRESET_KEY))||[]; }catch(e){ return []; } }
-function saveUserPresets(list){ localStorage.setItem(USER_PRESET_KEY, JSON.stringify(list)); }
+// キーは storage-keys.js の DRONE_KEYS を参照（calculator.html が storage-keys.js を先に読み込む）
+function loadUserPresets(){ try{ return JSON.parse(localStorage.getItem(DRONE_KEYS.aircraftPresets))||[]; }catch(e){ return []; } }
+function saveUserPresets(list){ localStorage.setItem(DRONE_KEYS.aircraftPresets, JSON.stringify(list)); }
 function allAircraftPresets(){ return [...AIRCRAFT_PRESETS, ...loadUserPresets().map(p => ({...p, custom:true}))]; }
 
-const LOG_RECORDS_KEY = 'drone-flight-log-records';
 // 日誌から実測飛行時間統計を取得（aircraftName 部分一致・大小無視。省略時は全件）
 function flightLogStats(aircraftName){
   // time>0 のものを抽出 → { count, avgMin, totalMin }。該当なしは null
@@ -718,7 +736,7 @@ function flightLogStats(aircraftName){
 - JS なし（SW登録のみ）。
 
 ### 7.2 機体管理（aircraft.html）
-- 目的：機体CRUD＋総飛行時間表示＋JSON入出力。`.container{max-width:720px}`。キー：`AIRCRAFT_KEY='drone-aircraft-list'`、`LOG_KEY='drone-flight-log-records'`。
+- 目的：機体CRUD＋総飛行時間表示＋JSON入出力。`.container{max-width:720px}`。キー：`DRONE_KEYS.aircraftList`、`DRONE_KEYS.flightLogRecords`（いずれも storage-keys.js）。
 - 構成：
   1. 登録/編集フォーム `#form-card`（見出し `#form-title`）。入力 `#f-name`（必須）, `#f-reg`, `#f-pilot`, `#f-carryover`(number,min0,step1)。`#btn-save`、編集時のみ表示の `#btn-cancel`（`.cancel-row` は `.editing` 時に表示）。
   2. 一覧カード：見出し横に `#btn-export`/`#btn-import`（+ 隠し `#import-file`）。`#list`、空時 `#empty`。
@@ -733,14 +751,14 @@ function flightLogStats(aircraftName){
 
 ### 7.3 飛行計画書（flight-plan.html）
 - 目的：計画入力＋A4縦プレビュー＋印刷＋引き継ぎ。2カラム `.layout`（768px以下で1カラム）。左 `.form-panel`、右 `.preview-panel`（中に `.doc`）。
-- キー：`DRAFT_KEY='drone-flight-plan-draft'`、`SESSION_KEY='drone-active-session'`、`AIRCRAFT_KEY='drone-aircraft-list'`、`CALC_SUMMARY_KEY='drone-calc-summary'`。`MAX_AIRCRAFT=5`。
+- キー：`DRONE_KEYS.flightPlanDraft`、`DRONE_KEYS.activeSession`、`DRONE_KEYS.aircraftList`、`DRONE_KEYS.calcSummary`。`MAX_AIRCRAFT=5`。
 - 入力ID：`f-project, f-date, f-start, f-end, f-location, f-pilot(select), f-purpose, f-notes(textarea)`。機体行は `#aircraft-rows` 内に5行（`.ac-row` 内に `.ac-name`(select) と `.ac-reg`(text)）。
 - `fields` 定義（input→preview→format）でプレビュー連動。プレビューID：`p-project, p-date, p-time, p-location, p-pilot, p-aircraft, p-purpose, p-notes, p-issued`。空値は「―」＋ `.empty`。
 - **機体行の動的表示** `updateRowVisibility()`：先頭1行は常時表示。入力済み行があれば次の1行を出す（最大5）。
 - **機体選択時**：登録機体名を選ぶと JU番号欄が空のとき `regNo` を自動補完。`＋手入力…` は `prompt`。
 - **操縦者** `#f-pilot`：機体管理の `pilot` 候補＋手入力。
 - **`readPlan()`**：fields の値（MANUALは空に）→ `aircrafts`（`readAircrafts()` で name/regNo、name|regNo いずれかあるもの）→ 旧互換 `aircraft`（name を ` / ` 連結）。
-- **自動保存**：すべての入力 `input`/`change` で `update()`＋`saveDraft()`（`DRAFT_KEY` へ即保存）。
+- **自動保存**：すべての入力 `input`/`change` で `update()`＋`saveDraft()`（`DRONE_KEYS.flightPlanDraft` へ即保存）。
 - **特定飛行クイック挿入**（`.sp-btn` data-sp）：備考へ追記（トグルではない）。
   - night → `【特定飛行】夜間飛行`
   - bvlos → `【特定飛行】目視外飛行`
@@ -748,14 +766,14 @@ function flightLogStats(aircraftName){
   - drop → `【特定飛行】物件投下`
 - **計算結果挿入** `#btn-insert-calc`：`drone-calc-summary` の `text` を備考へ（既存があれば2改行後）追記。1機目未入力なら `aircraft` を補完。
 - **JSON保存/読込**：`{ app:'drone-flight-plan', savedAt, plan }`。ファイル名は `<project>.json`（禁止文字 `\/:*?"<>|` を `_`）。読込は `parsed.plan || parsed`。
-- **チェックリストへ** `#btn-to-checklist`：`SESSION_KEY` に `{ createdAt:Date.now(), step:'checklist', plan }` を保存し `checklist.html` へ遷移。
-- **データクリア** `#btn-clear`：confirm 後、入力全消去＋`DRAFT_KEY` 削除。
+- **チェックリストへ** `#btn-to-checklist`：`DRONE_KEYS.activeSession` に `{ createdAt:Date.now(), step:'checklist', plan }` を保存し `checklist.html` へ遷移。
+- **データクリア** `#btn-clear`：confirm 後、入力全消去＋`DRONE_KEYS.flightPlanDraft` 削除。
 - 印刷：`@page A4 portrait; margin:0`。`.doc` を `padding:18mm 16mm 20mm`。フォーム・プレビューラベルは非表示。`.doc`/`.doc-table` は `break-inside:avoid`。帳票見出し「ド ロ ー ン 飛 行 計 画 書 / Drone Flight Plan」、セクション「■ 飛行概要 / ■ 機体・操縦者情報 / ■ 備考」、フッターに作成日＋作成者/確認者サイン欄。
 - 初期化順：`buildAircraftRows(); buildPilotSelect(); loadDraft(); updateRowVisibility(); update();`。
 
 ### 7.4 飛行前チェックリスト（checklist.html）
 - 目的：飛行前確認6＋日常点検9（計15）を (実施年月日＋登録記号) ごとに複数登録。`.container{max-width:600px}`。
-- キー：`RECORDS_KEY='drone-checklist-records'`、`SESSION_KEY`、`AIRCRAFT_KEY`、`PLAN_DRAFT_KEY='drone-flight-plan-draft'`、`EDIT_KEY='drone-checklist-edit-request'`。
+- キー：`DRONE_KEYS.checklistRecords`、`DRONE_KEYS.activeSession`、`DRONE_KEYS.aircraftList`、`DRONE_KEYS.flightPlanDraft`、`DRONE_KEYS.checklistEditRequest`（sessionStorage）。
 - 構成：sticky 進捗バー（`#progress-count`「N / 15」、`#progress-bar` 幅%）／セッションバナー `#session-banner`／機体概要カード（`#f-date`, `#f-place`, `#f-registration`, `#f-inspector`）／飛行前確認 `#preflight-checklist`／日常点検 `#daily-checklist`／特記事項 `#f-notes`／`#reset-btn`／`#btn-print`／`#btn-to-log`。
 - **項目定義**（第12章にキー一覧）。`PREFLIGHT`6件、`DAILY`9件。`ALL_KEYS = PREFLIGHT+DAILY`、`TOTAL=15`。
   - 飛行前確認はチェックボックス（既定オフ）。`special_application` には申請区分ガイド（包括/個別/承認のタグ表）、`police_contact` には警告ノート（平日午後4時締切）を `desc` として表示。
@@ -769,7 +787,7 @@ function flightLogStats(aircraftName){
 
 ### 7.5 飛行日誌（flight-log.html）
 - 目的：様式１記録の入力・1日分表示・日次出力・印刷。`.container{max-width:640px}`。
-- キー：`STORAGE_KEY='drone-flight-log-records'`、`SESSION_KEY`、`AIRCRAFT_KEY`、`PLAN_DRAFT_KEY`、`CHECKLIST_KEY='drone-checklist-records'`、`EDIT_KEY='drone-edit-request'`。`FIELDS` は第5.3のフィールド配列（time/id除く17項目）。
+- キー：`DRONE_KEYS.flightLogRecords`、`DRONE_KEYS.activeSession`、`DRONE_KEYS.aircraftList`、`DRONE_KEYS.flightPlanDraft`、`DRONE_KEYS.checklistRecords`、`DRONE_KEYS.editRequest`（sessionStorage）。`FIELDS` は第5.3のフィールド配列（time/id除く17項目）。
 - 構成：注意ノート（3年保存・バックアップ喚起）／セッションバナー／入力カード（環境概要／機体概要／記録の入力の3グループ）／サマリー（`#sum-count`,`#sum-time`）／一覧 `#log-list`／出力カード（`#btn-export`,`#btn-print`,`#btn-clear`）。
 - 入力ID：環境＝`f-summary, f-date, f-flightplace, f-weather, f-wind`。機体＝`f-aircraft(select), f-registration, f-carryover(number), f-pilot(select)`。記録＝`f-takeoff, f-landing`（各 `.btn-rec`「🛫/🛬 記録」）, `#auto-time`, `f-location, f-landloc`（各「飛行場所をコピー」「GPS座標を取得」）, `f-shoot(textarea)`（「飛行概要をコピー」）, `f-anomaly, f-confirmer, f-memo(textarea)`。`#btn-save`「記録を追加/変更を保存」、`#btn-cancel`。
 - **機体選択時**：登録機体を選ぶと `f-registration`←regNo、`f-carryover`←carryoverMinutes、`f-pilot`←pilot を**自動上書き**。
@@ -785,13 +803,13 @@ function flightLogStats(aircraftName){
 ### 7.6 データ管理（data.html）
 - 目的：3タブ管理＋全データ一括。`.container{max-width:720px}`。タブ：`plan`/`checklist`/`log`（`.tab-btn[data-tab]` と `.tab-panel#tab-xxx`）。
 - コンテナ先頭（タブの上）に青系の情報ノート `.note-info`（データの保存場所とバックアップの必要性を案内。ホーム画面と同趣旨。末尾は「各タブのJSON／CSV出力でバックアップ」と表記）。
-- キー：`STORAGE_KEY`, `AIRCRAFT_KEY`, `PLAN_KEY='drone-flight-plan-draft'`, `CHECKLIST_KEY`, `CL_EDIT_KEY='drone-checklist-edit-request'`, `EDIT_KEY='drone-edit-request'`。
+- キー：`DRONE_KEYS.flightLogRecords`, `DRONE_KEYS.aircraftList`, `DRONE_KEYS.flightPlanDraft`, `DRONE_KEYS.checklistRecords`, `DRONE_KEYS.checklistEditRequest`, `DRONE_KEYS.editRequest`（後2者は sessionStorage）。
 - **計画書タブ**：`#plan-view` に下書きを項目表示（案件名/飛行日/時刻/飛行場所/操縦者/機体/飛行目的/備考。値があるものだけ）。`#btn-plan-export`（`{app:'drone-flight-plan',savedAt,plan}`, `flight-plan-YYYYMMDD.json`）、`#btn-plan-import`（`parsed.plan||parsed` で置換）。
-- **チェックリストタブ**：`#cl-tbody` に date 降順一覧（実施年月日/登録記号/実施場所/実施者/異常件数）。編集＝`CL_EDIT_KEY` に id をセットして checklist.html へ。削除＝confirm 後該当除去。`#btn-cl-export`（`{app:'drone-checklist',exportedAt,checklist}`）。`#btn-cl-import`：**id で後勝ちマージ**（id 無ければ採番）。
+- **チェックリストタブ**：`#cl-tbody` に date 降順一覧（実施年月日/登録記号/実施場所/実施者/異常件数）。編集＝`DRONE_KEYS.checklistEditRequest` に id をセットして checklist.html へ。削除＝confirm 後該当除去。`#btn-cl-export`（`{app:'drone-checklist',exportedAt,checklist}`）。`#btn-cl-import`：**id で後勝ちマージ**（id 無ければ採番）。
 - **日誌タブ**：
   - 折りたたみ `details.collapsible`：①検索（`s-from, s-to, s-location, s-aircraft, s-keyword`）②総飛行時間集計（機体別、`renderSummary()`）。いずれも初期は閉。
   - `getFiltered()`：期間（date 文字列比較）・場所/機体（部分一致・小文字化）・キーワード（shoot/memo/anomaly/weather/wind を連結し含む）でフィルタ、date 降順。
-  - 一覧テーブル：飛行日/時間/場所/機体/天候・風速/飛行概要/異常/操作。編集＝`EDIT_KEY` に id をセットして flight-log.html へ。削除＝confirm 後除去。
+  - 一覧テーブル：飛行日/時間/場所/機体/天候・風速/飛行概要/異常/操作。編集＝`DRONE_KEYS.editRequest` に id をセットして flight-log.html へ。削除＝confirm 後除去。
   - `#btn-csv`（第5.12形式）、`#btn-json`（`{app:'drone-flight-log',exportedAt,records:絞り込み結果}`）。
   - `#btn-import`（複数ファイル可）：`recordKey(r)`（id があれば `id:<id>`、無ければ `k|date|takeoff|aircraft|pilot`）で**後勝ち**マージ。`sortRecords` は「date+takeoff」→pilot→id 順。失敗ファイル名を報告。
   - `#btn-print`：`getFiltered()` を機体名でグループ化しA4横ページ分割。機体ヘッダ（機体名/JU番号/総飛行時間=繰越＋累積）＋様式１相当テーブル（No./飛行年月日/操縦者/離陸場所/着陸場所/離陸時刻/着陸時刻/飛行時間/総飛行時間/安全に影響した事項）。繰越・JU番号は機体管理 `getAircraftInfo()` から。
@@ -800,7 +818,7 @@ function flightLogStats(aircraftName){
 
 ### 7.7 飛行計算（calculator.html）
 - 目的：参考算出3セクション＋法令簡易チェック。`.container{max-width:1100px}`。`<script src="flight-calc.js">` を先に読み込む。
-- キー：`CALC_DRAFT_KEY='drone-calc-draft'`、`CALC_SUMMARY_KEY='drone-calc-summary'`。
+- キー：`DRONE_KEYS.calcDraft`、`DRONE_KEYS.calcSummary`（ユーザー機体プリセットは flight-calc.js が `DRONE_KEYS.aircraftPresets` を使用）。
 - 共通ヘルパ：`num(id)`（value を parseFloat、min/max 範囲外なら `.invalid` 付与し NaN 返す）、`show(id,v,digits=1)`（有限なら `toFixed`、不正なら「―」）。
 - **セクション1 可能飛行時間・限界ホバリング**：
   - 入力：`ac-preset`(select)＋`ac-save`/`ac-delete`、`ft-mass, ft-payload, ft-rotors(4/6/8), ft-prop(inch), ft-cap, ft-volt(2S..12S), ft-fom, ft-eff, ft-health, ft-reserve(0.30/0.25/0.20), ft-cruise`。
@@ -897,7 +915,8 @@ function flightLogStats(aircraftName){
   ```
   './', './theme.css', './index.html', './aircraft.html', './flight-plan.html',
   './calculator.html', './checklist.html', './flight-log.html', './data.html',
-  './flight-calc.js', './manifest.json', './icon-192.png', './icon-512.png'
+  './userguide.html', './storage-keys.js', './flight-calc.js',
+  './manifest.json', './icon-192.png', './icon-512.png'
   ```
 - `install`：`caches.open(CACHE_NAME).addAll(ASSETS)` → `skipWaiting()`。
 - `activate`：旧キャッシュ削除 → `clients.claim()`。

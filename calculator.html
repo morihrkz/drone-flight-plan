@@ -372,6 +372,7 @@
 
 </div>
 
+<script src="storage-keys.js"></script>
 <script src="flight-calc.js"></script>
 <script>
   const $ = id => document.getElementById(id);
@@ -513,16 +514,15 @@
   });
 
   // ===== 入力値の自動保存 =====
-  const CALC_DRAFT_KEY = 'drone-calc-draft';
   const ALL_INPUTS = [...document.querySelectorAll('input, select')].map(el => el.id).filter(Boolean);
   function saveDraft() {
     const d = {};
     ALL_INPUTS.forEach(id => d[id] = $(id).value);
-    localStorage.setItem(CALC_DRAFT_KEY, JSON.stringify(d));
+    localStorage.setItem(DRONE_KEYS.calcDraft, JSON.stringify(d));
   }
   function loadDraft() {
     try {
-      const d = JSON.parse(localStorage.getItem(CALC_DRAFT_KEY));
+      const d = JSON.parse(localStorage.getItem(DRONE_KEYS.calcDraft));
       if (!d) return;
       ALL_INPUTS.forEach(id => { if (d[id] !== undefined && id !== 'ac-preset') $(id).value = d[id]; });
       if (d['ac-preset']) $('ac-preset').value = d['ac-preset'];
@@ -530,7 +530,6 @@
   }
 
   // ===== 計画書への反映 =====
-  const CALC_SUMMARY_KEY = 'drone-calc-summary';
   $('btn-apply-plan').addEventListener('click', () => {
     const v = id => $(id).textContent;
     const aircraft = $('ac-preset').value || '（機体未選択）';
@@ -540,7 +539,7 @@
       `目視可能範囲の目安：${v('dp-out-vlos')}m`,
       `GSD：${v('gs-out-gsd')}cm/px（高度${$('gs-alt').value}m・撮影範囲 ${v('gs-out-fp')}m）`,
     ];
-    localStorage.setItem(CALC_SUMMARY_KEY, JSON.stringify({
+    localStorage.setItem(DRONE_KEYS.calcSummary, JSON.stringify({
       createdAt: Date.now(), aircraft, text: lines.join('\n'),
     }));
     if (confirm('計算結果を保存しました。計画書ページを開きますか？\n（計画書側の「計算結果を挿入」ボタンで備考に反映されます）')) {

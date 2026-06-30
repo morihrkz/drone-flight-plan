@@ -547,8 +547,8 @@
 <!-- 印刷専用：様式１ 飛行記録（1日分・機体番号ごとにページ生成） -->
 <div class="print-doc" id="print-doc"></div>
 
+<script src="storage-keys.js"></script>
 <script>
-  const STORAGE_KEY = 'drone-flight-log-records';
   let records = [];
   let editingId = null;
 
@@ -558,21 +558,16 @@
   // ※ battery / squawk系 は廃止（記事は当面「不具合なし」扱い・コメントアウト）
   const FIELDS = ['date', 'summary', 'flightplace', 'weather', 'wind', 'aircraft', 'registration', 'carryover', 'pilot', 'takeoff', 'landing', 'location', 'landloc', 'shoot', 'anomaly', 'confirmer', 'memo'];
 
-  const SESSION_KEY = 'drone-active-session';
-  const AIRCRAFT_KEY = 'drone-aircraft-list';
-  const PLAN_DRAFT_KEY = 'drone-flight-plan-draft';
-  const CHECKLIST_KEY = 'drone-checklist-records';
-
   function getPlan() {
     try {
-      const s = JSON.parse(localStorage.getItem(SESSION_KEY));
+      const s = JSON.parse(localStorage.getItem(DRONE_KEYS.activeSession));
       if (s && s.plan) return s.plan;
     } catch (e) {}
-    try { return JSON.parse(localStorage.getItem(PLAN_DRAFT_KEY)) || {}; }
+    try { return JSON.parse(localStorage.getItem(DRONE_KEYS.flightPlanDraft)) || {}; }
     catch (e) { return {}; }
   }
   function getAircraftRegistry() {
-    try { return JSON.parse(localStorage.getItem(AIRCRAFT_KEY)) || []; }
+    try { return JSON.parse(localStorage.getItem(DRONE_KEYS.aircraftList)) || []; }
     catch (e) { return []; }
   }
 
@@ -635,11 +630,11 @@
 
   // ---- 保存・読み出し ----
   function load() {
-    try { records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    try { records = JSON.parse(localStorage.getItem(DRONE_KEYS.flightLogRecords)) || []; }
     catch (e) { records = []; }
   }
   function persist() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    localStorage.setItem(DRONE_KEYS.flightLogRecords, JSON.stringify(records));
   }
 
   // ---- 表示 ----
@@ -881,11 +876,11 @@
     const date = currentDate() || plan.date || todayISO();
     const dayRecords = records.filter(r => r.date === date);
     let checklist = [];
-    try { checklist = (JSON.parse(localStorage.getItem(CHECKLIST_KEY)) || []).filter(c => c.date === date); } catch (e) {}
+    try { checklist = (JSON.parse(localStorage.getItem(DRONE_KEYS.checklistRecords)) || []).filter(c => c.date === date); } catch (e) {}
     if (dayRecords.length === 0 && checklist.length === 0 &&
         !confirm(`${date} の飛行記録・チェックリストがまだありません。計画書のみで出力しますか？`)) return;
     const payload = {
-      app: 'drone-daily-record',
+      app: DRONE_FORMATS.dailyRecord,
       version: 2,
       exportedAt: new Date().toISOString(),
       date: date,
@@ -920,7 +915,7 @@
     }
     // 「引き継ぎました」バナーは進行中セッションがある場合のみ表示
     let hasSession = false;
-    try { const s = JSON.parse(localStorage.getItem(SESSION_KEY)); hasSession = !!(s && s.plan); } catch (e) {}
+    try { const s = JSON.parse(localStorage.getItem(DRONE_KEYS.activeSession)); hasSession = !!(s && s.plan); } catch (e) {}
     const parts = [p.project, p.date, p.location, p.aircraft].filter(Boolean);
     if (hasSession && parts.length) {
       $('session-summary').textContent = parts.join('　／　');
@@ -1021,10 +1016,9 @@
   });
 
   // ---- データ管理ページからの編集リクエスト ----
-  const EDIT_KEY = 'drone-edit-request';
   function initEditRequest() {
-    const raw = sessionStorage.getItem(EDIT_KEY);
-    sessionStorage.removeItem(EDIT_KEY);
+    const raw = sessionStorage.getItem(DRONE_KEYS.editRequest);
+    sessionStorage.removeItem(DRONE_KEYS.editRequest);
     if (!raw) return false;
     const rec = records.find(r => r.id === Number(raw));
     if (!rec) return false;

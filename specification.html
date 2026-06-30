@@ -362,9 +362,9 @@ id="toc-法令的背景実装に必要な範囲">1.4
 中核ワークフロー</a></li>
 <li><a href="#データ参照の関係" id="toc-データ参照の関係">2.3
 データ参照の関係</a></li>
-<li><a href="#全ファイル一覧14ファイルドキュメント"
-id="toc-全ファイル一覧14ファイルドキュメント">2.4
-全ファイル一覧（14ファイル＋ドキュメント）</a></li>
+<li><a href="#全ファイル一覧15ファイルドキュメント"
+id="toc-全ファイル一覧15ファイルドキュメント">2.4
+全ファイル一覧（15ファイル＋ドキュメント）</a></li>
 </ul></li>
 <li><a href="#共通実装規約" id="toc-共通実装規約">3. 共通実装規約</a>
 <ul>
@@ -703,8 +703,8 @@ UI とドキュメントに明記する。</li>
 を、機体管理（総飛行時間集計）・データ管理・計算（実測比較）が読む。</li>
 <li><strong>機体の紐付けは「機体名の文字列完全一致」</strong>で行う（外部キーIDではない）。機体名の変更・重複に注意が必要、という制約はこの設計に由来する。</li>
 </ul>
-<h2 id="全ファイル一覧14ファイルドキュメント">2.4
-全ファイル一覧（14ファイル＋ドキュメント）</h2>
+<h2 id="全ファイル一覧15ファイルドキュメント">2.4
+全ファイル一覧（15ファイル＋ドキュメント）</h2>
 <table>
 <colgroup>
 <col style="width: 33%" />
@@ -758,6 +758,12 @@ UI とドキュメントに明記する。</li>
 <td><code>theme.css</code></td>
 <td>共通</td>
 <td>全ページ共通スタイル（第7章）</td>
+</tr>
+<tr>
+<td><code>storage-keys.js</code></td>
+<td>共通</td>
+<td>localStorage/sessionStorage
+キーとエクスポート書式識別子の正本（<code>DRONE_KEYS</code>/<code>DRONE_FORMATS</code>、第5.1）。キーを使う全ページがインラインスクリプトより前に読み込む</td>
 </tr>
 <tr>
 <td><code>flight-calc.js</code></td>
@@ -1277,8 +1283,90 @@ class="sourceCode css"><code class="sourceCode css"><span id="cb19-1"><a href="#
 <td>文字列</td>
 <td>データ管理→チェックリスト の編集対象 id</td>
 </tr>
+<tr>
+<td><code>drone-flight-log-header</code> /
+<code>drone-flight-log-meta</code> /
+<code>drone-checklist-state</code></td>
+<td>localStorage</td>
+<td>（レガシー）</td>
+<td>旧版の補助キー。現行コードは書き込まず、データ管理の全消去でクリーンアップ対象に含めるのみ</td>
+</tr>
 </tbody>
 </table>
+<blockquote>
+<p><strong>キーの一元管理（<code>storage-keys.js</code>）</strong>：上記キー文字列とエクスポート書式識別子（<code>app</code>
+フィールド）は <code>storage-keys.js</code>
+の2オブジェクトに集約し、各ページはここを参照する（キー文字列を直書きしない＝表記ゆれ・タイプミスによるページ間データ不整合の防止）。<code>storage-keys.js</code>
+をインラインスクリプトより前に読み込むこと（通常スクリプトなのでトップレベル
+<code>const</code>
+が後続スクリプトから参照可能）。互換のため文字列は安易に変更しない。</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>JS参照</th>
+<th>キー文字列</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DRONE_KEYS.aircraftList</code></td>
+<td><code>drone-aircraft-list</code></td>
+</tr>
+<tr>
+<td><code>DRONE_KEYS.flightLogRecords</code></td>
+<td><code>drone-flight-log-records</code></td>
+</tr>
+<tr>
+<td><code>DRONE_KEYS.flightPlanDraft</code></td>
+<td><code>drone-flight-plan-draft</code></td>
+</tr>
+<tr>
+<td><code>DRONE_KEYS.checklistRecords</code></td>
+<td><code>drone-checklist-records</code></td>
+</tr>
+<tr>
+<td><code>DRONE_KEYS.activeSession</code></td>
+<td><code>drone-active-session</code></td>
+</tr>
+<tr>
+<td><code>DRONE_KEYS.calcDraft</code></td>
+<td><code>drone-calc-draft</code></td>
+</tr>
+<tr>
+<td><code>DRONE_KEYS.calcSummary</code></td>
+<td><code>drone-calc-summary</code></td>
+</tr>
+<tr>
+<td><code>DRONE_KEYS.aircraftPresets</code></td>
+<td><code>drone-aircraft-presets-v2</code></td>
+</tr>
+<tr>
+<td><code>DRONE_KEYS.editRequest</code></td>
+<td><code>drone-edit-request</code></td>
+</tr>
+<tr>
+<td><code>DRONE_KEYS.checklistEditRequest</code></td>
+<td><code>drone-checklist-edit-request</code></td>
+</tr>
+<tr>
+<td><code>DRONE_KEYS.flightLogHeader</code> / <code>flightLogMeta</code>
+/ <code>checklistState</code></td>
+<td>（同名のレガシー補助キー）</td>
+</tr>
+<tr>
+<td><code>DRONE_FORMATS.aircraft</code> / <code>flightPlan</code> /
+<code>checklist</code> / <code>flightLog</code> /
+<code>dailyRecord</code> / <code>allData</code></td>
+<td>エクスポート JSON の <code>app</code>
+値（<code>drone-aircraft</code> 等）</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
 <h2 id="drone-aircraft-list機体">5.2
 <code>drone-aircraft-list</code>（機体）</h2>
 <p>配列。各要素：</p>
@@ -2028,16 +2116,15 @@ footprintHm = (sensorHmm * altitudeM) / focalMm</code></pre></li>
 </table>
 <h2 id="プリセット入出力日誌統計">6.9 プリセット入出力・日誌統計</h2>
 <div class="sourceCode" id="cb32"><pre
-class="sourceCode js"><code class="sourceCode javascript"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> USER_PRESET_KEY <span class="op">=</span> <span class="st">&#39;drone-aircraft-presets-v2&#39;</span><span class="op">;</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">loadUserPresets</span>(){ <span class="cf">try</span>{ <span class="cf">return</span> <span class="bu">JSON</span><span class="op">.</span><span class="fu">parse</span>(localStorage<span class="op">.</span><span class="fu">getItem</span>(USER_PRESET_KEY))<span class="op">||</span>[]<span class="op">;</span> }<span class="cf">catch</span>(e){ <span class="cf">return</span> []<span class="op">;</span> } }</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">saveUserPresets</span>(list){ localStorage<span class="op">.</span><span class="fu">setItem</span>(USER_PRESET_KEY<span class="op">,</span> <span class="bu">JSON</span><span class="op">.</span><span class="fu">stringify</span>(list))<span class="op">;</span> }</span>
+class="sourceCode js"><code class="sourceCode javascript"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">// キーは storage-keys.js の DRONE_KEYS を参照（calculator.html が storage-keys.js を先に読み込む）</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">loadUserPresets</span>(){ <span class="cf">try</span>{ <span class="cf">return</span> <span class="bu">JSON</span><span class="op">.</span><span class="fu">parse</span>(localStorage<span class="op">.</span><span class="fu">getItem</span>(DRONE_KEYS<span class="op">.</span><span class="at">aircraftPresets</span>))<span class="op">||</span>[]<span class="op">;</span> }<span class="cf">catch</span>(e){ <span class="cf">return</span> []<span class="op">;</span> } }</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">saveUserPresets</span>(list){ localStorage<span class="op">.</span><span class="fu">setItem</span>(DRONE_KEYS<span class="op">.</span><span class="at">aircraftPresets</span><span class="op">,</span> <span class="bu">JSON</span><span class="op">.</span><span class="fu">stringify</span>(list))<span class="op">;</span> }</span>
 <span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">allAircraftPresets</span>(){ <span class="cf">return</span> [<span class="op">...</span>AIRCRAFT_PRESETS<span class="op">,</span> <span class="op">...</span><span class="fu">loadUserPresets</span>()<span class="op">.</span><span class="fu">map</span>(p <span class="kw">=&gt;</span> ({<span class="op">...</span>p<span class="op">,</span> <span class="dt">custom</span><span class="op">:</span><span class="kw">true</span>}))]<span class="op">;</span> }</span>
 <span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> LOG_RECORDS_KEY <span class="op">=</span> <span class="st">&#39;drone-flight-log-records&#39;</span><span class="op">;</span></span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="co">// 日誌から実測飛行時間統計を取得（aircraftName 部分一致・大小無視。省略時は全件）</span></span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">flightLogStats</span>(aircraftName){</span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">// time&gt;0 のものを抽出 → { count, avgMin, totalMin }。該当なしは null</span></span>
-<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="co">// 日誌から実測飛行時間統計を取得（aircraftName 部分一致・大小無視。省略時は全件）</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">flightLogStats</span>(aircraftName){</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">// time&gt;0 のものを抽出 → { count, avgMin, totalMin }。該当なしは null</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <hr />
 <h1 id="画面仕様ページ別">7. 画面仕様（ページ別）</h1>
 <p>各ページの「目的 / レイアウト / 入力ID / 主要挙動 / 初期化順序 /
@@ -2070,7 +2157,8 @@ calculator.html | 飛行計算（参考機能） |
 </ul>
 <h2 id="機体管理aircraft.html">7.2 機体管理（aircraft.html）</h2>
 <ul>
-<li>目的：機体CRUD＋総飛行時間表示＋JSON入出力。<code>.container{max-width:720px}</code>。キー：<code>AIRCRAFT_KEY='drone-aircraft-list'</code>、<code>LOG_KEY='drone-flight-log-records'</code>。</li>
+<li>目的：機体CRUD＋総飛行時間表示＋JSON入出力。<code>.container{max-width:720px}</code>。キー：<code>DRONE_KEYS.aircraftList</code>、<code>DRONE_KEYS.flightLogRecords</code>（いずれも
+storage-keys.js）。</li>
 <li>構成：
 <ol type="1">
 <li>登録/編集フォーム <code>#form-card</code>（見出し
@@ -2113,7 +2201,7 @@ id は <code>'ac-'+Date.now().toString(36)+乱数4</code>）。完了時「新�
 <code>.layout</code>（768px以下で1カラム）。左
 <code>.form-panel</code>、右 <code>.preview-panel</code>（中に
 <code>.doc</code>）。</li>
-<li>キー：<code>DRAFT_KEY='drone-flight-plan-draft'</code>、<code>SESSION_KEY='drone-active-session'</code>、<code>AIRCRAFT_KEY='drone-aircraft-list'</code>、<code>CALC_SUMMARY_KEY='drone-calc-summary'</code>。<code>MAX_AIRCRAFT=5</code>。</li>
+<li>キー：<code>DRONE_KEYS.flightPlanDraft</code>、<code>DRONE_KEYS.activeSession</code>、<code>DRONE_KEYS.aircraftList</code>、<code>DRONE_KEYS.calcSummary</code>。<code>MAX_AIRCRAFT=5</code>。</li>
 <li>入力ID：<code>f-project, f-date, f-start, f-end, f-location, f-pilot(select), f-purpose, f-notes(textarea)</code>。機体行は
 <code>#aircraft-rows</code> 内に5行（<code>.ac-row</code> 内に
 <code>.ac-name</code>(select) と <code>.ac-reg</code>(text)）。</li>
@@ -2134,7 +2222,7 @@ name/regNo、name|regNo いずれかあるもの）→ 旧互換
 <code>aircraft</code>（name を <code>/</code> 連結）。</li>
 <li><strong>自動保存</strong>：すべての入力
 <code>input</code>/<code>change</code> で
-<code>update()</code>＋<code>saveDraft()</code>（<code>DRAFT_KEY</code>
+<code>update()</code>＋<code>saveDraft()</code>（<code>DRONE_KEYS.flightPlanDraft</code>
 へ即保存）。</li>
 <li><strong>特定飛行クイック挿入</strong>（<code>.sp-btn</code>
 data-sp）：備考へ追記（トグルではない）。
@@ -2153,11 +2241,11 @@ data-sp）：備考へ追記（トグルではない）。
 <code>&lt;project&gt;.json</code>（禁止文字 <code>\/:*?"&lt;&gt;|</code>
 を <code>_</code>）。読込は <code>parsed.plan || parsed</code>。</li>
 <li><strong>チェックリストへ</strong>
-<code>#btn-to-checklist</code>：<code>SESSION_KEY</code> に
+<code>#btn-to-checklist</code>：<code>DRONE_KEYS.activeSession</code> に
 <code>{ createdAt:Date.now(), step:'checklist', plan }</code> を保存し
 <code>checklist.html</code> へ遷移。</li>
 <li><strong>データクリア</strong> <code>#btn-clear</code>：confirm
-後、入力全消去＋<code>DRAFT_KEY</code> 削除。</li>
+後、入力全消去＋<code>DRONE_KEYS.flightPlanDraft</code> 削除。</li>
 <li>印刷：<code>@page A4 portrait; margin:0</code>。<code>.doc</code> を
 <code>padding:18mm 16mm 20mm</code>。フォーム・プレビューラベルは非表示。<code>.doc</code>/<code>.doc-table</code>
 は <code>break-inside:avoid</code>。帳票見出し「ド ロ ー ン 飛 行 計 画
@@ -2170,7 +2258,7 @@ data-sp）：備考へ追記（トグルではない）。
 <ul>
 <li>目的：飛行前確認6＋日常点検9（計15）を (実施年月日＋登録記号)
 ごとに複数登録。<code>.container{max-width:600px}</code>。</li>
-<li>キー：<code>RECORDS_KEY='drone-checklist-records'</code>、<code>SESSION_KEY</code>、<code>AIRCRAFT_KEY</code>、<code>PLAN_DRAFT_KEY='drone-flight-plan-draft'</code>、<code>EDIT_KEY='drone-checklist-edit-request'</code>。</li>
+<li>キー：<code>DRONE_KEYS.checklistRecords</code>、<code>DRONE_KEYS.activeSession</code>、<code>DRONE_KEYS.aircraftList</code>、<code>DRONE_KEYS.flightPlanDraft</code>、<code>DRONE_KEYS.checklistEditRequest</code>（sessionStorage）。</li>
 <li>構成：sticky 進捗バー（<code>#progress-count</code>「N /
 15」、<code>#progress-bar</code> 幅%）／セッションバナー
 <code>#session-banner</code>／機体概要カード（<code>#f-date</code>,
@@ -2225,7 +2313,7 @@ registration
 <h2 id="飛行日誌flight-log.html">7.5 飛行日誌（flight-log.html）</h2>
 <ul>
 <li>目的：様式１記録の入力・1日分表示・日次出力・印刷。<code>.container{max-width:640px}</code>。</li>
-<li>キー：<code>STORAGE_KEY='drone-flight-log-records'</code>、<code>SESSION_KEY</code>、<code>AIRCRAFT_KEY</code>、<code>PLAN_DRAFT_KEY</code>、<code>CHECKLIST_KEY='drone-checklist-records'</code>、<code>EDIT_KEY='drone-edit-request'</code>。<code>FIELDS</code>
+<li>キー：<code>DRONE_KEYS.flightLogRecords</code>、<code>DRONE_KEYS.activeSession</code>、<code>DRONE_KEYS.aircraftList</code>、<code>DRONE_KEYS.flightPlanDraft</code>、<code>DRONE_KEYS.checklistRecords</code>、<code>DRONE_KEYS.editRequest</code>（sessionStorage）。<code>FIELDS</code>
 は第5.3のフィールド配列（time/id除く17項目）。</li>
 <li>構成：注意ノート（3年保存・バックアップ喚起）／セッションバナー／入力カード（環境概要／機体概要／記録の入力の3グループ）／サマリー（<code>#sum-count</code>,<code>#sum-time</code>）／一覧
 <code>#log-list</code>／出力カード（<code>#btn-export</code>,<code>#btn-print</code>,<code>#btn-clear</code>）。</li>
@@ -2272,17 +2360,18 @@ date 未設定なら当日 → <code>render()</code>。</li>
 と <code>.tab-panel#tab-xxx</code>）。</li>
 <li>コンテナ先頭（タブの上）に青系の情報ノート
 <code>.note-info</code>（データの保存場所とバックアップの必要性を案内。ホーム画面と同趣旨。末尾は「各タブのJSON／CSV出力でバックアップ」と表記）。</li>
-<li>キー：<code>STORAGE_KEY</code>, <code>AIRCRAFT_KEY</code>,
-<code>PLAN_KEY='drone-flight-plan-draft'</code>,
-<code>CHECKLIST_KEY</code>,
-<code>CL_EDIT_KEY='drone-checklist-edit-request'</code>,
-<code>EDIT_KEY='drone-edit-request'</code>。</li>
+<li>キー：<code>DRONE_KEYS.flightLogRecords</code>,
+<code>DRONE_KEYS.aircraftList</code>,
+<code>DRONE_KEYS.flightPlanDraft</code>,
+<code>DRONE_KEYS.checklistRecords</code>,
+<code>DRONE_KEYS.checklistEditRequest</code>,
+<code>DRONE_KEYS.editRequest</code>（後2者は sessionStorage）。</li>
 <li><strong>計画書タブ</strong>：<code>#plan-view</code>
 に下書きを項目表示（案件名/飛行日/時刻/飛行場所/操縦者/機体/飛行目的/備考。値があるものだけ）。<code>#btn-plan-export</code>（<code>{app:'drone-flight-plan',savedAt,plan}</code>,
 <code>flight-plan-YYYYMMDD.json</code>）、<code>#btn-plan-import</code>（<code>parsed.plan||parsed</code>
 で置換）。</li>
 <li><strong>チェックリストタブ</strong>：<code>#cl-tbody</code> に date
-降順一覧（実施年月日/登録記号/実施場所/実施者/異常件数）。編集＝<code>CL_EDIT_KEY</code>
+降順一覧（実施年月日/登録記号/実施場所/実施者/異常件数）。編集＝<code>DRONE_KEYS.checklistEditRequest</code>
 に id をセットして checklist.html へ。削除＝confirm
 後該当除去。<code>#btn-cl-export</code>（<code>{app:'drone-checklist',exportedAt,checklist}</code>）。<code>#btn-cl-import</code>：<strong>id
 で後勝ちマージ</strong>（id 無ければ採番）。</li>
@@ -2293,7 +2382,7 @@ date 未設定なら当日 → <code>render()</code>。</li>
 <li><code>getFiltered()</code>：期間（date
 文字列比較）・場所/機体（部分一致・小文字化）・キーワード（shoot/memo/anomaly/weather/wind
 を連結し含む）でフィルタ、date 降順。</li>
-<li>一覧テーブル：飛行日/時間/場所/機体/天候・風速/飛行概要/異常/操作。編集＝<code>EDIT_KEY</code>
+<li>一覧テーブル：飛行日/時間/場所/機体/天候・風速/飛行概要/異常/操作。編集＝<code>DRONE_KEYS.editRequest</code>
 に id をセットして flight-log.html へ。削除＝confirm 後除去。</li>
 <li><code>#btn-csv</code>（第5.12形式）、<code>#btn-json</code>（<code>{app:'drone-flight-log',exportedAt,records:絞り込み結果}</code>）。</li>
 <li><code>#btn-import</code>（複数ファイル可）：<code>recordKey(r)</code>（id
@@ -2315,7 +2404,9 @@ try/catch）。</li>
 <ul>
 <li>目的：参考算出3セクション＋法令簡易チェック。<code>.container{max-width:1100px}</code>。<code>&lt;script src="flight-calc.js"&gt;</code>
 を先に読み込む。</li>
-<li>キー：<code>CALC_DRAFT_KEY='drone-calc-draft'</code>、<code>CALC_SUMMARY_KEY='drone-calc-summary'</code>。</li>
+<li>キー：<code>DRONE_KEYS.calcDraft</code>、<code>DRONE_KEYS.calcSummary</code>（ユーザー機体プリセットは
+flight-calc.js が <code>DRONE_KEYS.aircraftPresets</code>
+を使用）。</li>
 <li>共通ヘルパ：<code>num(id)</code>（value を parseFloat、min/max
 範囲外なら <code>.invalid</code> 付与し NaN
 返す）、<code>show(id,v,digits=1)</code>（有限なら
@@ -2579,7 +2670,8 @@ theme=#25364A）。</p>
 <li><p><code>ASSETS</code>（キャッシュ対象。相対パス）：</p>
 <pre><code>&#39;./&#39;, &#39;./theme.css&#39;, &#39;./index.html&#39;, &#39;./aircraft.html&#39;, &#39;./flight-plan.html&#39;,
 &#39;./calculator.html&#39;, &#39;./checklist.html&#39;, &#39;./flight-log.html&#39;, &#39;./data.html&#39;,
-&#39;./flight-calc.js&#39;, &#39;./manifest.json&#39;, &#39;./icon-192.png&#39;, &#39;./icon-512.png&#39;</code></pre></li>
+&#39;./userguide.html&#39;, &#39;./storage-keys.js&#39;, &#39;./flight-calc.js&#39;,
+&#39;./manifest.json&#39;, &#39;./icon-192.png&#39;, &#39;./icon-512.png&#39;</code></pre></li>
 <li><p><code>install</code>：<code>caches.open(CACHE_NAME).addAll(ASSETS)</code>
 → <code>skipWaiting()</code>。</p></li>
 <li><p><code>activate</code>：旧キャッシュ削除 →

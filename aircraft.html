@@ -158,27 +158,25 @@
 
 </div>
 
+<script src="storage-keys.js"></script>
 <script>
-  const AIRCRAFT_KEY = 'drone-aircraft-list';
-  const LOG_KEY = 'drone-flight-log-records';
-
   const $ = id => document.getElementById(id);
 
   let aircraft = [];
   let editingId = null;
 
   function load() {
-    try { aircraft = JSON.parse(localStorage.getItem(AIRCRAFT_KEY)) || []; }
+    try { aircraft = JSON.parse(localStorage.getItem(DRONE_KEYS.aircraftList)) || []; }
     catch (e) { aircraft = []; }
   }
   function save() {
-    localStorage.setItem(AIRCRAFT_KEY, JSON.stringify(aircraft));
+    localStorage.setItem(DRONE_KEYS.aircraftList, JSON.stringify(aircraft));
   }
 
   // 日誌の記録から機体名ごとの飛行時間（分）累計を求める
   function logMinutesByAircraft() {
     let records = [];
-    try { records = JSON.parse(localStorage.getItem(LOG_KEY)) || []; }
+    try { records = JSON.parse(localStorage.getItem(DRONE_KEYS.flightLogRecords)) || []; }
     catch (e) {}
     const sums = {};
     records.forEach(r => {
@@ -311,7 +309,7 @@
   // ===== JSON 入出力 =====
   $('btn-export').addEventListener('click', () => {
     if (!aircraft.length) { alert('出力する機体データがありません。'); return; }
-    const payload = { app: 'drone-aircraft', exportedAt: new Date().toISOString(), aircraft };
+    const payload = { app: DRONE_FORMATS.aircraft, exportedAt: new Date().toISOString(), aircraft };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

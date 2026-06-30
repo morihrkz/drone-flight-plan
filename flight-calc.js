@@ -203,14 +203,15 @@ const AIRCRAFT_PRESETS = [
   { name: 'DJI Matrice 350 RTK', massKg: 6.47, rotors: 4, propIn: 21.0, capMah: 5880, voltV: 44.76, sensor: '4/3型(M4/3)', focalMm: 12.3, imgW: 5280, imgH: 3956, sizeM: 0.90 },
 ];
 
-const USER_PRESET_KEY = 'drone-aircraft-presets-v2';
+// localStorage キーは storage-keys.js（DRONE_KEYS）が正本。
+// このファイルは calculator.html のみが読み込み、同ページで storage-keys.js を先に読み込む。
 
 function loadUserPresets() {
-  try { return JSON.parse(localStorage.getItem(USER_PRESET_KEY)) || []; }
+  try { return JSON.parse(localStorage.getItem(DRONE_KEYS.aircraftPresets)) || []; }
   catch (e) { return []; }
 }
 function saveUserPresets(list) {
-  localStorage.setItem(USER_PRESET_KEY, JSON.stringify(list));
+  localStorage.setItem(DRONE_KEYS.aircraftPresets, JSON.stringify(list));
 }
 /** 内蔵＋ユーザー保存をまとめて返す（ユーザー分には custom:true を付与） */
 function allAircraftPresets() {
@@ -221,8 +222,6 @@ function allAircraftPresets() {
  * 5. 飛行日誌（実測値）の参照
  * ------------------------------------------------------------------ */
 
-const LOG_RECORDS_KEY = 'drone-flight-log-records';
-
 /**
  * 日誌から実測飛行時間の統計を取得
  * @param {string} [aircraftName] 機体名で部分一致フィルタ（省略時は全件）
@@ -230,7 +229,7 @@ const LOG_RECORDS_KEY = 'drone-flight-log-records';
  */
 function flightLogStats(aircraftName) {
   let records;
-  try { records = JSON.parse(localStorage.getItem(LOG_RECORDS_KEY)) || []; }
+  try { records = JSON.parse(localStorage.getItem(DRONE_KEYS.flightLogRecords)) || []; }
   catch (e) { return null; }
   const filtered = records.filter(r => {
     const t = parseFloat(r.time);

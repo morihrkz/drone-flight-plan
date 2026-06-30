@@ -522,14 +522,11 @@
 <!-- 印刷専用：様式２ 日常点検記録（実施年月日＋登録記号ごとにページ生成） -->
 <div class="print-doc" id="print-doc"></div>
 
+<script src="storage-keys.js"></script>
 <script>
   // ===== データキー =====
-  // 旧キー drone-checklist-state（単一状態）から drone-checklist-records（複数登録）へ移行
-  const RECORDS_KEY = 'drone-checklist-records';
-  const SESSION_KEY = 'drone-active-session';
-  const AIRCRAFT_KEY = 'drone-aircraft-list';
-  const PLAN_DRAFT_KEY = 'drone-flight-plan-draft';
-  const EDIT_KEY = 'drone-checklist-edit-request';
+  // キーの正本は storage-keys.js（DRONE_KEYS）。
+  // 旧キー drone-checklist-state（単一状態）から drone-checklist-records（複数登録）へ移行済み。
 
   const $ = id => document.getElementById(id);
 
@@ -628,25 +625,25 @@
   let records = [];
   let currentId = null;
   function loadRecords() {
-    try { records = JSON.parse(localStorage.getItem(RECORDS_KEY)) || []; }
+    try { records = JSON.parse(localStorage.getItem(DRONE_KEYS.checklistRecords)) || []; }
     catch (e) { records = []; }
   }
   function persist() {
-    localStorage.setItem(RECORDS_KEY, JSON.stringify(records));
+    localStorage.setItem(DRONE_KEYS.checklistRecords, JSON.stringify(records));
   }
 
   function getSession() {
-    try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
+    try { return JSON.parse(localStorage.getItem(DRONE_KEYS.activeSession)); }
     catch (e) { return null; }
   }
   function getPlan() {
     const s = getSession();
     if (s && s.plan) return s.plan;
-    try { return JSON.parse(localStorage.getItem(PLAN_DRAFT_KEY)) || {}; }
+    try { return JSON.parse(localStorage.getItem(DRONE_KEYS.flightPlanDraft)) || {}; }
     catch (e) { return {}; }
   }
   function getRegistry() {
-    try { return JSON.parse(localStorage.getItem(AIRCRAFT_KEY)) || []; }
+    try { return JSON.parse(localStorage.getItem(DRONE_KEYS.aircraftList)) || []; }
     catch (e) { return []; }
   }
   function todayISO() {
@@ -869,8 +866,8 @@
 
   // データ管理タブからの編集リクエスト
   function initEditRequest() {
-    const raw = sessionStorage.getItem(EDIT_KEY);
-    sessionStorage.removeItem(EDIT_KEY);
+    const raw = sessionStorage.getItem(DRONE_KEYS.checklistEditRequest);
+    sessionStorage.removeItem(DRONE_KEYS.checklistEditRequest);
     if (!raw) return false;
     const rec = records.find(r => r.id === Number(raw));
     if (!rec) return false;
@@ -894,7 +891,7 @@
       blankChecks();
       switchContext();
       s.step = 'checking';
-      localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+      localStorage.setItem(DRONE_KEYS.activeSession, JSON.stringify(s));
     } else {
       // 当日＋登録記号の保存があれば復元、なければ初期状態
       switchContext();
