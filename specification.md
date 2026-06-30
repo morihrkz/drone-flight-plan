@@ -892,7 +892,7 @@ function flightLogStats(aircraftName){
 アイコンは PNG 2サイズ（192/512）。色は theme と一致（bg=#F5F3EC, theme=#25364A）。
 
 ### 10.2 sw.js（全内容と方針）
-- `CACHE_NAME = 'drone-tools-v5'`。**キャッシュ対象を変更したら必ずバージョン番号を上げる**（上げ忘れると利用者端末に旧画面が残る）。
+- `CACHE_NAME = 'drone-tools-vN'`。`N` はキャッシュ更新ごとに増やす運用値で、再構築時の初期値は任意（例 `v1`）。**キャッシュ対象を変更したら必ずバージョン番号を上げる**（上げ忘れると利用者端末に旧画面が残る）。現行値は `sw.js` を正とする。
 - `ASSETS`（キャッシュ対象。相対パス）：
   ```
   './', './theme.css', './index.html', './aircraft.html', './flight-plan.html',
@@ -903,7 +903,7 @@ function flightLogStats(aircraftName){
 - `activate`：旧キャッシュ削除 → `clients.claim()`。
 - `fetch`（**stale-while-revalidate**）：GET のみ。`caches.match` を即返しつつ裏で `fetch` し、`res.ok` かつ同一オリジンならキャッシュ更新。オフライン時は cached を返す。
 ```js
-const CACHE_NAME = 'drone-tools-v5';
+const CACHE_NAME = 'drone-tools-vN'; // N は更新ごとに増やす。初期値は任意
 const ASSETS = [ /* 上記 */ ];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
