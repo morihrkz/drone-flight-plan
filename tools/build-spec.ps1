@@ -18,7 +18,7 @@ try {
     pandoc specification.md -s `
         --toc --toc-depth=2 `
         --shift-heading-level-by=-1 `
-        --metadata title="ドローン運用ツール 完全仕様書" `
+        -V pagetitle="仕様書" `
         --include-in-header=tools/spec-style.html `
         --include-before-body=tools/spec-header.html `
         --include-after-body=tools/spec-footer.html `

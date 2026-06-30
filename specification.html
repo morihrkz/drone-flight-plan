@@ -261,19 +261,8 @@
       max-width:none;width:auto;margin:0;padding:0;
     }
 
-    /* ヘッダーバー（userguide.html と統一） */
-    .site-header{background:var(--accent);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
-    .site-header h1{font-size:17px;font-weight:700;letter-spacing:.03em;}
-    .site-header a.home{color:rgba(255,255,255,.85);text-decoration:none;font-size:13px;font-weight:700;padding:5px 13px;border-radius:999px;background:rgba(255,255,255,.12);white-space:nowrap;}
-    .site-header a.home:hover{color:#fff;background:rgba(255,255,255,.22);}
-
     /* PC/Mac ではブラウザ幅を広く活かす。狭い画面では余白を詰める */
     .container{max-width:1280px;margin:0 auto;padding:24px 32px 90px;}
-
-    /* pandoc タイトルブロック */
-    #title-block-header{margin-bottom:6px;}
-    h1.title{font-size:24px;font-weight:700;color:var(--accent);letter-spacing:.02em;line-height:1.4;margin-bottom:4px;}
-    .subtitle,.author,.date{font-size:13px;color:var(--muted);}
 
     /* 見出し（章＝h1 / 節＝h2 / 小節＝h3）。anchor 用に scroll-margin */
     h1,h2,h3,h4{scroll-margin-top:16px;}
@@ -331,7 +320,6 @@
     @media (max-width:680px){
       body{font-size:14px;}
       .container{padding:18px 12px 70px;}
-      h1.title{font-size:20px;}
       .container > h1{font-size:18px;}
       h2{font-size:16px;}
       table{font-size:13px;}
@@ -567,7 +555,6 @@ id="toc-マルチマシン運用ルール運用上の注意">11.4
 id="toc-今後の拡張に向けた留意点">13. 今後の拡張に向けた留意点</a></li>
 </ul>
 </nav>
-<hr />
 <h1 id="このドキュメントについて">0. このドキュメントについて</h1>
 <h2 id="位置づけ">0.1 位置づけ</h2>
 <p>これは、<strong>このドキュメントとここに記載された素材だけがあれば、ソースコードが一切手元になくても、まったく同一のアプリケーションを一から構築できる</strong>ことを目的とした仕様書である。機能の概要にとどまらず、データ構造のフィールド単位の定義、計算式、定数の実数値、UIコンポーネントの寸法・色、初期化処理の手順、印刷帳票の構造まで記述する。</p>
