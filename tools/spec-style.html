@@ -1,0 +1,99 @@
+<style>
+  :root{
+    --accent:#25364A;
+    --accent-light:#EEF2E4;
+    --border:#C8CEC0;
+    --text:#2D3325;
+    --muted:#72786B;
+    --label:#3A4032;
+    --bg:#F5F3EC;
+    --white:#fff;
+    --radius:8px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  /* pandoc 既定テンプレートの body{max-width:36em} を打ち消し、幅を解放する */
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",Meiryo,sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.8;min-height:100vh;
+    -webkit-text-size-adjust:100%;
+    max-width:none;width:auto;margin:0;padding:0;
+  }
+
+  /* ヘッダーバー（userguide.html と統一） */
+  .site-header{background:var(--accent);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .site-header h1{font-size:17px;font-weight:700;letter-spacing:.03em;}
+  .site-header a.home{color:rgba(255,255,255,.85);text-decoration:none;font-size:13px;font-weight:700;padding:5px 13px;border-radius:999px;background:rgba(255,255,255,.12);white-space:nowrap;}
+  .site-header a.home:hover{color:#fff;background:rgba(255,255,255,.22);}
+
+  /* PC/Mac ではブラウザ幅を広く活かす。狭い画面では余白を詰める */
+  .container{max-width:1280px;margin:0 auto;padding:24px 32px 90px;}
+
+  /* pandoc タイトルブロック */
+  #title-block-header{margin-bottom:6px;}
+  h1.title{font-size:24px;font-weight:700;color:var(--accent);letter-spacing:.02em;line-height:1.4;margin-bottom:4px;}
+  .subtitle,.author,.date{font-size:13px;color:var(--muted);}
+
+  /* 見出し（章＝h1 / 節＝h2 / 小節＝h3）。anchor 用に scroll-margin */
+  h1,h2,h3,h4{scroll-margin-top:16px;}
+  .container > h1{
+    font-size:20px;font-weight:700;color:var(--accent);letter-spacing:.02em;
+    margin:34px 0 12px;padding:10px 14px;background:var(--accent-light);border-radius:var(--radius);
+  }
+  h2{
+    font-size:17px;font-weight:700;color:var(--accent);
+    margin:26px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border);
+  }
+  h3{font-size:15px;font-weight:700;color:var(--label);margin:20px 0 8px;}
+  h4{font-size:14px;font-weight:700;color:var(--label);margin:16px 0 6px;}
+
+  /* 本文 */
+  p{margin:10px 0;}
+  ul,ol{margin:10px 0 10px 1.5em;}
+  li{margin:5px 0;}
+  ul ul,ol ul,ul ol,ol ol{margin:5px 0 5px 1.3em;}
+  a{color:#3a5168;}
+  strong{color:var(--label);}
+  hr{border:none;border-top:1px solid var(--border);margin:28px 0;}
+
+  code{background:var(--accent-light);padding:1px 5px;border-radius:4px;font-size:.92em;font-family:"SFMono-Regular",Consolas,"Courier New",monospace;}
+  pre{
+    background:#2d3325;color:#f3f1e8;border-radius:var(--radius);padding:14px 16px;margin:12px 0;
+    overflow-x:auto;font-family:"SFMono-Regular",Consolas,"Courier New",monospace;font-size:13px;line-height:1.6;
+  }
+  pre code{background:none;padding:0;color:inherit;font-size:inherit;}
+
+  blockquote{
+    background:var(--accent-light);border-left:4px solid #9DB87C;border-radius:4px;
+    padding:10px 14px;margin:12px 0;color:var(--text);font-size:14px;
+  }
+  blockquote p{margin:0;}
+
+  /* 表（横スクロール対応） */
+  table{border-collapse:collapse;width:100%;font-size:14px;margin:14px 0;display:block;overflow-x:auto;}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:var(--accent-light);color:var(--label);font-weight:700;white-space:nowrap;}
+
+  /* 目次（pandoc --toc） */
+  nav#TOC{
+    background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px 18px;margin:18px 0 28px;
+  }
+  nav#TOC::before{content:"目次";display:block;font-weight:700;color:var(--accent);font-size:15px;margin-bottom:10px;}
+  nav#TOC ul{list-style:none;margin:0;padding-left:0;}
+  nav#TOC ul ul{padding-left:1.1em;margin:2px 0;}
+  nav#TOC li{margin:3px 0;}
+  nav#TOC a{text-decoration:none;color:var(--text);font-size:14px;}
+  nav#TOC a:hover{color:var(--accent);text-decoration:underline;}
+  nav#TOC > ul > li > a{font-weight:700;color:var(--accent);}
+
+  @media (max-width:680px){
+    body{font-size:14px;}
+    .container{padding:18px 12px 70px;}
+    h1.title{font-size:20px;}
+    .container > h1{font-size:18px;}
+    h2{font-size:16px;}
+    table{font-size:13px;}
+    nav#TOC a{font-size:13px;}
+  }
+</style>

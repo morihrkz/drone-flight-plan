@@ -1,0 +1,2687 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>ドローン運用ツール 完全仕様書（再構築用設計図）</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <style>
+    :root{
+      --accent:#25364A;
+      --accent-light:#EEF2E4;
+      --border:#C8CEC0;
+      --text:#2D3325;
+      --muted:#72786B;
+      --label:#3A4032;
+      --bg:#F5F3EC;
+      --white:#fff;
+      --radius:8px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    /* pandoc 既定テンプレートの body{max-width:36em} を打ち消し、幅を解放する */
+    body{
+      font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",Meiryo,sans-serif;
+      background:var(--bg);color:var(--text);font-size:15px;line-height:1.8;min-height:100vh;
+      -webkit-text-size-adjust:100%;
+      max-width:none;width:auto;margin:0;padding:0;
+    }
+
+    /* ヘッダーバー（userguide.html と統一） */
+    .site-header{background:var(--accent);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+    .site-header h1{font-size:17px;font-weight:700;letter-spacing:.03em;}
+    .site-header a.home{color:rgba(255,255,255,.85);text-decoration:none;font-size:13px;font-weight:700;padding:5px 13px;border-radius:999px;background:rgba(255,255,255,.12);white-space:nowrap;}
+    .site-header a.home:hover{color:#fff;background:rgba(255,255,255,.22);}
+
+    /* PC/Mac ではブラウザ幅を広く活かす。狭い画面では余白を詰める */
+    .container{max-width:1280px;margin:0 auto;padding:24px 32px 90px;}
+
+    /* pandoc タイトルブロック */
+    #title-block-header{margin-bottom:6px;}
+    h1.title{font-size:24px;font-weight:700;color:var(--accent);letter-spacing:.02em;line-height:1.4;margin-bottom:4px;}
+    .subtitle,.author,.date{font-size:13px;color:var(--muted);}
+
+    /* 見出し（章＝h1 / 節＝h2 / 小節＝h3）。anchor 用に scroll-margin */
+    h1,h2,h3,h4{scroll-margin-top:16px;}
+    .container > h1{
+      font-size:20px;font-weight:700;color:var(--accent);letter-spacing:.02em;
+      margin:34px 0 12px;padding:10px 14px;background:var(--accent-light);border-radius:var(--radius);
+    }
+    h2{
+      font-size:17px;font-weight:700;color:var(--accent);
+      margin:26px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border);
+    }
+    h3{font-size:15px;font-weight:700;color:var(--label);margin:20px 0 8px;}
+    h4{font-size:14px;font-weight:700;color:var(--label);margin:16px 0 6px;}
+
+    /* 本文 */
+    p{margin:10px 0;}
+    ul,ol{margin:10px 0 10px 1.5em;}
+    li{margin:5px 0;}
+    ul ul,ol ul,ul ol,ol ol{margin:5px 0 5px 1.3em;}
+    a{color:#3a5168;}
+    strong{color:var(--label);}
+    hr{border:none;border-top:1px solid var(--border);margin:28px 0;}
+
+    code{background:var(--accent-light);padding:1px 5px;border-radius:4px;font-size:.92em;font-family:"SFMono-Regular",Consolas,"Courier New",monospace;}
+    pre{
+      background:#2d3325;color:#f3f1e8;border-radius:var(--radius);padding:14px 16px;margin:12px 0;
+      overflow-x:auto;font-family:"SFMono-Regular",Consolas,"Courier New",monospace;font-size:13px;line-height:1.6;
+    }
+    pre code{background:none;padding:0;color:inherit;font-size:inherit;}
+
+    blockquote{
+      background:var(--accent-light);border-left:4px solid #9DB87C;border-radius:4px;
+      padding:10px 14px;margin:12px 0;color:var(--text);font-size:14px;
+    }
+    blockquote p{margin:0;}
+
+    /* 表（横スクロール対応） */
+    table{border-collapse:collapse;width:100%;font-size:14px;margin:14px 0;display:block;overflow-x:auto;}
+    th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top;}
+    th{background:var(--accent-light);color:var(--label);font-weight:700;white-space:nowrap;}
+
+    /* 目次（pandoc --toc） */
+    nav#TOC{
+      background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
+      padding:16px 18px;margin:18px 0 28px;
+    }
+    nav#TOC::before{content:"目次";display:block;font-weight:700;color:var(--accent);font-size:15px;margin-bottom:10px;}
+    nav#TOC ul{list-style:none;margin:0;padding-left:0;}
+    nav#TOC ul ul{padding-left:1.1em;margin:2px 0;}
+    nav#TOC li{margin:3px 0;}
+    nav#TOC a{text-decoration:none;color:var(--text);font-size:14px;}
+    nav#TOC a:hover{color:var(--accent);text-decoration:underline;}
+    nav#TOC > ul > li > a{font-weight:700;color:var(--accent);}
+
+    @media (max-width:680px){
+      body{font-size:14px;}
+      .container{padding:18px 12px 70px;}
+      h1.title{font-size:20px;}
+      .container > h1{font-size:18px;}
+      h2{font-size:16px;}
+      table{font-size:13px;}
+      nav#TOC a{font-size:13px;}
+    }
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <a class="home" href="index.html">← ホーム</a>
+  <h1>完全仕様書</h1>
+</header>
+<div class="container">
+<header id="title-block-header">
+<h1 class="title">ドローン運用ツール 完全仕様書（再構築用設計図）</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#このドキュメントについて"
+id="toc-このドキュメントについて">0. このドキュメントについて</a>
+<ul>
+<li><a href="#位置づけ" id="toc-位置づけ">0.1 位置づけ</a></li>
+<li><a href="#想定読者" id="toc-想定読者">0.2 想定読者</a></li>
+<li><a href="#再構築の最小手順概要" id="toc-再構築の最小手順概要">0.3
+再構築の最小手順（概要）</a></li>
+<li><a href="#読み方の規約" id="toc-読み方の規約">0.4
+読み方の規約</a></li>
+</ul></li>
+<li><a href="#プロダクト概要" id="toc-プロダクト概要">1.
+プロダクト概要</a>
+<ul>
+<li><a href="#目的" id="toc-目的">1.1 目的</a></li>
+<li><a href="#対象ユーザー" id="toc-対象ユーザー">1.2
+対象ユーザー</a></li>
+<li><a href="#設計思想非交渉の原則" id="toc-設計思想非交渉の原則">1.3
+設計思想（非交渉の原則）</a></li>
+<li><a href="#法令的背景実装に必要な範囲"
+id="toc-法令的背景実装に必要な範囲">1.4
+法令的背景（実装に必要な範囲）</a></li>
+</ul></li>
+<li><a href="#全体アーキテクチャ" id="toc-全体アーキテクチャ">2.
+全体アーキテクチャ</a>
+<ul>
+<li><a href="#ページ構成7ページ" id="toc-ページ構成7ページ">2.1
+ページ構成（7ページ）</a></li>
+<li><a href="#中核ワークフロー" id="toc-中核ワークフロー">2.2
+中核ワークフロー</a></li>
+<li><a href="#データ参照の関係" id="toc-データ参照の関係">2.3
+データ参照の関係</a></li>
+<li><a href="#全ファイル一覧14ファイルドキュメント"
+id="toc-全ファイル一覧14ファイルドキュメント">2.4
+全ファイル一覧（14ファイル＋ドキュメント）</a></li>
+</ul></li>
+<li><a href="#共通実装規約" id="toc-共通実装規約">3. 共通実装規約</a>
+<ul>
+<li><a href="#html-の-head-読込順厳守"
+id="toc-html-の-head-読込順厳守">3.1 HTML の <code>&lt;head&gt;</code>
+読込順（厳守）</a></li>
+<li><a href="#共通ヘッダーナビゲーション"
+id="toc-共通ヘッダーナビゲーション">3.2
+共通ヘッダー・ナビゲーション</a></li>
+<li><a href="#service-worker-登録全ページの-body-直前"
+id="toc-service-worker-登録全ページの-body-直前">3.3 Service Worker
+登録（全ページの <code>&lt;/body&gt;</code> 直前）</a></li>
+<li><a href="#コンテナ" id="toc-コンテナ">3.4 コンテナ</a></li>
+<li><a href="#選択または自由入力コントロール重要パターン"
+id="toc-選択または自由入力コントロール重要パターン">3.5
+「選択または自由入力」コントロール（重要パターン）</a></li>
+<li><a href="#html-エスケープ" id="toc-html-エスケープ">3.6 HTML
+エスケープ</a></li>
+<li><a href="#localstorage-読み取りの定型"
+id="toc-localstorage-読み取りの定型">3.7 localStorage
+読み取りの定型</a></li>
+<li><a href="#ファイルダウンロードの定型json-csv-出力"
+id="toc-ファイルダウンロードの定型json-csv-出力">3.8
+ファイルダウンロードの定型（JSON / CSV 出力）</a></li>
+<li><a href="#日付フォーマット定型" id="toc-日付フォーマット定型">3.9
+日付フォーマット定型</a></li>
+<li><a href="#id-命名規則" id="toc-id-命名規則">3.10 ID
+命名規則</a></li>
+</ul></li>
+<li><a href="#デザインシステムtheme.css-完全仕様"
+id="toc-デザインシステムtheme.css-完全仕様">4.
+デザインシステム（theme.css 完全仕様）</a>
+<ul>
+<li><a href="#リセット" id="toc-リセット">4.1 リセット</a></li>
+<li><a href="#カラートークンroot-実数値"
+id="toc-カラートークンroot-実数値">4.2
+カラートークン（<code>:root</code>）— 実数値</a></li>
+<li><a href="#body" id="toc-body">4.3 body</a></li>
+<li><a href="#ヘッダーナビ" id="toc-ヘッダーナビ">4.4
+ヘッダー・ナビ</a></li>
+<li><a href="#コンテナラベル" id="toc-コンテナラベル">4.5
+コンテナ・ラベル</a></li>
+<li><a href="#カード" id="toc-カード">4.6 カード</a></li>
+<li><a href="#フォーム誤操作防止の核"
+id="toc-フォーム誤操作防止の核">4.7 フォーム（誤操作防止の核）</a></li>
+<li><a href="#ボタン" id="toc-ボタン">4.8 ボタン</a></li>
+<li><a href="#注意ノート空表示" id="toc-注意ノート空表示">4.9
+注意ノート・空表示</a></li>
+<li><a href="#レスポンシブ" id="toc-レスポンシブ">4.10
+レスポンシブ</a></li>
+<li><a href="#印刷共通" id="toc-印刷共通">4.11 印刷共通</a></li>
+<li><a href="#つの設計原則実装判断の指針"
+id="toc-つの設計原則実装判断の指針">4.12
+3つの設計原則（実装判断の指針）</a></li>
+</ul></li>
+<li><a href="#データモデル完全スキーマ"
+id="toc-データモデル完全スキーマ">5. データモデル（完全スキーマ）</a>
+<ul>
+<li><a href="#ストレージキー一覧" id="toc-ストレージキー一覧">5.1
+ストレージキー一覧</a></li>
+<li><a href="#drone-aircraft-list機体"
+id="toc-drone-aircraft-list機体">5.2
+<code>drone-aircraft-list</code>（機体）</a></li>
+<li><a href="#drone-flight-log-records飛行日誌"
+id="toc-drone-flight-log-records飛行日誌">5.3
+<code>drone-flight-log-records</code>（飛行日誌）</a></li>
+<li><a href="#drone-flight-plan-draft計画書下書き"
+id="toc-drone-flight-plan-draft計画書下書き">5.4
+<code>drone-flight-plan-draft</code>（計画書下書き）</a></li>
+<li><a href="#drone-checklist-recordsチェックリスト"
+id="toc-drone-checklist-recordsチェックリスト">5.5
+<code>drone-checklist-records</code>（チェックリスト）</a></li>
+<li><a href="#drone-active-session引き継ぎ"
+id="toc-drone-active-session引き継ぎ">5.6
+<code>drone-active-session</code>（引き継ぎ）</a></li>
+<li><a href="#drone-calc-draft計算ドラフト"
+id="toc-drone-calc-draft計算ドラフト">5.7
+<code>drone-calc-draft</code>（計算ドラフト）</a></li>
+<li><a href="#drone-calc-summary計算結果"
+id="toc-drone-calc-summary計算結果">5.8
+<code>drone-calc-summary</code>（計算結果）</a></li>
+<li><a href="#drone-aircraft-presets-v2ユーザー機体プリセット"
+id="toc-drone-aircraft-presets-v2ユーザー機体プリセット">5.9
+<code>drone-aircraft-presets-v2</code>（ユーザー機体プリセット）</a></li>
+<li><a href="#編集リクエストsessionstorage"
+id="toc-編集リクエストsessionstorage">5.10
+編集リクエスト（sessionStorage）</a></li>
+<li><a href="#エクスポートインポート-ファイル形式"
+id="toc-エクスポートインポート-ファイル形式">5.11
+エクスポート／インポート ファイル形式</a></li>
+<li><a href="#csv-出力形式日誌" id="toc-csv-出力形式日誌">5.12 CSV
+出力形式（日誌）</a></li>
+<li><a href="#廃止キー移行済み再実装不要"
+id="toc-廃止キー移行済み再実装不要">5.13
+廃止キー（移行済み・再実装不要）</a></li>
+</ul></li>
+<li><a href="#計算ロジック仕様flight-calc.js-完全"
+id="toc-計算ロジック仕様flight-calc.js-完全">6.
+計算ロジック仕様（flight-calc.js 完全）</a>
+<ul>
+<li><a href="#定数" id="toc-定数">6.1 定数</a></li>
+<li><a href="#ホバリング所要電力-hoverpowerw"
+id="toc-ホバリング所要電力-hoverpowerw">6.2 ホバリング所要電力
+<code>hoverPowerW</code></a></li>
+<li><a href="#使用可能エネルギー-usableenergywh"
+id="toc-使用可能エネルギー-usableenergywh">6.3 使用可能エネルギー
+<code>usableEnergyWh</code></a></li>
+<li><a href="#飛行時間-calcflighttimep"
+id="toc-飛行時間-calcflighttimep">6.4 飛行時間
+<code>calcFlightTime(p)</code></a></li>
+<li><a href="#その他の距離速度関数calculator.html-では一部のみ使用"
+id="toc-その他の距離速度関数calculator.html-では一部のみ使用">6.5
+その他の距離・速度関数（calculator.html では一部のみ使用）</a></li>
+<li><a href="#gsd-関数" id="toc-gsd-関数">6.6 GSD 関数</a></li>
+<li><a href="#内蔵機体プリセット-aircraft_presets実数値全9機種"
+id="toc-内蔵機体プリセット-aircraft_presets実数値全9機種">6.7
+内蔵機体プリセット
+<code>AIRCRAFT_PRESETS</code>（実数値・全9機種）</a></li>
+<li><a href="#センサープリセット-sensor_presets実数値全8種単位mm"
+id="toc-センサープリセット-sensor_presets実数値全8種単位mm">6.8
+センサープリセット
+<code>SENSOR_PRESETS</code>（実数値・全8種、単位mm）</a></li>
+<li><a href="#プリセット入出力日誌統計"
+id="toc-プリセット入出力日誌統計">6.9
+プリセット入出力・日誌統計</a></li>
+</ul></li>
+<li><a href="#画面仕様ページ別" id="toc-画面仕様ページ別">7.
+画面仕様（ページ別）</a>
+<ul>
+<li><a href="#ホームindex.html" id="toc-ホームindex.html">7.1
+ホーム（index.html）</a></li>
+<li><a href="#機体管理aircraft.html" id="toc-機体管理aircraft.html">7.2
+機体管理（aircraft.html）</a></li>
+<li><a href="#飛行計画書flight-plan.html"
+id="toc-飛行計画書flight-plan.html">7.3
+飛行計画書（flight-plan.html）</a></li>
+<li><a href="#飛行前チェックリストchecklist.html"
+id="toc-飛行前チェックリストchecklist.html">7.4
+飛行前チェックリスト（checklist.html）</a></li>
+<li><a href="#飛行日誌flight-log.html"
+id="toc-飛行日誌flight-log.html">7.5
+飛行日誌（flight-log.html）</a></li>
+<li><a href="#データ管理data.html" id="toc-データ管理data.html">7.6
+データ管理（data.html）</a></li>
+<li><a href="#飛行計算calculator.html"
+id="toc-飛行計算calculator.html">7.7
+飛行計算（calculator.html）</a></li>
+</ul></li>
+<li><a href="#印刷pdf-出力仕様まとめ" id="toc-印刷pdf-出力仕様まとめ">8.
+印刷／PDF 出力仕様（まとめ）</a></li>
+<li><a href="#国土交通省-様式-対応表" id="toc-国土交通省-様式-対応表">9.
+国土交通省 様式 対応表</a>
+<ul>
+<li><a href="#様式２日常点検記録-checklist.html-日常点検9項目"
+id="toc-様式２日常点検記録-checklist.html-日常点検9項目">9.1
+様式２（日常点検記録）— checklist.html 日常点検9項目</a></li>
+<li><a href="#飛行前確認事項独自追加6項目"
+id="toc-飛行前確認事項独自追加6項目">9.2
+飛行前確認事項（独自追加6項目）</a></li>
+<li><a href="#様式１飛行記録-flight-log.html-data.html"
+id="toc-様式１飛行記録-flight-log.html-data.html">9.3
+様式１（飛行記録）— flight-log.html / data.html</a></li>
+</ul></li>
+<li><a href="#pwa-service-worker-manifest"
+id="toc-pwa-service-worker-manifest">10. PWA / Service Worker /
+manifest</a>
+<ul>
+<li><a href="#manifest.json全内容" id="toc-manifest.json全内容">10.1
+manifest.json（全内容）</a></li>
+<li><a href="#sw.js全内容と方針" id="toc-sw.js全内容と方針">10.2
+sw.js（全内容と方針）</a></li>
+</ul></li>
+<li><a href="#ビルドローカル確認配備"
+id="toc-ビルドローカル確認配備">11. ビルド・ローカル確認・配備</a>
+<ul>
+<li><a href="#ビルド" id="toc-ビルド">11.1 ビルド</a></li>
+<li><a href="#ローカル確認" id="toc-ローカル確認">11.2
+ローカル確認</a></li>
+<li><a href="#配備github-pages" id="toc-配備github-pages">11.3
+配備（GitHub Pages）</a></li>
+<li><a href="#マルチマシン運用ルール運用上の注意"
+id="toc-マルチマシン運用ルール運用上の注意">11.4
+マルチマシン運用ルール（運用上の注意）</a></li>
+</ul></li>
+<li><a href="#制約事項既知の仕様" id="toc-制約事項既知の仕様">12.
+制約事項・既知の仕様</a></li>
+<li><a href="#今後の拡張に向けた留意点"
+id="toc-今後の拡張に向けた留意点">13. 今後の拡張に向けた留意点</a></li>
+</ul>
+</nav>
+<p>版数：第2版（完全版）　最終更新日：2026年6月17日</p>
+<hr />
+<h1 id="このドキュメントについて">0. このドキュメントについて</h1>
+<h2 id="位置づけ">0.1 位置づけ</h2>
+<p>本書は「<strong>このドキュメントとここに記載された素材だけがあれば、ソースコードが一切手元になくても、まったく同一のアプリケーションをゼロから再構築できる</strong>」ことを目的とした完全仕様書である。機能の概要にとどまらず、データ構造のフィールド単位の定義、計算式、定数の実数値、UIコンポーネントの寸法・色、初期化処理の手順、印刷帳票の構造まで記述する。</p>
+<h2 id="想定読者">0.2 想定読者</h2>
+<p>本書だけを渡されて本アプリを実装する開発者。HTML / CSS / JavaScript
+の基礎知識を前提とするが、本プロジェクト固有の知識（既存コード・設計経緯）は一切前提としない。</p>
+<h2 id="再構築の最小手順概要">0.3 再構築の最小手順（概要）</h2>
+<ol type="1">
+<li>第3章のファイルをすべて作成する（全14ファイル）。</li>
+<li>第7章の <code>theme.css</code>（共通スタイル）を作る。</li>
+<li>第8章のデータモデルを正として、第9章の
+<code>flight-calc.js</code>、第10章の各ページを実装する。</li>
+<li>第11章に従い <code>manifest.json</code> / <code>sw.js</code> /
+アイコンを用意する。</li>
+<li>第13章に従いローカル確認・GitHub Pages へ配備する。</li>
+</ol>
+<h2 id="読み方の規約">0.4 読み方の規約</h2>
+<ul>
+<li>localStorage / sessionStorage のキー名は <code>drone-xxx</code>
+形式の固定文字列。<strong>変更不可</strong>（既存データとの互換が壊れる）。</li>
+<li>HTML要素の <code>id</code> 属性はコード内で固定参照される。本書で
+<code>id</code>
+を明示している箇所は<strong>その文字列をそのまま使う</strong>こと。</li>
+<li>「自動保存」は debounce
+なしの即時保存（<code>input</code>/<code>change</code> イベントで都度
+localStorage へ書き込み）を指す。</li>
+</ul>
+<hr />
+<h1 id="プロダクト概要">1. プロダクト概要</h1>
+<h2 id="目的">1.1 目的</h2>
+<p>ドローン（無人航空機）運用に関わる以下の業務を、1つの静的Webアプリ（PWA）でブラウザ上一元管理する。</p>
+<ul>
+<li>機体・操縦者情報の管理</li>
+<li>飛行計画書の作成・印刷（PDF）</li>
+<li>飛行前点検（チェックリスト）の実施・記録・印刷</li>
+<li>飛行日誌（国土交通省 様式１）の記録・印刷</li>
+<li>飛行記録の検索・集計・バックアップ（CSV / JSON）</li>
+<li>飛行計算（飛行時間・GSD・目視可能距離等の参考算出）</li>
+</ul>
+<h2 id="対象ユーザー">1.2 対象ユーザー</h2>
+<p>個人操縦者・小規模事業者。航空法に基づく飛行計画・記録の作成を簡便化したい運用者。</p>
+<h2 id="設計思想非交渉の原則">1.3 設計思想（非交渉の原則）</h2>
+<ol type="1">
+<li><strong>完全クライアントサイド</strong>：サーバーサイド処理は一切ない。GitHub
+Pages 等の静的ホスティングで動く。</li>
+<li><strong>データはローカルのみ</strong>：すべて
+<code>localStorage</code>（一部
+<code>sessionStorage</code>）に保存。外部送信なし。複数人共有は JSON
+ファイルの受け渡しで行う。</li>
+<li><strong>ゼロ依存・バニラ</strong>：フレームワーク・ビルドツール・外部ライブラリ・CDN
+を一切使わない。素の HTML / CSS / JavaScript のみ。</li>
+<li><strong>オフライン対応（PWA）</strong>：Service Worker
+により一度開けばオフラインで動作。ホーム画面に追加可能。</li>
+<li><strong>屋外UI最優先</strong>：直射日光下・スマホ片手・グローブ着用を想定した視認性／誤操作防止設計（第7章）。</li>
+<li><strong>国の様式との整合</strong>：チェックリストは様式２、日誌は様式１の項目に整合させる（第12章）。</li>
+</ol>
+<h2 id="法令的背景実装に必要な範囲">1.4
+法令的背景（実装に必要な範囲）</h2>
+<ul>
+<li><strong>様式１（飛行記録 / JOURNEY LOG OF
+UAS）</strong>：飛行日誌の印刷帳票の根拠。3年間の保存が求められる。</li>
+<li><strong>様式２（日常点検記録 / DAILY INSPECTION RECORD OF
+UAS）</strong>：チェックリストの日常点検9項目の根拠。</li>
+<li><strong>DIPS
+2.0・審査要領</strong>：飛行計算ページの簡易法令チェックの根拠（25kg・100g・150m・130m等の閾値）。</li>
+<li>本アプリの算出値・判定はすべて<strong>参考値</strong>であり、最終判断は運用者責任、という免責を
+UI とドキュメントに明記する。</li>
+</ul>
+<hr />
+<h1 id="全体アーキテクチャ">2. 全体アーキテクチャ</h1>
+<h2 id="ページ構成7ページ">2.1 ページ構成（7ページ）</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>ファイル</th>
+<th>画面名</th>
+<th>役割</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>index.html</code></td>
+<td>ホーム</td>
+<td>各ツールへのナビゲーション（リンクカード一覧）</td>
+</tr>
+<tr>
+<td><code>aircraft.html</code></td>
+<td>機体管理</td>
+<td>機体・操縦者の登録／編集／削除、総飛行時間表示、JSON入出力</td>
+</tr>
+<tr>
+<td><code>flight-plan.html</code></td>
+<td>飛行計画書</td>
+<td>計画入力＋リアルタイムプレビュー、印刷(A4縦)、チェックリストへ引き継ぎ</td>
+</tr>
+<tr>
+<td><code>checklist.html</code></td>
+<td>飛行前チェックリスト</td>
+<td>飛行前確認6項目＋様式２日常点検9項目、複数登録、印刷(A4縦)</td>
+</tr>
+<tr>
+<td><code>flight-log.html</code></td>
+<td>飛行日誌</td>
+<td>様式１の記録入力・1日分表示、日次JSON出力、印刷(A4横)</td>
+</tr>
+<tr>
+<td><code>data.html</code></td>
+<td>データ管理</td>
+<td>計画書／チェックリスト／日誌の3タブ＋全データ一括入出力・消去</td>
+</tr>
+<tr>
+<td><code>calculator.html</code></td>
+<td>飛行計算（参考機能）</td>
+<td>飛行時間・目視可能距離・GSDの算出、法令簡易チェック</td>
+</tr>
+</tbody>
+</table>
+<h2 id="中核ワークフロー">2.2 中核ワークフロー</h2>
+<p>3画面が
+<code>drone-active-session</code>（localStorage）を介して連携する。</p>
+<pre><code>飛行計画書 (flight-plan.html)
+   │ 「この計画で飛行前チェックリストへ進む」ボタン
+   │ → drone-active-session に {step:&#39;checklist&#39;, plan} を保存
+   ▼
+飛行前チェックリスト (checklist.html)
+   │ セッションの plan を初期値転記。step を &#39;checking&#39; に更新
+   │ （チェック完了後、手動で「次へ（日誌）」リンク）
+   ▼
+飛行日誌 (flight-log.html)
+   │ セッションまたは計画書下書きから初期値転記
+   ▼
+記録は drone-flight-log-records に蓄積</code></pre>
+<h2 id="データ参照の関係">2.3 データ参照の関係</h2>
+<ul>
+<li><strong>機体管理</strong> が書く <code>drone-aircraft-list</code>
+を、計画書・日誌・計算（プリセットとは別）の「選択候補」が読む。</li>
+<li><strong>計画書</strong> の下書き
+<code>drone-flight-plan-draft</code>
+を、チェックリスト・日誌・データ管理が初期値／表示に読む。</li>
+<li><strong>日誌</strong> の <code>drone-flight-log-records</code>
+を、機体管理（総飛行時間集計）・データ管理・計算（実測比較）が読む。</li>
+<li><strong>機体の紐付けは「機体名の文字列完全一致」</strong>で行う（外部キーIDではない）。機体名の変更・重複に注意が必要、という制約はこの設計に由来する。</li>
+</ul>
+<h2 id="全ファイル一覧14ファイルドキュメント">2.4
+全ファイル一覧（14ファイル＋ドキュメント）</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>ファイル</th>
+<th>種別</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>index.html</code></td>
+<td>ページ</td>
+<td>ホーム</td>
+</tr>
+<tr>
+<td><code>aircraft.html</code></td>
+<td>ページ</td>
+<td>機体管理</td>
+</tr>
+<tr>
+<td><code>flight-plan.html</code></td>
+<td>ページ</td>
+<td>飛行計画書</td>
+</tr>
+<tr>
+<td><code>checklist.html</code></td>
+<td>ページ</td>
+<td>チェックリスト</td>
+</tr>
+<tr>
+<td><code>flight-log.html</code></td>
+<td>ページ</td>
+<td>飛行日誌</td>
+</tr>
+<tr>
+<td><code>data.html</code></td>
+<td>ページ</td>
+<td>データ管理</td>
+</tr>
+<tr>
+<td><code>calculator.html</code></td>
+<td>ページ</td>
+<td>飛行計算</td>
+</tr>
+<tr>
+<td><code>theme.css</code></td>
+<td>共通</td>
+<td>全ページ共通スタイル（第7章）</td>
+</tr>
+<tr>
+<td><code>flight-calc.js</code></td>
+<td>共通</td>
+<td>計算ロジック純粋関数群＋プリセット（第9章）。calculator.html
+のみが読み込む</td>
+</tr>
+<tr>
+<td><code>manifest.json</code></td>
+<td>PWA</td>
+<td>Webアプリマニフェスト（第11章）</td>
+</tr>
+<tr>
+<td><code>sw.js</code></td>
+<td>PWA</td>
+<td>Service Worker（第11章）</td>
+</tr>
+<tr>
+<td><code>icon-192.png</code></td>
+<td>PWA</td>
+<td>アイコン 192×192</td>
+</tr>
+<tr>
+<td><code>icon-512.png</code></td>
+<td>PWA</td>
+<td>アイコン 512×512</td>
+</tr>
+<tr>
+<td><code>.gitignore</code></td>
+<td>その他</td>
+<td>Git 無視設定</td>
+</tr>
+<tr>
+<td><code>specification.md</code> / <code>userguide.html</code> /
+<code>DESIGN-GUIDELINES.md</code></td>
+<td>ドキュメント</td>
+<td>本書・操作マニュアル・UI指針</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><code>flight-calc.js</code> を読み込むのは
+<code>calculator.html</code>
+のみ。他ページは計算関数を必要としない（機体プリセットの共有は
+localStorage 経由）。</p>
+</blockquote>
+<hr />
+<h1 id="共通実装規約">3. 共通実装規約</h1>
+<p>すべてのページがこの規約を踏襲する。再構築時はまずこの骨格をテンプレート化すると効率的。</p>
+<h2 id="html-の-head-読込順厳守">3.1 HTML の <code>&lt;head&gt;</code>
+読込順（厳守）</h2>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode html"><code class="sourceCode html"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!DOCTYPE</span> html<span class="dt">&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">html</span><span class="ot"> lang</span><span class="op">=</span><span class="st">&quot;ja&quot;</span><span class="dt">&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">head</span><span class="dt">&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">meta</span><span class="ot"> charset</span><span class="op">=</span><span class="st">&quot;UTF-8&quot;</span><span class="dt">&gt;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">meta</span><span class="ot"> name</span><span class="op">=</span><span class="st">&quot;viewport&quot;</span><span class="ot"> content</span><span class="op">=</span><span class="st">&quot;width=device-width, initial-scale=1.0&quot;</span><span class="dt">&gt;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">title</span><span class="dt">&gt;</span>ドローン運用ツール | （画面名）<span class="dt">&lt;/</span><span class="kw">title</span><span class="dt">&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">link</span><span class="ot"> rel</span><span class="op">=</span><span class="st">&quot;manifest&quot;</span><span class="ot"> href</span><span class="op">=</span><span class="st">&quot;manifest.json&quot;</span><span class="dt">&gt;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">meta</span><span class="ot"> name</span><span class="op">=</span><span class="st">&quot;theme-color&quot;</span><span class="ot"> content</span><span class="op">=</span><span class="st">&quot;#25364A&quot;</span><span class="dt">&gt;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">link</span><span class="ot"> rel</span><span class="op">=</span><span class="st">&quot;stylesheet&quot;</span><span class="ot"> href</span><span class="op">=</span><span class="st">&quot;theme.css&quot;</span><span class="dt">&gt;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">style</span><span class="dt">&gt;</span><span class="co">/* ページ固有スタイルのみ。共通は theme.css */</span><span class="dt">&lt;/</span><span class="kw">style</span><span class="dt">&gt;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;/</span><span class="kw">head</span><span class="dt">&gt;</span></span></code></pre></div>
+<p>順序の理由：manifest → theme-color → theme.css → ページ固有
+<code>&lt;style&gt;</code>。ページ固有スタイルで共通を上書きできるよう最後に置く。</p>
+<h2 id="共通ヘッダーナビゲーション">3.2
+共通ヘッダー・ナビゲーション</h2>
+<p><code>&lt;body&gt;</code> 直下に必ず置く。</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode html"><code class="sourceCode html"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">header</span><span class="ot"> class</span><span class="op">=</span><span class="st">&quot;site-header&quot;</span><span class="dt">&gt;&lt;/</span><span class="kw">header</span><span class="dt">&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">nav</span><span class="ot"> class</span><span class="op">=</span><span class="st">&quot;site-nav&quot;</span><span class="ot"> aria-label</span><span class="op">=</span><span class="st">&quot;ツール間ナビゲーション&quot;</span><span class="dt">&gt;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">a</span><span class="ot"> href</span><span class="op">=</span><span class="st">&quot;index.html&quot;</span><span class="dt">&gt;</span>ホーム<span class="dt">&lt;/</span><span class="kw">a</span><span class="dt">&gt;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">a</span><span class="ot"> href</span><span class="op">=</span><span class="st">&quot;aircraft.html&quot;</span><span class="dt">&gt;</span>機体管理<span class="dt">&lt;/</span><span class="kw">a</span><span class="dt">&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">a</span><span class="ot"> href</span><span class="op">=</span><span class="st">&quot;flight-plan.html&quot;</span><span class="dt">&gt;</span>計画書<span class="dt">&lt;/</span><span class="kw">a</span><span class="dt">&gt;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">a</span><span class="ot"> href</span><span class="op">=</span><span class="st">&quot;checklist.html&quot;</span><span class="dt">&gt;</span>チェックリスト<span class="dt">&lt;/</span><span class="kw">a</span><span class="dt">&gt;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">a</span><span class="ot"> href</span><span class="op">=</span><span class="st">&quot;flight-log.html&quot;</span><span class="dt">&gt;</span>日誌<span class="dt">&lt;/</span><span class="kw">a</span><span class="dt">&gt;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">a</span><span class="ot"> href</span><span class="op">=</span><span class="st">&quot;data.html&quot;</span><span class="dt">&gt;</span>データ管理<span class="dt">&lt;/</span><span class="kw">a</span><span class="dt">&gt;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">a</span><span class="ot"> href</span><span class="op">=</span><span class="st">&quot;calculator.html&quot;</span><span class="dt">&gt;</span>飛行計算<span class="dt">&lt;/</span><span class="kw">a</span><span class="dt">&gt;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;/</span><span class="kw">nav</span><span class="dt">&gt;</span></span></code></pre></div>
+<ul>
+<li>現在表示中のページのリンクには <code>aria-current="page"</code>
+を付ける（スタイルで強調＝第7章）。</li>
+<li><code>.site-header</code>
+は中身が空でも高さ・背景を持つ帯として機能する（ロゴ等は持たない簡素な構成）。</li>
+<li>ナビは狭い画面で<strong>折り返して全リンクを常時表示</strong>（横スクロールで隠さない）。</li>
+</ul>
+<h2 id="service-worker-登録全ページの-body-直前">3.3 Service Worker
+登録（全ページの <code>&lt;/body&gt;</code> 直前）</h2>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode html"><code class="sourceCode html"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">script</span><span class="dt">&gt;</span><span class="cf">if</span>(<span class="st">&quot;serviceWorker&quot;</span> <span class="kw">in</span> <span class="bu">navigator</span>){<span class="bu">navigator</span><span class="op">.</span><span class="at">serviceWorker</span><span class="op">.</span><span class="fu">register</span>(<span class="st">&quot;sw.js&quot;</span>)<span class="op">.</span><span class="fu">catch</span>(()<span class="kw">=&gt;</span>{})<span class="op">;</span>}<span class="dt">&lt;/</span><span class="kw">script</span><span class="dt">&gt;</span></span></code></pre></div>
+<h2 id="コンテナ">3.4 コンテナ</h2>
+<p>本文は <code>&lt;div class="container"&gt;…&lt;/div&gt;</code>
+に入れる。<code>max-width</code> のみ各ページの固有
+<code>&lt;style&gt;</code> で指定する（共通の余白は
+theme.css）。ページ別 max-width：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>ページ</th>
+<th>max-width</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>index</td>
+<td>560px</td>
+</tr>
+<tr>
+<td>aircraft / data</td>
+<td>720px</td>
+</tr>
+<tr>
+<td>flight-plan</td>
+<td>（2カラムレイアウト。<code>.layout</code>
+がグリッド、<code>.doc</code> は max 680px）</td>
+</tr>
+<tr>
+<td>checklist</td>
+<td>600px</td>
+</tr>
+<tr>
+<td>flight-log</td>
+<td>640px</td>
+</tr>
+<tr>
+<td>calculator</td>
+<td>1100px</td>
+</tr>
+</tbody>
+</table>
+<h2 id="選択または自由入力コントロール重要パターン">3.5
+「選択または自由入力」コントロール（重要パターン）</h2>
+<p>機体名・操縦者名の入力は、登録候補からの選択と自由入力を1つの
+<code>&lt;select&gt;</code> で兼ねる。計画書・日誌で同一仕様。</p>
+<ul>
+<li>センチネル定数 <code>const MANUAL = '__manual__';</code></li>
+<li><code>&lt;select&gt;</code> の構成：先頭に
+<code>&lt;option value=""&gt;（〇〇を選択）&lt;/option&gt;</code>、続いて候補（重複除去・空除去）、末尾に
+<code>&lt;option value="__manual__"&gt;＋手入力…&lt;/option&gt;</code>。</li>
+<li><code>change</code> 時、値が <code>MANUAL</code> なら
+<code>prompt()</code> で文字列を取得し、空でなければその値の
+<code>&lt;option&gt;</code>
+を末尾手入力オプションの直前に挿入して選択（<code>ensureOption</code>）。空ならクリア。</li>
+<li>保存・読込時に値が <code>MANUAL</code>
+のままなら空文字として扱う。</li>
+</ul>
+<p>擬似コード：</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">ensureOption</span>(sel<span class="op">,</span> value){</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="op">!</span>[<span class="op">...</span>sel<span class="op">.</span><span class="at">options</span>]<span class="op">.</span><span class="fu">some</span>(o <span class="kw">=&gt;</span> o<span class="op">.</span><span class="at">value</span> <span class="op">===</span> value)){</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> o <span class="op">=</span> <span class="bu">document</span><span class="op">.</span><span class="fu">createElement</span>(<span class="st">&#39;option&#39;</span>)<span class="op">;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    o<span class="op">.</span><span class="at">value</span> <span class="op">=</span> o<span class="op">.</span><span class="at">textContent</span> <span class="op">=</span> value<span class="op">;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    sel<span class="op">.</span><span class="fu">insertBefore</span>(o<span class="op">,</span> sel<span class="op">.</span><span class="at">lastElementChild</span>)<span class="op">;</span> <span class="co">// 末尾「＋手入力…」の前</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  sel<span class="op">.</span><span class="at">value</span> <span class="op">=</span> value<span class="op">;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">buildOptions</span>(values<span class="op">,</span> label){ <span class="co">// 候補生成</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> uniq <span class="op">=</span> [<span class="op">...</span><span class="kw">new</span> <span class="bu">Set</span>(values<span class="op">.</span><span class="fu">map</span>(v <span class="kw">=&gt;</span> (v<span class="op">||</span><span class="st">&#39;&#39;</span>)<span class="op">.</span><span class="fu">trim</span>())<span class="op">.</span><span class="fu">filter</span>(<span class="bu">Boolean</span>))]<span class="op">;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> html <span class="op">=</span> <span class="vs">`&lt;option value=&quot;&quot;&gt;（</span><span class="sc">${</span>label<span class="sc">}</span><span class="vs">を選択）&lt;/option&gt;`</span><span class="op">;</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  uniq<span class="op">.</span><span class="fu">forEach</span>(v <span class="kw">=&gt;</span> html <span class="op">+=</span> <span class="vs">`&lt;option value=&quot;</span><span class="sc">${</span><span class="fu">escAttr</span>(v)<span class="sc">}</span><span class="vs">&quot;&gt;</span><span class="sc">${</span><span class="fu">escAttr</span>(v)<span class="sc">}</span><span class="vs">&lt;/option&gt;`</span>)<span class="op">;</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  html <span class="op">+=</span> <span class="vs">`&lt;option value=&quot;</span><span class="sc">${</span>MANUAL<span class="sc">}</span><span class="vs">&quot;&gt;＋手入力…&lt;/option&gt;`</span><span class="op">;</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> html<span class="op">;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h2 id="html-エスケープ">3.6 HTML エスケープ</h2>
+<p>XSS防止のため、ユーザー入力を innerHTML
+へ差し込む箇所では必ずエスケープする。2系統が使われている：</p>
+<ul>
+<li>DOM経由（推奨・多用）：</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">esc</span>(s){ <span class="kw">const</span> d <span class="op">=</span> <span class="bu">document</span><span class="op">.</span><span class="fu">createElement</span>(<span class="st">&#39;div&#39;</span>)<span class="op">;</span> d<span class="op">.</span><span class="at">textContent</span> <span class="op">=</span> s <span class="op">==</span> <span class="kw">null</span> <span class="op">?</span> <span class="st">&#39;&#39;</span> <span class="op">:</span> s<span class="op">;</span> <span class="cf">return</span> d<span class="op">.</span><span class="at">innerHTML</span><span class="op">;</span> }</span></code></pre></div>
+<ul>
+<li>文字列置換（属性値用）：</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">escAttr</span>(s){ <span class="cf">return</span> <span class="bu">String</span>(s)<span class="op">.</span><span class="fu">replace</span>(<span class="ss">/&amp;/g</span><span class="op">,</span><span class="st">&#39;&amp;amp;&#39;</span>)<span class="op">.</span><span class="fu">replace</span>(<span class="ss">/&quot;/g</span><span class="op">,</span><span class="st">&#39;&amp;quot;&#39;</span>)<span class="op">.</span><span class="fu">replace</span>(<span class="ss">/&lt;/g</span><span class="op">,</span><span class="st">&#39;&amp;lt;&#39;</span>)<span class="op">;</span> }</span></code></pre></div>
+<ul>
+<li>aircraft.html はもう1系統（<code>&amp;&lt;&gt;"'</code>
+を実体参照化する <code>esc</code>）を使う。いずれでも機能的に等価。</li>
+</ul>
+<h2 id="localstorage-読み取りの定型">3.7 localStorage
+読み取りの定型</h2>
+<p>壊れた値・未保存に備え、必ず try/catch とフォールバックを置く：</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> arr <span class="op">=</span> []<span class="op">;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span> { arr <span class="op">=</span> <span class="bu">JSON</span><span class="op">.</span><span class="fu">parse</span>(localStorage<span class="op">.</span><span class="fu">getItem</span>(KEY)) <span class="op">||</span> []<span class="op">;</span> } <span class="cf">catch</span>(e) { arr <span class="op">=</span> []<span class="op">;</span> }</span></code></pre></div>
+<h2 id="ファイルダウンロードの定型json-csv-出力">3.8
+ファイルダウンロードの定型（JSON / CSV 出力）</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">downloadJSON</span>(payload<span class="op">,</span> filename){</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> blob <span class="op">=</span> <span class="kw">new</span> <span class="bu">Blob</span>([<span class="bu">JSON</span><span class="op">.</span><span class="fu">stringify</span>(payload<span class="op">,</span> <span class="kw">null</span><span class="op">,</span> <span class="dv">2</span>)]<span class="op">,</span> { <span class="dt">type</span><span class="op">:</span><span class="st">&#39;application/json&#39;</span> })<span class="op">;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> a <span class="op">=</span> <span class="bu">document</span><span class="op">.</span><span class="fu">createElement</span>(<span class="st">&#39;a&#39;</span>)<span class="op">;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  a<span class="op">.</span><span class="at">href</span> <span class="op">=</span> URL<span class="op">.</span><span class="fu">createObjectURL</span>(blob)<span class="op">;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  a<span class="op">.</span><span class="at">download</span> <span class="op">=</span> filename<span class="op">;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  a<span class="op">.</span><span class="fu">click</span>()<span class="op">;</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  URL<span class="op">.</span><span class="fu">revokeObjectURL</span>(a<span class="op">.</span><span class="at">href</span>)<span class="op">;</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h2 id="日付フォーマット定型">3.9 日付フォーマット定型</h2>
+<ul>
+<li>当日 ISO：<code>todayISO()</code> →
+<code>YYYY-MM-DD</code>（<code>getFullYear</code> + 0埋め月日）。</li>
+<li>和暦風表示：<code>fmtDateJP('2026-06-17')</code> →
+<code>2026年6月17日</code>（月日は <code>parseInt</code>
+で先頭ゼロを除去）。</li>
+<li>ファイル名スタンプ：<code>stamp()</code> →
+<code>YYYYMMDD</code>。</li>
+</ul>
+<h2 id="id-命名規則">3.10 ID 命名規則</h2>
+<ul>
+<li>フォーム入力：<code>f-xxx</code>（例 <code>f-name</code>,
+<code>f-date</code>, <code>f-registration</code>）。</li>
+<li>検索：<code>s-xxx</code>。計算結果出力：<code>xx-out-xxx</code>。</li>
+<li>一覧の各行ボタンは
+<code>data-act</code>（<code>edit</code>/<code>delete</code> 等）と
+<code>data-id</code>
+を持ち、親コンテナで<strong>イベント委譲</strong>して処理する。</li>
+</ul>
+<hr />
+<h1 id="デザインシステムtheme.css-完全仕様">4.
+デザインシステム（theme.css 完全仕様）</h1>
+<p><code>theme.css</code> は基準ページ calculator.html
+を母体とした全ページ共通スタイル。以下をそのまま実装する。</p>
+<h2 id="リセット">4.1 リセット</h2>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode css"><code class="sourceCode css"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="op">*,</span> <span class="op">*</span><span class="in">::before</span><span class="op">,</span> <span class="op">*</span><span class="in">::after</span> { <span class="kw">box-sizing</span><span class="ch">:</span> <span class="dv">border-box</span><span class="op">;</span> <span class="kw">margin</span><span class="ch">:</span> <span class="dv">0</span><span class="op">;</span> <span class="kw">padding</span><span class="ch">:</span> <span class="dv">0</span><span class="op">;</span> }</span></code></pre></div>
+<h2 id="カラートークンroot-実数値">4.2
+カラートークン（<code>:root</code>）— 実数値</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>変数</th>
+<th>値</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--accent</code></td>
+<td><code>#25364A</code></td>
+<td>基調色：ヘッダー・主要ボタン・強調値</td>
+</tr>
+<tr>
+<td><code>--accent-light</code></td>
+<td><code>#EEF2E4</code></td>
+<td>基調の淡色：選択状態・カード見出し背景</td>
+</tr>
+<tr>
+<td><code>--border</code></td>
+<td><code>#C8CEC0</code></td>
+<td>罫線</td>
+</tr>
+<tr>
+<td><code>--text</code></td>
+<td><code>#2D3325</code></td>
+<td>本文</td>
+</tr>
+<tr>
+<td><code>--muted</code></td>
+<td><code>#72786B</code></td>
+<td>補足文字（小さい注記のみ）</td>
+</tr>
+<tr>
+<td><code>--label</code></td>
+<td><code>#3A4032</code></td>
+<td>フォームラベル専用の濃色（屋外視認性）</td>
+</tr>
+<tr>
+<td><code>--bg</code></td>
+<td><code>#F5F3EC</code></td>
+<td>ページ背景</td>
+</tr>
+<tr>
+<td><code>--white</code></td>
+<td><code>#fff</code></td>
+<td>白</td>
+</tr>
+<tr>
+<td><code>--radius</code></td>
+<td><code>8px</code></td>
+<td>カード角丸（入力欄は 6px 固定）</td>
+</tr>
+<tr>
+<td><code>--danger</code></td>
+<td><code>#b03a3a</code></td>
+<td>警告：枠線・アイコン</td>
+</tr>
+<tr>
+<td><code>--danger-dark</code></td>
+<td><code>#8a2f2f</code></td>
+<td>警告：文字</td>
+</tr>
+<tr>
+<td><code>--ok</code></td>
+<td><code>#9DB87C</code></td>
+<td>良好：枠線</td>
+</tr>
+<tr>
+<td><code>--ok-bg</code></td>
+<td><code>#F2F7EA</code></td>
+<td>良好：背景</td>
+</tr>
+<tr>
+<td><code>--ok-text</code></td>
+<td><code>#3E5226</code></td>
+<td>良好：文字</td>
+</tr>
+</tbody>
+</table>
+<h2 id="body">4.3 body</h2>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode css"><code class="sourceCode css"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>body{</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">font-family</span><span class="ch">:</span><span class="st">&quot;Hiragino Kaku Gothic ProN&quot;</span><span class="op">,</span><span class="st">&quot;Hiragino Sans&quot;</span><span class="op">,</span><span class="st">&quot;Noto Sans JP&quot;</span><span class="op">,</span><span class="dv">Meiryo</span><span class="op">,</span><span class="dv">sans-serif</span><span class="op">;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">background</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--bg</span><span class="fu">)</span><span class="op">;</span> <span class="kw">color</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--text</span><span class="fu">)</span><span class="op">;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">font-size</span><span class="ch">:</span><span class="dv">15</span><span class="dt">px</span><span class="op">;</span> <span class="kw">line-height</span><span class="ch">:</span><span class="dv">1.6</span><span class="op">;</span> <span class="kw">min-height</span><span class="ch">:</span><span class="dv">100</span><span class="dt">vh</span><span class="op">;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h2 id="ヘッダーナビ">4.4 ヘッダー・ナビ</h2>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode css"><code class="sourceCode css"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">.site-header</span>{ <span class="kw">background</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--accent</span><span class="fu">)</span><span class="op">;</span> <span class="kw">color</span><span class="ch">:</span><span class="cn">#fff</span><span class="op">;</span> <span class="kw">padding</span><span class="ch">:</span><span class="dv">14</span><span class="dt">px</span> <span class="dv">24</span><span class="dt">px</span><span class="op">;</span> <span class="kw">display</span><span class="ch">:</span><span class="dv">flex</span><span class="op">;</span> <span class="kw">align-items</span><span class="ch">:</span><span class="dv">center</span><span class="op">;</span> <span class="kw">gap</span><span class="ch">:</span><span class="dv">12</span><span class="dt">px</span><span class="op">;</span> }</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">.site-header</span> svg{ <span class="kw">flex-shrink</span><span class="ch">:</span><span class="dv">0</span><span class="op">;</span> }</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">.site-header</span> h1{ <span class="kw">font-size</span><span class="ch">:</span><span class="dv">18</span><span class="dt">px</span><span class="op">;</span> <span class="kw">font-weight</span><span class="ch">:</span><span class="dv">700</span><span class="op">;</span> <span class="kw">letter-spacing</span><span class="ch">:</span><span class="dv">.03</span><span class="dt">em</span><span class="op">;</span> }</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">.site-header</span> a{ <span class="kw">color</span><span class="ch">:</span><span class="bu">inherit</span><span class="op">;</span> <span class="kw">text-decoration</span><span class="ch">:</span><span class="dv">none</span><span class="op">;</span> <span class="kw">display</span><span class="ch">:</span><span class="dv">flex</span><span class="op">;</span> <span class="kw">align-items</span><span class="ch">:</span><span class="dv">center</span><span class="op">;</span> <span class="kw">gap</span><span class="ch">:</span><span class="dv">12</span><span class="dt">px</span><span class="op">;</span> }</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="fu">.site-nav</span>{ <span class="kw">background</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--accent</span><span class="fu">)</span><span class="op">;</span> <span class="kw">padding</span><span class="ch">:</span><span class="dv">0</span> <span class="dv">20</span><span class="dt">px</span> <span class="dv">10</span><span class="dt">px</span><span class="op">;</span> <span class="kw">display</span><span class="ch">:</span><span class="dv">flex</span><span class="op">;</span> <span class="kw">gap</span><span class="ch">:</span><span class="dv">6</span><span class="dt">px</span><span class="op">;</span> <span class="kw">flex-wrap</span><span class="ch">:</span><span class="dv">wrap</span><span class="op">;</span> }</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="fu">.site-nav</span> a{</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">color</span><span class="ch">:</span><span class="fu">rgba(</span><span class="dv">255</span><span class="op">,</span><span class="dv">255</span><span class="op">,</span><span class="dv">255</span><span class="op">,</span><span class="dv">.85</span><span class="fu">)</span><span class="op">;</span> <span class="kw">text-decoration</span><span class="ch">:</span><span class="dv">none</span><span class="op">;</span> <span class="kw">font-size</span><span class="ch">:</span><span class="dv">13</span><span class="dt">px</span><span class="op">;</span> <span class="kw">font-weight</span><span class="ch">:</span><span class="dv">700</span><span class="op">;</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">padding</span><span class="ch">:</span><span class="dv">5</span><span class="dt">px</span> <span class="dv">13</span><span class="dt">px</span><span class="op">;</span> <span class="kw">border-radius</span><span class="ch">:</span><span class="dv">999</span><span class="dt">px</span><span class="op">;</span> <span class="kw">white-space</span><span class="ch">:</span><span class="dv">nowrap</span><span class="op">;</span> <span class="kw">letter-spacing</span><span class="ch">:</span><span class="dv">.03</span><span class="dt">em</span><span class="op">;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">transition</span><span class="ch">:</span><span class="dv">background .15</span><span class="dt">s</span><span class="op">,</span><span class="dv">color</span> <span class="dv">.15</span><span class="dt">s</span><span class="op">;</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="fu">.site-nav</span> a<span class="in">:hover</span>{ <span class="kw">color</span><span class="ch">:</span><span class="cn">#fff</span><span class="op">;</span> <span class="kw">background</span><span class="ch">:</span><span class="fu">rgba(</span><span class="dv">255</span><span class="op">,</span><span class="dv">255</span><span class="op">,</span><span class="dv">255</span><span class="op">,</span><span class="dv">.14</span><span class="fu">)</span><span class="op">;</span> }</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="fu">.site-nav</span> a<span class="ex">[</span><span class="ss">aria-current</span><span class="op">=</span><span class="st">&quot;page&quot;</span><span class="ex">]</span>{ <span class="kw">background</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--accent-light</span><span class="fu">)</span><span class="op">;</span> <span class="kw">color</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--accent</span><span class="fu">)</span><span class="op">;</span> }</span></code></pre></div>
+<h2 id="コンテナラベル">4.5 コンテナ・ラベル</h2>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode css"><code class="sourceCode css"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">.container</span>{ <span class="kw">margin</span><span class="ch">:</span><span class="dv">0</span> <span class="bu">auto</span><span class="op">;</span> <span class="kw">padding</span><span class="ch">:</span><span class="dv">28</span><span class="dt">px</span> <span class="dv">20</span><span class="dt">px</span> <span class="dv">60</span><span class="dt">px</span><span class="op">;</span> } <span class="co">/* max-width は各ページ */</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">.page-label</span>{</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">font-size</span><span class="ch">:</span><span class="dv">13</span><span class="dt">px</span><span class="op">;</span> <span class="kw">font-weight</span><span class="ch">:</span><span class="dv">700</span><span class="op">;</span> <span class="kw">text-transform</span><span class="ch">:</span><span class="dv">uppercase</span><span class="op">;</span> <span class="kw">letter-spacing</span><span class="ch">:</span><span class="dv">.08</span><span class="dt">em</span><span class="op">;</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">color</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--muted</span><span class="fu">)</span><span class="op">;</span> <span class="kw">margin-bottom</span><span class="ch">:</span><span class="dv">20</span><span class="dt">px</span><span class="op">;</span> <span class="kw">padding-bottom</span><span class="ch">:</span><span class="dv">8</span><span class="dt">px</span><span class="op">;</span> <span class="kw">border-bottom</span><span class="ch">:</span><span class="dv">1</span><span class="dt">px</span> <span class="dv">solid</span> <span class="fu">var(</span><span class="va">--border</span><span class="fu">)</span><span class="op">;</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h2 id="カード">4.6 カード</h2>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode css"><code class="sourceCode css"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">.card</span>{ <span class="kw">background</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--white</span><span class="fu">)</span><span class="op">;</span> <span class="kw">border</span><span class="ch">:</span><span class="dv">1</span><span class="dt">px</span> <span class="dv">solid</span> <span class="fu">var(</span><span class="va">--border</span><span class="fu">)</span><span class="op">;</span> <span class="kw">border-radius</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--radius</span><span class="fu">)</span><span class="op">;</span> <span class="kw">padding</span><span class="ch">:</span><span class="dv">20</span><span class="dt">px</span> <span class="dv">18</span><span class="dt">px</span><span class="op">;</span> <span class="kw">margin-bottom</span><span class="ch">:</span><span class="dv">24</span><span class="dt">px</span><span class="op">;</span> }</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">.card</span> h2{</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">font-size</span><span class="ch">:</span><span class="dv">13</span><span class="dt">px</span><span class="op">;</span> <span class="kw">font-weight</span><span class="ch">:</span><span class="dv">700</span><span class="op">;</span> <span class="kw">text-transform</span><span class="ch">:</span><span class="dv">uppercase</span><span class="op">;</span> <span class="kw">letter-spacing</span><span class="ch">:</span><span class="dv">.08</span><span class="dt">em</span><span class="op">;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">color</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--muted</span><span class="fu">)</span><span class="op">;</span> <span class="kw">margin-bottom</span><span class="ch">:</span><span class="dv">16</span><span class="dt">px</span><span class="op">;</span> <span class="kw">padding-bottom</span><span class="ch">:</span><span class="dv">8</span><span class="dt">px</span><span class="op">;</span> <span class="kw">border-bottom</span><span class="ch">:</span><span class="dv">1</span><span class="dt">px</span> <span class="dv">solid</span> <span class="fu">var(</span><span class="va">--border</span><span class="fu">)</span><span class="op">;</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h2 id="フォーム誤操作防止の核">4.7 フォーム（誤操作防止の核）</h2>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode css"><code class="sourceCode css"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">.field</span>{ <span class="kw">margin-bottom</span><span class="ch">:</span><span class="dv">16</span><span class="dt">px</span><span class="op">;</span> <span class="kw">min-width</span><span class="ch">:</span><span class="dv">0</span><span class="op">;</span> }</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">.field</span> label{ <span class="kw">display</span><span class="ch">:</span><span class="dv">block</span><span class="op">;</span> <span class="kw">font-size</span><span class="ch">:</span><span class="dv">13</span><span class="dt">px</span><span class="op">;</span> <span class="kw">font-weight</span><span class="ch">:</span><span class="dv">700</span><span class="op">;</span> <span class="kw">color</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--label</span><span class="fu">)</span><span class="op">;</span> <span class="kw">margin-bottom</span><span class="ch">:</span><span class="dv">4</span><span class="dt">px</span><span class="op">;</span> }</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">.field</span> input<span class="op">,</span> <span class="fu">.field</span> select<span class="op">,</span> <span class="fu">.field</span> textarea{</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">width</span><span class="ch">:</span><span class="dv">100</span><span class="dt">%</span><span class="op">;</span> <span class="kw">padding</span><span class="ch">:</span><span class="dv">10</span><span class="dt">px</span> <span class="dv">12</span><span class="dt">px</span><span class="op">;</span> <span class="kw">border</span><span class="ch">:</span><span class="dv">1</span><span class="dt">px</span> <span class="dv">solid</span> <span class="fu">var(</span><span class="va">--border</span><span class="fu">)</span><span class="op">;</span> <span class="kw">border-radius</span><span class="ch">:</span><span class="dv">6</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">font-size</span><span class="ch">:</span><span class="dv">16</span><span class="dt">px</span><span class="op">;</span>            <span class="co">/* iOS Safari のフォーカス時自動ズーム抑止のため 16px 固定 */</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">font-family</span><span class="ch">:</span><span class="bu">inherit</span><span class="op">;</span> <span class="kw">background</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--white</span><span class="fu">)</span><span class="op">;</span> <span class="kw">color</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--text</span><span class="fu">)</span><span class="op">;</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="fu">.field</span> input<span class="op">,</span> <span class="fu">.field</span> select{ <span class="kw">font-weight</span><span class="ch">:</span><span class="dv">600</span><span class="op">;</span> }</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="fu">.field</span> input<span class="op">,</span> <span class="fu">.field</span> textarea{ <span class="kw">-webkit-appearance</span><span class="ch">:</span><span class="dv">none</span><span class="op">;</span> <span class="kw">-moz-appearance</span><span class="ch">:</span><span class="dv">none</span><span class="op">;</span> <span class="kw">appearance</span><span class="ch">:</span><span class="dv">none</span><span class="op">;</span> } <span class="co">/* select は矢印が消えるため除外 */</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="fu">.field</span> input<span class="in">:focus</span><span class="op">,</span> <span class="fu">.field</span> select<span class="in">:focus</span><span class="op">,</span> <span class="fu">.field</span> textarea<span class="in">:focus</span>{ <span class="kw">outline</span><span class="ch">:</span><span class="dv">2</span><span class="dt">px</span> <span class="dv">solid</span> <span class="fu">var(</span><span class="va">--accent</span><span class="fu">)</span><span class="op">;</span> <span class="kw">outline-offset</span><span class="ch">:</span><span class="dv">-1</span><span class="dt">px</span><span class="op">;</span> }</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="fu">.field</span> textarea{ <span class="kw">resize</span><span class="ch">:</span><span class="dv">vertical</span><span class="op">;</span> <span class="kw">min-height</span><span class="ch">:</span><span class="dv">72</span><span class="dt">px</span><span class="op">;</span> }</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="fu">.field</span> <span class="fu">.hint</span>{ <span class="kw">font-size</span><span class="ch">:</span><span class="dv">11</span><span class="dt">px</span><span class="op">;</span> <span class="kw">color</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--muted</span><span class="fu">)</span><span class="op">;</span> <span class="kw">margin-top</span><span class="ch">:</span><span class="dv">2</span><span class="dt">px</span><span class="op">;</span> }</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="fu">.field</span> input<span class="fu">.invalid</span>{ <span class="kw">border-color</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--danger</span><span class="fu">)</span><span class="op">;</span> <span class="kw">background</span><span class="ch">:</span><span class="cn">#fdf3f3</span><span class="op">;</span> }</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>input<span class="ex">[</span><span class="ss">type</span><span class="op">=</span><span class="st">&quot;date&quot;</span><span class="ex">]</span><span class="op">,</span> input<span class="ex">[</span><span class="ss">type</span><span class="op">=</span><span class="st">&quot;time&quot;</span><span class="ex">]</span>{ <span class="kw">min-height</span><span class="ch">:</span><span class="dv">44</span><span class="dt">px</span><span class="op">;</span> }   <span class="co">/* タッチターゲット 44px */</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="fu">.field-row</span>{ <span class="kw">display</span><span class="ch">:</span><span class="dv">grid</span><span class="op">;</span> <span class="kw">grid-template-columns</span><span class="ch">:</span><span class="dv">1</span><span class="dt">fr</span> <span class="dv">1</span><span class="dt">fr</span><span class="op">;</span> <span class="kw">gap</span><span class="ch">:</span><span class="dv">14</span><span class="dt">px</span><span class="op">;</span> }</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="fu">.field-row-3</span>{ <span class="kw">display</span><span class="ch">:</span><span class="dv">grid</span><span class="op">;</span> <span class="kw">grid-template-columns</span><span class="ch">:</span><span class="dv">1</span><span class="dt">fr</span> <span class="dv">1</span><span class="dt">fr</span> <span class="dv">1</span><span class="dt">fr</span><span class="op">;</span> <span class="kw">gap</span><span class="ch">:</span><span class="dv">14</span><span class="dt">px</span><span class="op">;</span> }</span></code></pre></div>
+<h2 id="ボタン">4.8 ボタン</h2>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode css"><code class="sourceCode css"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">.btn</span>{</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">padding</span><span class="ch">:</span><span class="dv">11</span><span class="dt">px</span> <span class="dv">16</span><span class="dt">px</span><span class="op">;</span> <span class="kw">border-radius</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--radius</span><span class="fu">)</span><span class="op">;</span> <span class="kw">font-family</span><span class="ch">:</span><span class="bu">inherit</span><span class="op">;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">font-size</span><span class="ch">:</span><span class="dv">14</span><span class="dt">px</span><span class="op">;</span> <span class="kw">font-weight</span><span class="ch">:</span><span class="dv">700</span><span class="op">;</span> <span class="kw">cursor</span><span class="ch">:</span><span class="dv">pointer</span><span class="op">;</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">display</span><span class="ch">:</span><span class="dv">inline-flex</span><span class="op">;</span> <span class="kw">align-items</span><span class="ch">:</span><span class="dv">center</span><span class="op">;</span> <span class="kw">justify-content</span><span class="ch">:</span><span class="dv">center</span><span class="op">;</span> <span class="kw">gap</span><span class="ch">:</span><span class="dv">7</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">transition</span><span class="ch">:</span><span class="dv">background .15</span><span class="dt">s</span><span class="op">,</span><span class="dv">color</span> <span class="dv">.15</span><span class="dt">s</span><span class="op">,</span><span class="dv">transform .1</span><span class="dt">s</span><span class="op">;</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">-webkit-tap-highlight-color</span><span class="ch">:</span><span class="dv">transparent</span><span class="op">;</span> <span class="kw">text-decoration</span><span class="ch">:</span><span class="dv">none</span><span class="op">;</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="fu">.btn</span><span class="in">:active</span>{ <span class="kw">transform</span><span class="ch">:</span><span class="fu">scale(</span><span class="dv">.98</span><span class="fu">)</span><span class="op">;</span> }</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="fu">.btn-primary</span>{ <span class="kw">background</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--accent</span><span class="fu">)</span><span class="op">;</span> <span class="kw">color</span><span class="ch">:</span><span class="cn">#fff</span><span class="op">;</span> <span class="kw">border</span><span class="ch">:</span><span class="dv">2</span><span class="dt">px</span> <span class="dv">solid</span> <span class="fu">var(</span><span class="va">--accent</span><span class="fu">)</span><span class="op">;</span> <span class="kw">width</span><span class="ch">:</span><span class="dv">100</span><span class="dt">%</span><span class="op">;</span> }</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="fu">.btn-primary</span><span class="in">:hover</span>{ <span class="kw">background</span><span class="ch">:</span><span class="cn">#34495f</span><span class="op">;</span> <span class="kw">border-color</span><span class="ch">:</span><span class="cn">#34495f</span><span class="op">;</span> }</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="fu">.btn-outline</span>{ <span class="kw">background</span><span class="ch">:</span><span class="dv">transparent</span><span class="op">;</span> <span class="kw">color</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--accent</span><span class="fu">)</span><span class="op">;</span> <span class="kw">border</span><span class="ch">:</span><span class="dv">2</span><span class="dt">px</span> <span class="dv">solid</span> <span class="fu">var(</span><span class="va">--accent</span><span class="fu">)</span><span class="op">;</span> }</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="fu">.btn-outline</span><span class="in">:hover</span>{ <span class="kw">background</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--accent</span><span class="fu">)</span><span class="op">;</span> <span class="kw">color</span><span class="ch">:</span><span class="cn">#fff</span><span class="op">;</span> }</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="fu">.btn-row</span>{ <span class="kw">display</span><span class="ch">:</span><span class="dv">grid</span><span class="op">;</span> <span class="kw">grid-template-columns</span><span class="ch">:</span><span class="dv">1</span><span class="dt">fr</span> <span class="dv">1</span><span class="dt">fr</span><span class="op">;</span> <span class="kw">gap</span><span class="ch">:</span><span class="dv">12</span><span class="dt">px</span><span class="op">;</span> }</span></code></pre></div>
+<ul>
+<li>ページ固有で <code>.btn-small</code>（min-height:44px
+の枠線ボタン）、<code>.btn-clear</code>（danger
+枠線、全幅）、<code>.btn-clear-all</code> などを定義する。破壊的操作は
+danger 色で区別し <code>confirm()</code> を挟む。</li>
+</ul>
+<h2 id="注意ノート空表示">4.9 注意ノート・空表示</h2>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode css"><code class="sourceCode css"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">.note-warn</span>{</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">display</span><span class="ch">:</span><span class="dv">flex</span><span class="op">;</span> <span class="kw">gap</span><span class="ch">:</span><span class="dv">10</span><span class="dt">px</span><span class="op">;</span> <span class="kw">align-items</span><span class="ch">:</span><span class="dv">flex-start</span><span class="op">;</span> <span class="kw">padding</span><span class="ch">:</span><span class="dv">10</span><span class="dt">px</span> <span class="dv">12</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">background</span><span class="ch">:</span><span class="cn">#fff8e1</span><span class="op">;</span> <span class="kw">border</span><span class="ch">:</span><span class="dv">1</span><span class="dt">px</span> <span class="dv">solid</span> <span class="cn">#f0c040</span><span class="op">;</span> <span class="kw">border-radius</span><span class="ch">:</span><span class="dv">6</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">font-size</span><span class="ch">:</span><span class="dv">13</span><span class="dt">px</span><span class="op">;</span> <span class="kw">color</span><span class="ch">:</span><span class="cn">#5a4500</span><span class="op">;</span> <span class="kw">line-height</span><span class="ch">:</span><span class="dv">1.65</span><span class="op">;</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="fu">.note-warn</span> svg{ <span class="kw">flex-shrink</span><span class="ch">:</span><span class="dv">0</span><span class="op">;</span> <span class="kw">margin-top</span><span class="ch">:</span><span class="dv">2</span><span class="dt">px</span><span class="op">;</span> }</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="fu">.empty-msg</span>{</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">text-align</span><span class="ch">:</span><span class="dv">center</span><span class="op">;</span> <span class="kw">color</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--muted</span><span class="fu">)</span><span class="op">;</span> <span class="kw">font-size</span><span class="ch">:</span><span class="dv">14</span><span class="dt">px</span><span class="op">;</span> <span class="kw">padding</span><span class="ch">:</span><span class="dv">28</span><span class="dt">px</span> <span class="dv">10</span><span class="dt">px</span><span class="op">;</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">background</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--white</span><span class="fu">)</span><span class="op">;</span> <span class="kw">border</span><span class="ch">:</span><span class="dv">1</span><span class="dt">px</span> <span class="dv">dashed</span> <span class="fu">var(</span><span class="va">--border</span><span class="fu">)</span><span class="op">;</span> <span class="kw">border-radius</span><span class="ch">:</span><span class="fu">var(</span><span class="va">--radius</span><span class="fu">)</span><span class="op">;</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h2 id="レスポンシブ">4.10 レスポンシブ</h2>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode css"><code class="sourceCode css"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">@media</span> <span class="fu">(</span><span class="kw">max-width</span><span class="ch">:</span><span class="dv">480</span><span class="dt">px</span><span class="fu">)</span>{</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">.site-header</span>{ <span class="kw">padding</span><span class="ch">:</span><span class="dv">12</span><span class="dt">px</span> <span class="dv">16</span><span class="dt">px</span><span class="op">;</span> } <span class="fu">.site-header</span> h1{ <span class="kw">font-size</span><span class="ch">:</span><span class="dv">16</span><span class="dt">px</span><span class="op">;</span> }</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">.site-nav</span>{ <span class="kw">padding</span><span class="ch">:</span><span class="dv">0</span> <span class="dv">14</span><span class="dt">px</span> <span class="dv">9</span><span class="dt">px</span><span class="op">;</span> }</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">.container</span>{ <span class="kw">padding</span><span class="ch">:</span><span class="dv">20</span><span class="dt">px</span> <span class="dv">12</span><span class="dt">px</span> <span class="dv">48</span><span class="dt">px</span><span class="op">;</span> }</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">.card</span>{ <span class="kw">padding</span><span class="ch">:</span><span class="dv">16</span><span class="dt">px</span> <span class="dv">14</span><span class="dt">px</span><span class="op">;</span> }</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">.field-row</span><span class="op">,</span> <span class="fu">.field-row-3</span>{ <span class="kw">grid-template-columns</span><span class="ch">:</span><span class="dv">1</span><span class="dt">fr</span><span class="op">;</span> }</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">.field</span> input<span class="ex">[</span><span class="ss">type</span><span class="op">=</span><span class="st">&quot;date&quot;</span><span class="ex">]</span><span class="op">,</span> <span class="fu">.field</span> input<span class="ex">[</span><span class="ss">type</span><span class="op">=</span><span class="st">&quot;time&quot;</span><span class="ex">]</span>{</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">padding</span><span class="ch">:</span><span class="dv">6</span><span class="dt">px</span> <span class="dv">8</span><span class="dt">px</span><span class="op">;</span> <span class="kw">line-height</span><span class="ch">:</span><span class="dv">1.2</span><span class="op">;</span> <span class="kw">max-width</span><span class="ch">:</span><span class="dv">100</span><span class="dt">%</span><span class="op">;</span> <span class="kw">overflow</span><span class="ch">:</span><span class="dv">hidden</span><span class="op">;</span> <span class="kw">text-overflow</span><span class="ch">:</span><span class="dv">ellipsis</span><span class="op">;</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="im">@media</span> <span class="fu">(</span><span class="kw">max-height</span><span class="ch">:</span><span class="dv">500</span><span class="dt">px</span><span class="fu">)</span>{ <span class="fu">.field-row</span><span class="op">,</span> <span class="fu">.field-row-3</span>{ <span class="kw">grid-template-columns</span><span class="ch">:</span><span class="dv">1</span><span class="dt">fr</span><span class="op">;</span> } } <span class="co">/* 横向き低高さ端末 */</span></span></code></pre></div>
+<h2 id="印刷共通">4.11 印刷共通</h2>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode css"><code class="sourceCode css"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">@media</span> <span class="an">print</span>{ <span class="fu">.site-nav</span>{ <span class="kw">display</span><span class="ch">:</span><span class="dv">none</span> <span class="at">!important</span><span class="op">;</span> } }</span></code></pre></div>
+<p>各ページの印刷帳票は固有 <code>&lt;style&gt;</code> の
+<code>@media print</code> で詳細定義（第10・12章）。共通の作法： -
+<code>@page{ size:A4 (portrait|landscape); margin:0; }</code>（margin:0
+でブラウザのURL/日付/ページ番号を消し、紙余白は帳票要素の padding(mm)
+で確保）。 -
+<code>*{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }</code>（背景色・罫線を強制印刷）。
+- 画面UI（<code>.site-header</code>, <code>.site-nav</code>,
+<code>.container</code> 等）を
+<code>display:none !important</code>、印刷専用 <code>.print-doc</code>
+を <code>display:block</code>。</p>
+<h2 id="つの設計原則実装判断の指針">4.12
+3つの設計原則（実装判断の指針）</h2>
+<ol type="1">
+<li><strong>視認性（直射日光下で読める）</strong>：ラベルは
+<code>--label</code> 13px 太字。<code>--muted</code>
+は補足注記（11〜12px）のみ。重要数値は 22px 太字
+<code>--accent</code>。</li>
+<li><strong>誤操作防止</strong>：入力欄文字 16px 固定。タッチターゲット
+44px 以上。破壊的操作は <code>confirm()</code> ＋ danger 色。</li>
+<li><strong>隠れUIを作らない</strong>：ナビは折り返して全リンク常時表示。警告は色だけでなくアイコン（⚠）＋枠線＋背景で多重表現。</li>
+</ol>
+<hr />
+<h1 id="データモデル完全スキーマ">5. データモデル（完全スキーマ）</h1>
+<p>本章が再構築の「正」。各ストレージキーの型・フィールド・例を定義する。すべて
+<code>JSON.stringify</code> で保存。</p>
+<h2 id="ストレージキー一覧">5.1 ストレージキー一覧</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>キー</th>
+<th>場所</th>
+<th>型</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>drone-aircraft-list</code></td>
+<td>localStorage</td>
+<td>配列</td>
+<td>機体・操縦者の登録情報</td>
+</tr>
+<tr>
+<td><code>drone-flight-log-records</code></td>
+<td>localStorage</td>
+<td>配列</td>
+<td>飛行記録（様式１相当）全件</td>
+</tr>
+<tr>
+<td><code>drone-flight-plan-draft</code></td>
+<td>localStorage</td>
+<td>オブジェクト</td>
+<td>飛行計画書の下書き1件</td>
+</tr>
+<tr>
+<td><code>drone-checklist-records</code></td>
+<td>localStorage</td>
+<td>配列</td>
+<td>チェックリスト（実施年月日＋登録記号ごと）全件</td>
+</tr>
+<tr>
+<td><code>drone-active-session</code></td>
+<td>localStorage</td>
+<td>オブジェクト</td>
+<td>計画書→チェックリスト→日誌の引き継ぎ</td>
+</tr>
+<tr>
+<td><code>drone-calc-draft</code></td>
+<td>localStorage</td>
+<td>オブジェクト</td>
+<td>飛行計算の入力ドラフト（全input/selectのid→value）</td>
+</tr>
+<tr>
+<td><code>drone-calc-summary</code></td>
+<td>localStorage</td>
+<td>オブジェクト</td>
+<td>飛行計算結果（計画書備考への適用用）</td>
+</tr>
+<tr>
+<td><code>drone-aircraft-presets-v2</code></td>
+<td>localStorage</td>
+<td>配列</td>
+<td>飛行計算のユーザー機体プリセット</td>
+</tr>
+<tr>
+<td><code>drone-edit-request</code></td>
+<td>sessionStorage</td>
+<td>文字列</td>
+<td>データ管理→日誌 の編集対象 id</td>
+</tr>
+<tr>
+<td><code>drone-checklist-edit-request</code></td>
+<td>sessionStorage</td>
+<td>文字列</td>
+<td>データ管理→チェックリスト の編集対象 id</td>
+</tr>
+</tbody>
+</table>
+<h2 id="drone-aircraft-list機体">5.2
+<code>drone-aircraft-list</code>（機体）</h2>
+<p>配列。各要素：</p>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;ac-l9k3f2&quot;</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;DJI Mavic 3&quot;</span><span class="fu">,</span> <span class="dt">&quot;regNo&quot;</span><span class="fu">:</span> <span class="st">&quot;JU1234567890&quot;</span><span class="fu">,</span> <span class="dt">&quot;pilot&quot;</span><span class="fu">:</span> <span class="st">&quot;山田 太郎&quot;</span><span class="fu">,</span> <span class="dt">&quot;carryoverMinutes&quot;</span><span class="fu">:</span> <span class="dv">1200</span> <span class="fu">}</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>型</th>
+<th>必須</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>string</td>
+<td>○</td>
+<td><code>'ac-' + Date.now().toString(36)</code>。JSON取込での新規時は更に乱数4桁を付与</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td>○</td>
+<td>機体名。<strong>重複不可</strong>（紐付けキー）</td>
+</tr>
+<tr>
+<td><code>regNo</code></td>
+<td>string</td>
+<td>－</td>
+<td>機体番号（JU番号）。未入力時は空文字</td>
+</tr>
+<tr>
+<td><code>pilot</code></td>
+<td>string</td>
+<td>－</td>
+<td>担当操縦者</td>
+</tr>
+<tr>
+<td><code>carryoverMinutes</code></td>
+<td>number(int≥0)</td>
+<td>－</td>
+<td>導入前の繰越総飛行時間（分）。未入力は 0</td>
+</tr>
+</tbody>
+</table>
+<h2 id="drone-flight-log-records飛行日誌">5.3
+<code>drone-flight-log-records</code>（飛行日誌）</h2>
+<p>配列。各要素のフィールド（保存対象は固定リスト
+<code>FIELDS</code>）：</p>
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1718600000000</span><span class="fu">,</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;date&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-17&quot;</span><span class="fu">,</span> <span class="dt">&quot;summary&quot;</span><span class="fu">:</span> <span class="st">&quot;〇〇橋梁点検業務&quot;</span><span class="fu">,</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;flightplace&quot;</span><span class="fu">:</span> <span class="st">&quot;東京都千代田区丸の内&quot;</span><span class="fu">,</span> <span class="dt">&quot;weather&quot;</span><span class="fu">:</span> <span class="st">&quot;晴れ&quot;</span><span class="fu">,</span> <span class="dt">&quot;wind&quot;</span><span class="fu">:</span> <span class="st">&quot;北風 2m/s&quot;</span><span class="fu">,</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;aircraft&quot;</span><span class="fu">:</span> <span class="st">&quot;DJI Mavic 3&quot;</span><span class="fu">,</span> <span class="dt">&quot;registration&quot;</span><span class="fu">:</span> <span class="st">&quot;JU1234567890&quot;</span><span class="fu">,</span> <span class="dt">&quot;carryover&quot;</span><span class="fu">:</span> <span class="st">&quot;1200&quot;</span><span class="fu">,</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;pilot&quot;</span><span class="fu">:</span> <span class="st">&quot;山田 太郎&quot;</span><span class="fu">,</span> <span class="dt">&quot;takeoff&quot;</span><span class="fu">:</span> <span class="st">&quot;10:00&quot;</span><span class="fu">,</span> <span class="dt">&quot;landing&quot;</span><span class="fu">:</span> <span class="st">&quot;10:18&quot;</span><span class="fu">,</span> <span class="dt">&quot;time&quot;</span><span class="fu">:</span> <span class="st">&quot;18&quot;</span><span class="fu">,</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;35.68000, 139.76000&quot;</span><span class="fu">,</span> <span class="dt">&quot;landloc&quot;</span><span class="fu">:</span> <span class="st">&quot;同左&quot;</span><span class="fu">,</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;shoot&quot;</span><span class="fu">:</span> <span class="st">&quot;橋梁下部の点検空撮&quot;</span><span class="fu">,</span> <span class="dt">&quot;anomaly&quot;</span><span class="fu">:</span> <span class="st">&quot;&quot;</span><span class="fu">,</span> <span class="dt">&quot;confirmer&quot;</span><span class="fu">:</span> <span class="st">&quot;佐藤 花子&quot;</span><span class="fu">,</span> <span class="dt">&quot;memo&quot;</span><span class="fu">:</span> <span class="st">&quot;&quot;</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>型</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>number</td>
+<td><code>Date.now()</code>（追加時刻ミリ秒）</td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td>string <code>YYYY-MM-DD</code></td>
+<td>飛行年月日。1日分絞り込みキー</td>
+</tr>
+<tr>
+<td><code>summary</code></td>
+<td>string</td>
+<td>飛行概要（総括）。計画書 project を初期表示</td>
+</tr>
+<tr>
+<td><code>flightplace</code></td>
+<td>string</td>
+<td>飛行場所。計画書 location を初期表示</td>
+</tr>
+<tr>
+<td><code>weather</code> / <code>wind</code></td>
+<td>string</td>
+<td>天候 / 風速</td>
+</tr>
+<tr>
+<td><code>aircraft</code></td>
+<td>string</td>
+<td>機体名（機体管理との紐付けキー）</td>
+</tr>
+<tr>
+<td><code>registration</code></td>
+<td>string</td>
+<td>無人航空機の登録記号</td>
+</tr>
+<tr>
+<td><code>carryover</code></td>
+<td>string</td>
+<td>繰越総飛行時間（分）。文字列で保持</td>
+</tr>
+<tr>
+<td><code>pilot</code></td>
+<td>string</td>
+<td>飛行させた者の氏名</td>
+</tr>
+<tr>
+<td><code>takeoff</code> / <code>landing</code></td>
+<td>string <code>HH:MM</code></td>
+<td>離陸 / 着陸時刻</td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td>string</td>
+<td>飛行時間（分）。離着陸時刻から自動算出（下記）。算出不能なら未設定</td>
+</tr>
+<tr>
+<td><code>location</code> / <code>landloc</code></td>
+<td>string</td>
+<td>離陸場所 FROM / 着陸場所 TO</td>
+</tr>
+<tr>
+<td><code>shoot</code></td>
+<td>string</td>
+<td>飛行概要 NATURE OF FLIGHT</td>
+</tr>
+<tr>
+<td><code>anomaly</code></td>
+<td>string</td>
+<td>飛行の安全に影響のあった事項</td>
+</tr>
+<tr>
+<td><code>confirmer</code></td>
+<td>string</td>
+<td>確認者</td>
+</tr>
+<tr>
+<td><code>memo</code></td>
+<td>string</td>
+<td>メモ（様式外）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>飛行時間算出</strong>
+<code>calcMinutes(takeoff, landing)</code>：両方あるとき
+<code>(着陸の総分) − (離陸の総分)</code>。負なら
+<code>+1440</code>（日跨ぎ）。どちらか欠けたら <code>null</code>。</p>
+<blockquote>
+<p>廃止フィールド：<code>battery</code>（バッテリー番号。メモ欄と重複のため削除）。<code>squawk</code>/<code>squawkDate</code>/<code>action</code>/<code>actionDate</code>（記事＝不具合記録。当面「不具合なし」扱いで
+UI はコメントアウト。将来有効化前提でデータ構造の余地は残す）。</p>
+</blockquote>
+<h2 id="drone-flight-plan-draft計画書下書き">5.4
+<code>drone-flight-plan-draft</code>（計画書下書き）</h2>
+<p>オブジェクト。</p>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;project&quot;</span><span class="fu">:</span> <span class="st">&quot;〇〇橋梁点検業務&quot;</span><span class="fu">,</span> <span class="dt">&quot;date&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-17&quot;</span><span class="fu">,</span> <span class="dt">&quot;start&quot;</span><span class="fu">:</span> <span class="st">&quot;10:00&quot;</span><span class="fu">,</span> <span class="dt">&quot;end&quot;</span><span class="fu">:</span> <span class="st">&quot;12:00&quot;</span><span class="fu">,</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;東京都千代田区丸の内1-1-1&quot;</span><span class="fu">,</span> <span class="dt">&quot;pilot&quot;</span><span class="fu">:</span> <span class="st">&quot;山田 太郎&quot;</span><span class="fu">,</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;purpose&quot;</span><span class="fu">:</span> <span class="st">&quot;構造物点検・空中撮影&quot;</span><span class="fu">,</span> <span class="dt">&quot;notes&quot;</span><span class="fu">:</span> <span class="st">&quot;【特定飛行】目視外飛行&quot;</span><span class="fu">,</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;aircrafts&quot;</span><span class="fu">:</span> <span class="ot">[</span> <span class="fu">{</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;DJI Mavic 3&quot;</span><span class="fu">,</span> <span class="dt">&quot;regNo&quot;</span><span class="fu">:</span> <span class="st">&quot;JU1234567890&quot;</span> <span class="fu">}</span> <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;aircraft&quot;</span><span class="fu">:</span> <span class="st">&quot;DJI Mavic 3&quot;</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>型</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>project</code></td>
+<td>string</td>
+<td>案件名</td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td>string</td>
+<td>飛行日</td>
+</tr>
+<tr>
+<td><code>start</code> / <code>end</code></td>
+<td>string <code>HH:MM</code></td>
+<td>飛行開始 / 終了時刻</td>
+</tr>
+<tr>
+<td><code>location</code></td>
+<td>string</td>
+<td>飛行場所（住所）</td>
+</tr>
+<tr>
+<td><code>pilot</code></td>
+<td>string</td>
+<td>操縦者氏名</td>
+</tr>
+<tr>
+<td><code>purpose</code></td>
+<td>string</td>
+<td>飛行目的</td>
+</tr>
+<tr>
+<td><code>notes</code></td>
+<td>string</td>
+<td>備考（特定飛行クイック挿入・計算結果挿入を含む）</td>
+</tr>
+<tr>
+<td><code>aircrafts</code></td>
+<td>array</td>
+<td>機体配列
+<code>{name, regNo}</code>（最大5）。<strong>新スキーマ（正）</strong></td>
+</tr>
+<tr>
+<td><code>aircraft</code></td>
+<td>string</td>
+<td>機体名を <code>/</code>
+で連結した文字列。<strong>旧スキーマ互換</strong>。引き継ぎ・旧JSON復元のため併存保持</td>
+</tr>
+</tbody>
+</table>
+<p>旧→新互換：<code>aircrafts</code> が無く <code>aircraft</code>
+文字列があれば、<code>/</code> で分割し <code>{name, regNo:''}</code>
+配列に復元する。</p>
+<h2 id="drone-checklist-recordsチェックリスト">5.5
+<code>drone-checklist-records</code>（チェックリスト）</h2>
+<p>配列。各要素は <strong>(実施年月日 + 登録記号)
+を一意キー</strong>とする1件。</p>
+<div class="sourceCode" id="cb23"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1718600000000</span><span class="fu">,</span> <span class="dt">&quot;date&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-06-17&quot;</span><span class="fu">,</span> <span class="dt">&quot;registration&quot;</span><span class="fu">:</span> <span class="st">&quot;JU1234567890&quot;</span><span class="fu">,</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;place&quot;</span><span class="fu">:</span> <span class="st">&quot;丸の内&quot;</span><span class="fu">,</span> <span class="dt">&quot;inspector&quot;</span><span class="fu">:</span> <span class="st">&quot;山田 太郎&quot;</span><span class="fu">,</span> <span class="dt">&quot;notes&quot;</span><span class="fu">:</span> <span class="st">&quot;特になし&quot;</span><span class="fu">,</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;checks&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;pilot_condition&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;weather_check&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;airspace_check&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;surroundings_check&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;special_application&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;police_contact&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;uas_general&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;propeller&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;frame&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;communication_system&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;propulsion_system&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;power_system&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;automatic_control_system&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;flight_control_system&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span> <span class="dt">&quot;battery_fuel&quot;</span><span class="fu">:</span> <span class="kw">false</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;remarks&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;battery_fuel&quot;</span><span class="fu">:</span> <span class="st">&quot;残量表示にばらつき&quot;</span> <span class="fu">}</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>型</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>number</td>
+<td><code>Date.now()</code></td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td>string</td>
+<td>実施年月日（キー1）</td>
+</tr>
+<tr>
+<td><code>registration</code></td>
+<td>string</td>
+<td>無人航空機の登録記号（キー2）</td>
+</tr>
+<tr>
+<td><code>place</code></td>
+<td>string</td>
+<td>実施場所</td>
+</tr>
+<tr>
+<td><code>inspector</code></td>
+<td>string</td>
+<td>実施者</td>
+</tr>
+<tr>
+<td><code>notes</code></td>
+<td>string</td>
+<td>特記事項</td>
+</tr>
+<tr>
+<td><code>checks</code></td>
+<td>object</td>
+<td>全15項目キー→boolean。<code>true</code>=確認済/正常、<code>false</code>=未確認/異常</td>
+</tr>
+<tr>
+<td><code>remarks</code></td>
+<td>object</td>
+<td>日常点検9項目のうち<strong>異常があった項目のみ</strong>
+key→異常内容文字列</td>
+</tr>
+</tbody>
+</table>
+<p><code>checks</code>
+のキーは飛行前6項目＋日常点検9項目（第10.4・12章で定義）。JSON出力時もこの英語キー名を用いる（旧
+<code>chk-1</code> 連番形式は廃止）。</p>
+<h2 id="drone-active-session引き継ぎ">5.6
+<code>drone-active-session</code>（引き継ぎ）</h2>
+<p>オブジェクト。</p>
+<div class="sourceCode" id="cb24"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;createdAt&quot;</span><span class="fu">:</span> <span class="dv">1718600000000</span><span class="fu">,</span> <span class="dt">&quot;step&quot;</span><span class="fu">:</span> <span class="st">&quot;checklist&quot;</span><span class="fu">,</span> <span class="dt">&quot;plan&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="er">/*</span> <span class="er">readPlan()</span> <span class="er">の結果</span> <span class="er">*/</span> <span class="fu">}</span> <span class="fu">}</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>型</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>createdAt</code></td>
+<td>number</td>
+<td>作成時刻</td>
+</tr>
+<tr>
+<td><code>step</code></td>
+<td>string</td>
+<td><code>'checklist'</code>（計画書が設定）→ チェックリスト到達後
+<code>'checking'</code> に更新</td>
+</tr>
+<tr>
+<td><code>plan</code></td>
+<td>object</td>
+<td>計画書の <code>readPlan()</code> 出力（5.4 と同形）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="drone-calc-draft計算ドラフト">5.7
+<code>drone-calc-draft</code>（計算ドラフト）</h2>
+<p>オブジェクト。calculator.html の全
+<code>input</code>/<code>select</code> の <code>id</code> をキー、その
+<code>value</code>（文字列）を値とする平坦なマップ。<code>ac-preset</code>
+も保存するが、復元時は他フィールドより後に適用（プリセット選択状態の保持）。</p>
+<h2 id="drone-calc-summary計算結果">5.8
+<code>drone-calc-summary</code>（計算結果）</h2>
+<div class="sourceCode" id="cb25"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;createdAt&quot;</span><span class="fu">:</span> <span class="dv">1718600000000</span><span class="fu">,</span> <span class="dt">&quot;aircraft&quot;</span><span class="fu">:</span> <span class="st">&quot;DJI Mavic 3&quot;</span><span class="fu">,</span> <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;【飛行計算結果】機体：…</span><span class="ch">\n</span><span class="st">可能飛行時間：…&quot;</span> <span class="fu">}</span></span></code></pre></div>
+<p>計画書の「📋 飛行計算の結果を備考に挿入」が <code>text</code>
+を備考へ追記し、<code>aircraft</code> を1機目へ補完する。</p>
+<h2 id="drone-aircraft-presets-v2ユーザー機体プリセット">5.9
+<code>drone-aircraft-presets-v2</code>（ユーザー機体プリセット）</h2>
+<p>配列。各要素は内蔵プリセットと同形（第9.5）：</p>
+<div class="sourceCode" id="cb26"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span><span class="st">&quot;自社機A&quot;</span><span class="fu">,</span> <span class="dt">&quot;massKg&quot;</span><span class="fu">:</span><span class="fl">0.92</span><span class="fu">,</span> <span class="dt">&quot;rotors&quot;</span><span class="fu">:</span><span class="dv">4</span><span class="fu">,</span> <span class="dt">&quot;propIn&quot;</span><span class="fu">:</span><span class="fl">9.4</span><span class="fu">,</span> <span class="dt">&quot;capMah&quot;</span><span class="fu">:</span><span class="dv">5000</span><span class="fu">,</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;voltV&quot;</span><span class="fu">:</span><span class="fl">14.8</span><span class="fu">,</span> <span class="dt">&quot;sensor&quot;</span><span class="fu">:</span><span class="st">&quot;4/3型(M4/3)&quot;</span><span class="fu">,</span> <span class="dt">&quot;focalMm&quot;</span><span class="fu">:</span><span class="fl">12.3</span><span class="fu">,</span> <span class="dt">&quot;imgW&quot;</span><span class="fu">:</span><span class="dv">5280</span><span class="fu">,</span> <span class="dt">&quot;imgH&quot;</span><span class="fu">:</span><span class="dv">3956</span><span class="fu">,</span> <span class="dt">&quot;sizeM&quot;</span><span class="fu">:</span><span class="fl">0.38</span> <span class="fu">}</span></span></code></pre></div>
+<p>読み出し時 <code>custom:true</code> が付与され、UI
+で「★」表示される。</p>
+<h2 id="編集リクエストsessionstorage">5.10
+編集リクエスト（sessionStorage）</h2>
+<ul>
+<li><code>drone-edit-request</code>：日誌記録の
+<code>id</code>（数値を文字列で）。data.html が set → flight-log.html
+が読み取り即削除し、その記録を編集モードで開く。</li>
+<li><code>drone-checklist-edit-request</code>：チェックリストの
+<code>id</code>。data.html → checklist.html。</li>
+<li>いずれも<strong>読み取り直後に
+<code>removeItem</code></strong>（1回限り）。</li>
+</ul>
+<h2 id="エクスポートインポート-ファイル形式">5.11
+エクスポート／インポート ファイル形式</h2>
+<p>ファイルはローカルストレージとは別の構造を持つ。識別子
+<code>app</code> で判別。</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>用途</th>
+<th>構造</th>
+<th>出力元</th>
+<th>ファイル名</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>機体</td>
+<td><code>{ app:'drone-aircraft', exportedAt, aircraft:[...] }</code></td>
+<td>aircraft.html</td>
+<td><code>機体管理_YYYY-MM-DD.json</code></td>
+</tr>
+<tr>
+<td>計画書</td>
+<td><code>{ app:'drone-flight-plan', savedAt, plan:{...} }</code></td>
+<td>flight-plan.html / data.html</td>
+<td><code>&lt;案件名&gt;.json</code> /
+<code>flight-plan-YYYYMMDD.json</code></td>
+</tr>
+<tr>
+<td>チェックリスト</td>
+<td><code>{ app:'drone-checklist', exportedAt, checklist:[...] }</code></td>
+<td>data.html</td>
+<td><code>checklist-YYYYMMDD.json</code></td>
+</tr>
+<tr>
+<td>日誌</td>
+<td><code>{ app:'drone-flight-log', exportedAt, records:[...] }</code></td>
+<td>data.html</td>
+<td><code>flight-log-YYYYMMDD.json</code></td>
+</tr>
+<tr>
+<td>1日分まとめ</td>
+<td><code>{ app:'drone-daily-record', version:2, exportedAt, date, plan, checklist, records }</code></td>
+<td>flight-log.html</td>
+<td><code>flight-YYYYMMDD.json</code></td>
+</tr>
+<tr>
+<td>全データ</td>
+<td><code>{ app:'drone-all-data', version:1, exportedAt, data:{ aircraft, plan, checklist, records } }</code></td>
+<td>data.html</td>
+<td><code>drone-all-data-YYYYMMDD.json</code></td>
+</tr>
+</tbody>
+</table>
+<p>インポートは寛容に：トップレベルが配列でも、<code>app</code>
+ラッパでも、対応する内側配列（<code>aircraft</code>/<code>checklist</code>/<code>records</code>）でも受ける。</p>
+<h2 id="csv-出力形式日誌">5.12 CSV 出力形式（日誌）</h2>
+<ul>
+<li>文字コード：<strong>BOM付きUTF-8</strong>（先頭に
+<code>﻿</code>）。改行 <code>\r\n</code>。各値は <code>"</code>
+で囲み、内部の <code>"</code> は <code>""</code> にエスケープ。</li>
+<li>列（順序固定）： | キー | 見出し | |—|—| | date | 飛行日 | | pilot |
+操縦者 | | takeoff | 離陸時刻 | | landing | 着陸時刻 | | time |
+飛行時間(分) | | location | 離陸場所 | | landloc | 着陸場所 | | aircraft
+| 機体 | | weather | 天候 | | wind | 風速 | | shoot | 飛行概要 | |
+anomaly | 異常記録 | | memo | メモ |</li>
+</ul>
+<h2 id="廃止キー移行済み再実装不要">5.13
+廃止キー（移行済み・再実装不要）</h2>
+<ul>
+<li><code>drone-flight-log-header</code>：登録記号・繰越総飛行時間。各レコードへ統合済み。</li>
+<li><code>drone-flight-log-meta</code>：バックアップ通知。機能ごと廃止。</li>
+<li><code>drone-checklist-state</code>：単一状態のチェックリスト。複数登録の
+<code>drone-checklist-records</code>
+へ移行（自動マイグレーションはしない）。</li>
+<li>全データ消去はこれら旧キー＋<code>drone-active-session</code>
+も併せて <code>removeItem</code> する。</li>
+</ul>
+<hr />
+<h1 id="計算ロジック仕様flight-calc.js-完全">6.
+計算ロジック仕様（flight-calc.js 完全）</h1>
+<p>すべて<strong>純粋関数</strong>。入力不正時は <code>null</code>
+を返す（呼び出し側で「―」表示）。グローバルスコープに関数・定数を定義（モジュール化しない）。</p>
+<h2 id="定数">6.1 定数</h2>
+<div class="sourceCode" id="cb27"><pre
+class="sourceCode js"><code class="sourceCode javascript"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> GRAVITY <span class="op">=</span> <span class="fl">9.80665</span><span class="op">;</span>        <span class="co">// 重力加速度 [m/s^2]</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> AIR_DENSITY_SL <span class="op">=</span> <span class="fl">1.225</span><span class="op">;</span>   <span class="co">// 海面上標準大気密度 [kg/m^3]</span></span></code></pre></div>
+<p>ヘルパ：<code>function isPos(v){ return Number.isFinite(v) &amp;&amp; v &gt; 0; }</code></p>
+<h2 id="ホバリング所要電力-hoverpowerw">6.2 ホバリング所要電力
+<code>hoverPowerW</code></h2>
+<p>運動量理論：理想電力
+<code>P_ideal = T^1.5 / sqrt(2·ρ·A)</code>、実機補正は FoM
+とドライブ効率で除す。</p>
+<pre><code>シグネチャ: hoverPowerW(totalMassKg, rotorCount, propDiameterM, figureOfMerit=0.65, driveEff=0.80, airDensity=1.225)
+thrustN  = totalMassKg * GRAVITY
+diskArea = rotorCount * π * (propDiameterM/2)^2
+idealW   = thrustN^1.5 / sqrt(2 * airDensity * diskArea)
+return     idealW / (figureOfMerit * driveEff)
+不正(いずれかが非正)なら null</code></pre>
+<h2 id="使用可能エネルギー-usableenergywh">6.3 使用可能エネルギー
+<code>usableEnergyWh</code></h2>
+<pre><code>シグネチャ: usableEnergyWh(capacityMah, voltageV, reserveRatio=0.30, batteryHealth=1.0)
+return (capacityMah/1000) * voltageV * batteryHealth * (1 - reserveRatio)
+条件: capacityMah,voltageV,batteryHealth が正、かつ 0 ≤ reserveRatio &lt; 1。違反なら null</code></pre>
+<h2 id="飛行時間-calcflighttimep">6.4 飛行時間
+<code>calcFlightTime(p)</code></h2>
+<p>入力
+<code>p</code>：<code>totalMassKg, rotorCount, propDiameterM, figureOfMerit, driveEff, airDensity, avionicsW, capacityMah, voltageV, reserveRatio, batteryHealth, cruiseFactor</code>。</p>
+<pre><code>hoverW = hoverPowerW(...)             // null なら全体 null
+avionicsW = Number.isFinite(p.avionicsW) ? p.avionicsW : 10   // 既定 10W
+totalW  = hoverW + avionicsW
+limitWh = usableEnergyWh(cap, volt, 0, health)     // 予備率0 = 物理限界
+opWh    = usableEnergyWh(cap, volt, reserveRatio, health)
+cruiseFactor = isPos(p.cruiseFactor) ? p.cruiseFactor : 1.15
+返り値 {
+  hoverW: totalW,
+  hoverLimitMin: (limitWh / totalW) * 60,
+  flightTimeMin: (opWh / (totalW * cruiseFactor)) * 60
+}</code></pre>
+<h2 id="その他の距離速度関数calculator.html-では一部のみ使用">6.5
+その他の距離・速度関数（calculator.html では一部のみ使用）</h2>
+<ul>
+<li><code>tetherHorizontalRangeM(L, H)</code>：係留水平限界
+<code>√(L²−H²)</code>。<code>H≥L</code> なら 0。</li>
+<li><code>radioRangeKm(txPowerDbm, txGainDbi, rxGainDbi, rxSensDbm, freqMhz, fadeMarginDb=15)</code>：FSPL
+<code>32.44 + 20log10(d_km) + 20log10(f_MHz)</code> を逆算。許容損失
+<code>Ptx+Gtx+Grx−感度−マージン</code>、≤0 なら 0。</li>
+<li><code>visualLineOfSightM(aircraftSizeM, safetyFactor=0.5)</code>：視角3分(arcmin)基準
+<code>size / tan(3 arcmin) × safetyFactor</code>。<code>arcmin3 = (3/60)·π/180</code>。<strong>目視可能距離（calculator
+のセクション2・法令チェックで使用）</strong>。</li>
+<li><code>eventBufferDistanceM(alt)</code>：催し上空の立入禁止距離。≤20m→30
+/ ≤50m→40 / ≤100m→60 / ≤150m→70 / &gt;150m→null。</li>
+<li><code>safeSpeedMps(totalMassKg, maxEnergyJ=25)</code>：<code>√(2·E/m)</code>。</li>
+</ul>
+<h2 id="gsd-関数">6.6 GSD 関数</h2>
+<ul>
+<li><p><code>calcGsd({sensorWmm, sensorHmm, focalMm, imageWpx, imageHpx, altitudeM})</code>：</p>
+<pre><code>gsdCm       = (sensorWmm * altitudeM * 100) / (focalMm * imageWpx)
+footprintWm = (sensorWmm * altitudeM) / focalMm
+footprintHm = (sensorHmm * altitudeM) / focalMm</code></pre></li>
+<li><p><code>altitudeForGsdM(targetGsdCm, focalMm, imageWpx, sensorWmm)</code>：<code>(targetGsdCm * focalMm * imageWpx) / (sensorWmm * 100)</code>。</p></li>
+</ul>
+<h2 id="内蔵機体プリセット-aircraft_presets実数値全9機種">6.7
+内蔵機体プリセット <code>AIRCRAFT_PRESETS</code>（実数値・全9機種）</h2>
+<p>各要素
+<code>{ name, massKg, rotors, propIn, capMah, voltV, sensor, focalMm, imgW, imgH, sizeM }</code>。値はメーカー公表値の近似。</p>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr>
+<th>name</th>
+<th>massKg</th>
+<th>rotors</th>
+<th>propIn</th>
+<th>capMah</th>
+<th>voltV</th>
+<th>sensor</th>
+<th>focalMm</th>
+<th>imgW</th>
+<th>imgH</th>
+<th>sizeM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DJI Neo</td>
+<td>0.135</td>
+<td>4</td>
+<td>3.0</td>
+<td>1435</td>
+<td>3.87</td>
+<td>1/2型</td>
+<td>3.4</td>
+<td>4000</td>
+<td>3000</td>
+<td>0.16</td>
+</tr>
+<tr>
+<td>DJI Mini 4 Pro</td>
+<td>0.249</td>
+<td>4</td>
+<td>6.0</td>
+<td>2590</td>
+<td>7.32</td>
+<td>1/1.3型</td>
+<td>6.7</td>
+<td>8064</td>
+<td>6048</td>
+<td>0.30</td>
+</tr>
+<tr>
+<td>DJI Avata 2</td>
+<td>0.377</td>
+<td>4</td>
+<td>3.0</td>
+<td>2150</td>
+<td>14.76</td>
+<td>1/1.3型</td>
+<td>2.1</td>
+<td>4000</td>
+<td>3000</td>
+<td>0.21</td>
+</tr>
+<tr>
+<td>DJI Air 3</td>
+<td>0.720</td>
+<td>4</td>
+<td>8.7</td>
+<td>4241</td>
+<td>14.76</td>
+<td>1/1.3型</td>
+<td>6.7</td>
+<td>8064</td>
+<td>6048</td>
+<td>0.42</td>
+</tr>
+<tr>
+<td>DJI Air 3S</td>
+<td>0.724</td>
+<td>4</td>
+<td>8.7</td>
+<td>4276</td>
+<td>14.6</td>
+<td>1型(CMOS)</td>
+<td>8.8</td>
+<td>8192</td>
+<td>6144</td>
+<td>0.42</td>
+</tr>
+<tr>
+<td>DJI Mavic 3</td>
+<td>0.895</td>
+<td>4</td>
+<td>9.4</td>
+<td>5000</td>
+<td>15.4</td>
+<td>4/3型(M4/3)</td>
+<td>12.3</td>
+<td>5280</td>
+<td>3956</td>
+<td>0.38</td>
+</tr>
+<tr>
+<td>DJI Mavic 3 Pro</td>
+<td>0.958</td>
+<td>4</td>
+<td>9.4</td>
+<td>5000</td>
+<td>15.4</td>
+<td>4/3型(M4/3)</td>
+<td>12.3</td>
+<td>5280</td>
+<td>3956</td>
+<td>0.38</td>
+</tr>
+<tr>
+<td>DJI Phantom 4 Pro</td>
+<td>1.388</td>
+<td>4</td>
+<td>9.4</td>
+<td>5870</td>
+<td>15.2</td>
+<td>1型(CMOS)</td>
+<td>8.8</td>
+<td>5472</td>
+<td>3648</td>
+<td>0.35</td>
+</tr>
+<tr>
+<td>DJI Matrice 350 RTK</td>
+<td>6.47</td>
+<td>4</td>
+<td>21.0</td>
+<td>5880</td>
+<td>44.76</td>
+<td>4/3型(M4/3)</td>
+<td>12.3</td>
+<td>5280</td>
+<td>3956</td>
+<td>0.90</td>
+</tr>
+</tbody>
+</table>
+<h2 id="センサープリセット-sensor_presets実数値全8種単位mm">6.8
+センサープリセット
+<code>SENSOR_PRESETS</code>（実数値・全8種、単位mm）</h2>
+<table>
+<thead>
+<tr>
+<th>キー</th>
+<th>w</th>
+<th>h</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1/2.3型</td>
+<td>6.17</td>
+<td>4.55</td>
+</tr>
+<tr>
+<td>1/2型</td>
+<td>6.40</td>
+<td>4.80</td>
+</tr>
+<tr>
+<td>1/1.7型</td>
+<td>7.60</td>
+<td>5.70</td>
+</tr>
+<tr>
+<td>1/1.3型</td>
+<td>9.60</td>
+<td>7.20</td>
+</tr>
+<tr>
+<td>1型(CMOS)</td>
+<td>13.2</td>
+<td>8.8</td>
+</tr>
+<tr>
+<td>4/3型(M4/3)</td>
+<td>17.3</td>
+<td>13.0</td>
+</tr>
+<tr>
+<td>APS-C</td>
+<td>23.5</td>
+<td>15.6</td>
+</tr>
+<tr>
+<td>フルサイズ</td>
+<td>36.0</td>
+<td>24.0</td>
+</tr>
+</tbody>
+</table>
+<h2 id="プリセット入出力日誌統計">6.9 プリセット入出力・日誌統計</h2>
+<div class="sourceCode" id="cb32"><pre
+class="sourceCode js"><code class="sourceCode javascript"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> USER_PRESET_KEY <span class="op">=</span> <span class="st">&#39;drone-aircraft-presets-v2&#39;</span><span class="op">;</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">loadUserPresets</span>(){ <span class="cf">try</span>{ <span class="cf">return</span> <span class="bu">JSON</span><span class="op">.</span><span class="fu">parse</span>(localStorage<span class="op">.</span><span class="fu">getItem</span>(USER_PRESET_KEY))<span class="op">||</span>[]<span class="op">;</span> }<span class="cf">catch</span>(e){ <span class="cf">return</span> []<span class="op">;</span> } }</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">saveUserPresets</span>(list){ localStorage<span class="op">.</span><span class="fu">setItem</span>(USER_PRESET_KEY<span class="op">,</span> <span class="bu">JSON</span><span class="op">.</span><span class="fu">stringify</span>(list))<span class="op">;</span> }</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">allAircraftPresets</span>(){ <span class="cf">return</span> [<span class="op">...</span>AIRCRAFT_PRESETS<span class="op">,</span> <span class="op">...</span><span class="fu">loadUserPresets</span>()<span class="op">.</span><span class="fu">map</span>(p <span class="kw">=&gt;</span> ({<span class="op">...</span>p<span class="op">,</span> <span class="dt">custom</span><span class="op">:</span><span class="kw">true</span>}))]<span class="op">;</span> }</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> LOG_RECORDS_KEY <span class="op">=</span> <span class="st">&#39;drone-flight-log-records&#39;</span><span class="op">;</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="co">// 日誌から実測飛行時間統計を取得（aircraftName 部分一致・大小無視。省略時は全件）</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">flightLogStats</span>(aircraftName){</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">// time&gt;0 のものを抽出 → { count, avgMin, totalMin }。該当なしは null</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<hr />
+<h1 id="画面仕様ページ別">7. 画面仕様（ページ別）</h1>
+<p>各ページの「目的 / レイアウト / 入力ID / 主要挙動 / 初期化順序 /
+印刷」を定義する。スタイルの実数値は各ページ固有
+<code>&lt;style&gt;</code>。共通部分は第4章を参照。</p>
+<h2 id="ホームindex.html">7.1 ホーム（index.html）</h2>
+<ul>
+<li>目的：各ツールへの導線。<code>.container{max-width:560px}</code>。</li>
+<li>上部に説明文
+<code>.page-desc</code>（計画書→チェックリスト→日誌が一連で繋がり、計画書内容が自動引き継がれる旨）。</li>
+<li>説明文の直下に青系の情報ノート
+<code>.note-info</code>（データはサーバー非保存・端末のブラウザ内のみ／別端末では非共有／ブラウザのデータ削除・プライベートモードで消えうる／定期的なバックアップ＝エクスポートが必要、の4点を箇条書き）。同趣旨のノートはデータ管理（data.html）先頭にも表示する（7.6）。</li>
+<li><code>.tool-list</code>（縦並び）に6枚の
+<code>.tool-card</code>（<code>&lt;a&gt;</code>）。各カードは
+<code>.card-icon</code>（44×44、インラインSVGアイコン）＋<code>.card-body</code>（<code>.card-title</code>＋<code>.card-desc</code>）＋<code>.card-arrow</code>（右シェブロンSVG）。</li>
+<li>カードのリンク先と文言： | 遷移先 | タイトル | 説明 | |—|—|—| |
+aircraft.html | 機体管理 |
+機体名・JU番号・担当操縦者・総飛行時間を登録管理 | | flight-plan.html |
+飛行計画書 | 飛行内容を入力してPDFの飛行計画書を作成 | | checklist.html
+| 飛行前チェックリスト | 飛行前の確認項目をチェック。状態は自動保存 | |
+flight-log.html | 飛行日誌 |
+飛行時間・バッテリー・撮影内容・異常を累積記録 | | data.html |
+データ管理 | 日誌の一覧・検索（日付/場所/機体）・CSV/JSON出力 | |
+calculator.html | 飛行計算（参考機能） |
+飛行時間・GSD・目視可能の目安を計算 |</li>
+<li>ホバー時：カード背景
+<code>--accent-light</code>、<code>translateY(-2px)</code>、矢印が右へ
+3px・色 <code>--accent</code>。</li>
+<li>JS なし（SW登録のみ）。</li>
+</ul>
+<h2 id="機体管理aircraft.html">7.2 機体管理（aircraft.html）</h2>
+<ul>
+<li>目的：機体CRUD＋総飛行時間表示＋JSON入出力。<code>.container{max-width:720px}</code>。キー：<code>AIRCRAFT_KEY='drone-aircraft-list'</code>、<code>LOG_KEY='drone-flight-log-records'</code>。</li>
+<li>構成：
+<ol type="1">
+<li>登録/編集フォーム <code>#form-card</code>（見出し
+<code>#form-title</code>）。入力 <code>#f-name</code>（必須）,
+<code>#f-reg</code>, <code>#f-pilot</code>,
+<code>#f-carryover</code>(number,min0,step1)。<code>#btn-save</code>、編集時のみ表示の
+<code>#btn-cancel</code>（<code>.cancel-row</code> は
+<code>.editing</code> 時に表示）。</li>
+<li>一覧カード：見出し横に
+<code>#btn-export</code>/<code>#btn-import</code>（+ 隠し
+<code>#import-file</code>）。<code>#list</code>、空時
+<code>#empty</code>。</li>
+</ol></li>
+<li>状態：<code>aircraft</code>（配列）、<code>editingId</code>。</li>
+<li><strong>保存ロジック</strong>（<code>#btn-save</code>）：name必須・トリム。<code>name</code>
+重複（自分以外）チェック→アラート。<code>carryover</code>
+は空なら0、<code>parseInt</code>、NaN/負はアラート。編集中(<code>editingId</code>あり)なら該当を更新、なければ
+<code>{ id:'ac-'+Date.now().toString(36), ...data }</code> を
+push。保存→フォームクリア→再描画。</li>
+<li><strong>総飛行時間表示</strong>：<code>logMinutesByAircraft()</code>
+が日誌記録を機体名で合算（<code>time</code> を
+<code>parseInt</code>）。各機体の表示 = 繰越
+<code>carryoverMinutes</code> ＋ 日誌合算。内訳「（繰越 ○ ＋ 日誌
+○）」を併記。<code>fmtMinutes(n)</code>：60以上は「H時間M分」、未満は「M分」。</li>
+<li><strong>編集</strong>：<code>startEdit(id)</code>
+でフォームへ値ロード、見出しを「機体の編集：〇〇」、ボタン「この内容で更新する」、<code>#form-card</code>
+に <code>.editing</code>、スクロール＆フォーカス。</li>
+<li><strong>削除</strong>：<code>confirm('機体「〇〇」を削除しますか？\n（日誌の過去の記録は削除されません）')</code>。</li>
+<li><strong>JSON出力</strong>：<code>{ app:'drone-aircraft', exportedAt:ISO, aircraft }</code>、<code>機体管理_YYYY-MM-DD.json</code>。空なら警告。</li>
+<li><strong>JSON読込</strong>：配列 or <code>aircraft</code>
+配列を受理。<strong>機体名で後勝ち</strong>（一致は上書き、なければ新規。新規
+id は <code>'ac-'+Date.now().toString(36)+乱数4</code>）。完了時「新規 N
+件、上書き M 件」。</li>
+<li>初期化：<code>load(); render();</code>。</li>
+</ul>
+<h2 id="飛行計画書flight-plan.html">7.3
+飛行計画書（flight-plan.html）</h2>
+<ul>
+<li>目的：計画入力＋A4縦プレビュー＋印刷＋引き継ぎ。2カラム
+<code>.layout</code>（768px以下で1カラム）。左
+<code>.form-panel</code>、右 <code>.preview-panel</code>（中に
+<code>.doc</code>）。</li>
+<li>キー：<code>DRAFT_KEY='drone-flight-plan-draft'</code>、<code>SESSION_KEY='drone-active-session'</code>、<code>AIRCRAFT_KEY='drone-aircraft-list'</code>、<code>CALC_SUMMARY_KEY='drone-calc-summary'</code>。<code>MAX_AIRCRAFT=5</code>。</li>
+<li>入力ID：<code>f-project, f-date, f-start, f-end, f-location, f-pilot(select), f-purpose, f-notes(textarea)</code>。機体行は
+<code>#aircraft-rows</code> 内に5行（<code>.ac-row</code> 内に
+<code>.ac-name</code>(select) と <code>.ac-reg</code>(text)）。</li>
+<li><code>fields</code>
+定義（input→preview→format）でプレビュー連動。プレビューID：<code>p-project, p-date, p-time, p-location, p-pilot, p-aircraft, p-purpose, p-notes, p-issued</code>。空値は「―」＋
+<code>.empty</code>。</li>
+<li><strong>機体行の動的表示</strong>
+<code>updateRowVisibility()</code>：先頭1行は常時表示。入力済み行があれば次の1行を出す（最大5）。</li>
+<li><strong>機体選択時</strong>：登録機体名を選ぶと JU番号欄が空のとき
+<code>regNo</code> を自動補完。<code>＋手入力…</code> は
+<code>prompt</code>。</li>
+<li><strong>操縦者</strong> <code>#f-pilot</code>：機体管理の
+<code>pilot</code> 候補＋手入力。</li>
+<li><strong><code>readPlan()</code></strong>：fields
+の値（MANUALは空に）→
+<code>aircrafts</code>（<code>readAircrafts()</code> で
+name/regNo、name|regNo いずれかあるもの）→ 旧互換
+<code>aircraft</code>（name を <code>/</code> 連結）。</li>
+<li><strong>自動保存</strong>：すべての入力
+<code>input</code>/<code>change</code> で
+<code>update()</code>＋<code>saveDraft()</code>（<code>DRAFT_KEY</code>
+へ即保存）。</li>
+<li><strong>特定飛行クイック挿入</strong>（<code>.sp-btn</code>
+data-sp）：備考へ追記（トグルではない）。
+<ul>
+<li>night → <code>【特定飛行】夜間飛行</code></li>
+<li>bvlos → <code>【特定飛行】目視外飛行</code></li>
+<li>heavy →
+<code>【特定飛行】最大離陸重量25kg以上の機体の飛行</code></li>
+<li>drop → <code>【特定飛行】物件投下</code></li>
+</ul></li>
+<li><strong>計算結果挿入</strong>
+<code>#btn-insert-calc</code>：<code>drone-calc-summary</code> の
+<code>text</code> を備考へ（既存があれば2改行後）追記。1機目未入力なら
+<code>aircraft</code> を補完。</li>
+<li><strong>JSON保存/読込</strong>：<code>{ app:'drone-flight-plan', savedAt, plan }</code>。ファイル名は
+<code>&lt;project&gt;.json</code>（禁止文字 <code>\/:*?"&lt;&gt;|</code>
+を <code>_</code>）。読込は <code>parsed.plan || parsed</code>。</li>
+<li><strong>チェックリストへ</strong>
+<code>#btn-to-checklist</code>：<code>SESSION_KEY</code> に
+<code>{ createdAt:Date.now(), step:'checklist', plan }</code> を保存し
+<code>checklist.html</code> へ遷移。</li>
+<li><strong>データクリア</strong> <code>#btn-clear</code>：confirm
+後、入力全消去＋<code>DRAFT_KEY</code> 削除。</li>
+<li>印刷：<code>@page A4 portrait; margin:0</code>。<code>.doc</code> を
+<code>padding:18mm 16mm 20mm</code>。フォーム・プレビューラベルは非表示。<code>.doc</code>/<code>.doc-table</code>
+は <code>break-inside:avoid</code>。帳票見出し「ド ロ ー ン 飛 行 計 画
+書 / Drone Flight Plan」、セクション「■ 飛行概要 / ■ 機体・操縦者情報 /
+■ 備考」、フッターに作成日＋作成者/確認者サイン欄。</li>
+<li>初期化順：<code>buildAircraftRows(); buildPilotSelect(); loadDraft(); updateRowVisibility(); update();</code>。</li>
+</ul>
+<h2 id="飛行前チェックリストchecklist.html">7.4
+飛行前チェックリスト（checklist.html）</h2>
+<ul>
+<li>目的：飛行前確認6＋日常点検9（計15）を (実施年月日＋登録記号)
+ごとに複数登録。<code>.container{max-width:600px}</code>。</li>
+<li>キー：<code>RECORDS_KEY='drone-checklist-records'</code>、<code>SESSION_KEY</code>、<code>AIRCRAFT_KEY</code>、<code>PLAN_DRAFT_KEY='drone-flight-plan-draft'</code>、<code>EDIT_KEY='drone-checklist-edit-request'</code>。</li>
+<li>構成：sticky 進捗バー（<code>#progress-count</code>「N /
+15」、<code>#progress-bar</code> 幅%）／セッションバナー
+<code>#session-banner</code>／機体概要カード（<code>#f-date</code>,
+<code>#f-place</code>, <code>#f-registration</code>,
+<code>#f-inspector</code>）／飛行前確認
+<code>#preflight-checklist</code>／日常点検
+<code>#daily-checklist</code>／特記事項
+<code>#f-notes</code>／<code>#reset-btn</code>／<code>#btn-print</code>／<code>#btn-to-log</code>。</li>
+<li><strong>項目定義</strong>（第12章にキー一覧）。<code>PREFLIGHT</code>6件、<code>DAILY</code>9件。<code>ALL_KEYS = PREFLIGHT+DAILY</code>、<code>TOTAL=15</code>。
+<ul>
+<li>飛行前確認はチェックボックス（既定オフ）。<code>special_application</code>
+には申請区分ガイド（包括/個別/承認のタグ表）、<code>police_contact</code>
+には警告ノート（平日午後4時締切）を <code>desc</code> として表示。</li>
+<li>日常点検は <strong>既定オン＝正常</strong>。<code>is-checked</code>
+クラスで見た目反転。チェックを外す（異常）と備考欄
+<code>.result-row</code>（<code>#remarks-&lt;key&gt;</code>）が表示される。</li>
+</ul></li>
+<li><strong>チェックUI</strong>：ネイティブ checkbox
+は視覚的に隠し（<code>.check-input</code> を opacity0）、カスタム
+<code>.check-box</code>（28×28、チェック時 <code>--accent</code>
+塗り＋白チェックSVG）。キーボードフォーカスは
+<code>:focus-visible</code> で枠線。</li>
+<li><strong>レコード保存（upsert）</strong> <code>save()</code>：現在の
+(date+registration) で既存を探す（<code>currentId</code> 優先、なければ
+date+registration一致）。あれば <code>Object.assign</code>、なければ
+<code>{ id:Date.now(), ...data }</code> を
+push。すべて空（日付も登録記号もチェックも無し）なら保存しない。<code>input</code>/<code>change</code>
+ごとに自動保存。</li>
+<li><strong>コンテキスト切替</strong>
+<code>switchContext()</code>：date/registration
+変更時、一致レコードがあれば読み込み、なければ
+currentId=null（チェックは現状維持＝新規）。</li>
+<li><strong>初期値転記</strong>
+<code>applyInitialValues()</code>（保存値が無い欄のみ）：date←計画書date
+or
+当日／place←計画書location／registration←（計画書1機目に一致する登録機体の
+regNo、なければ先頭機体、なければ計画書1機目 regNo）／inspector←（同
+target の pilot、なければ計画書 pilot）。</li>
+<li><strong>印刷</strong> <code>#btn-print</code>：選択中 date の全件を
+registration
+ごとにページ分割（A4縦）。各ページ＝様式２（点検箇所/点検内容/結果(正常|異常)/備考）＋飛行前確認事項（確認項目/✓確認済|未確認）＋特記事項＋実施場所/年月日/実施者。<code>beforeprint</code>
+でも再生成。</li>
+<li><strong>初期化順</strong>：<code>loadRecords(); initSessionBanner();</code>
+→
+<code>initEditRequest()</code>（編集リクエストあれば該当を開いて終了）→
+なければ：<code>applyInitialValues()</code> → セッション
+<code>step==='checklist'</code> なら
+<code>blankChecks(); switchContext();</code> し step を
+<code>'checking'</code> に更新、そうでなければ
+<code>switchContext()</code> → <code>updateProgress()</code>。</li>
+</ul>
+<h2 id="飛行日誌flight-log.html">7.5 飛行日誌（flight-log.html）</h2>
+<ul>
+<li>目的：様式１記録の入力・1日分表示・日次出力・印刷。<code>.container{max-width:640px}</code>。</li>
+<li>キー：<code>STORAGE_KEY='drone-flight-log-records'</code>、<code>SESSION_KEY</code>、<code>AIRCRAFT_KEY</code>、<code>PLAN_DRAFT_KEY</code>、<code>CHECKLIST_KEY='drone-checklist-records'</code>、<code>EDIT_KEY='drone-edit-request'</code>。<code>FIELDS</code>
+は第5.3のフィールド配列（time/id除く17項目）。</li>
+<li>構成：注意ノート（3年保存・バックアップ喚起）／セッションバナー／入力カード（環境概要／機体概要／記録の入力の3グループ）／サマリー（<code>#sum-count</code>,<code>#sum-time</code>）／一覧
+<code>#log-list</code>／出力カード（<code>#btn-export</code>,<code>#btn-print</code>,<code>#btn-clear</code>）。</li>
+<li>入力ID：環境＝<code>f-summary, f-date, f-flightplace, f-weather, f-wind</code>。機体＝<code>f-aircraft(select), f-registration, f-carryover(number), f-pilot(select)</code>。記録＝<code>f-takeoff, f-landing</code>（各
+<code>.btn-rec</code>「🛫/🛬 記録」）, <code>#auto-time</code>,
+<code>f-location, f-landloc</code>（各「飛行場所をコピー」「GPS座標を取得」）,
+<code>f-shoot(textarea)</code>（「飛行概要をコピー」）,
+<code>f-anomaly, f-confirmer, f-memo(textarea)</code>。<code>#btn-save</code>「記録を追加/変更を保存」、<code>#btn-cancel</code>。</li>
+<li><strong>機体選択時</strong>：登録機体を選ぶと
+<code>f-registration</code>←regNo、<code>f-carryover</code>←carryoverMinutes、<code>f-pilot</code>←pilot
+を<strong>自動上書き</strong>。</li>
+<li><strong>時刻記録</strong>：<code>btn-rec-takeoff</code> は現在時刻
+<code>HH:MM</code>、日付未設定なら当日、離陸場所が空で飛行場所があればコピー。着陸も同様。<code>updateAutoTime()</code>
+が <code>calcMinutes</code> を <code>#auto-time</code> に表示。</li>
+<li><strong>GPS</strong>
+<code>fillGPS(id)</code>：<code>navigator.geolocation.getCurrentPosition</code>、<code>lat.toFixed(5), lng.toFixed(5)</code>
+を入力。<code>{enableHighAccuracy:true, timeout:10000}</code>。失敗時アラート。</li>
+<li><strong>保存</strong>
+<code>#btn-save</code>：<code>readForm()</code>（MANUAL→空・トリム、time
+は calcMinutes 結果）。date/location/aircraft/memo
+がすべて空なら警告。編集中は該当を更新（time未定義なら既存維持）、新規は
+<code>{ id:Date.now(), ...data }</code>。保存後
+<code>buildSelects()</code>、<code>clearTimesOnly()</code>（時刻欄のみクリア）、再描画。</li>
+<li><strong>一覧</strong> <code>render()</code>：<code>f-date</code>
+の1日分のみ、離陸時刻降順（同値は id
+降順）。各行に日付＋登録記号、時刻範囲＋分、メタ（操縦者・機体・離着陸場所・天候風速）、🎥飛行概要・⚠異常（danger色）・メモ、編集/削除。サマリーに件数と累計分（60以上は時間表記）。</li>
+<li><strong>日次JSON出力</strong> <code>exportDailyJSON()</code>：date
+を確定し、当日の records と当日の checklist を集めて
+<code>{ app:'drone-daily-record', version:2, exportedAt, date, plan, checklist, records }</code>、<code>flight-YYYYMMDD.json</code>。記録もチェックも無ければ確認。</li>
+<li><strong>印刷</strong>：選択 date
+を登録記号(なければ機体名、なければ「（登録記号未記入）」)でグループ化しページ分割（A4横）。様式１テーブル：No./飛行年月日/飛行させた者の氏名/飛行概要/離陸場所/着陸場所/離陸時刻OFF/着陸時刻ON/飛行時間/総飛行時間（行ごとに累積
+running=繰越＋Σtime）/安全に影響した事項/確認者。</li>
+<li><strong>入力リセット</strong> <code>#btn-clear</code>：confirm
+後、入力欄のみクリア（記録は残す）。</li>
+<li><strong>初期化</strong>：<code>load(); buildSelects();</code> →
+<code>navigator.storage.persist()</code>（可能なら）→
+<code>initEditRequest()</code>（あれば編集モード）→ なければ
+<code>initSession()</code>（計画書/セッションから未入力欄のみ補完、セッションありかつ要約ありでバナー）→
+date 未設定なら当日 → <code>render()</code>。</li>
+</ul>
+<h2 id="データ管理data.html">7.6 データ管理（data.html）</h2>
+<ul>
+<li>目的：3タブ管理＋全データ一括。<code>.container{max-width:720px}</code>。タブ：<code>plan</code>/<code>checklist</code>/<code>log</code>（<code>.tab-btn[data-tab]</code>
+と <code>.tab-panel#tab-xxx</code>）。</li>
+<li>コンテナ先頭（タブの上）に青系の情報ノート
+<code>.note-info</code>（データの保存場所とバックアップの必要性を案内。ホーム画面と同趣旨。末尾は「各タブのJSON／CSV出力でバックアップ」と表記）。</li>
+<li>キー：<code>STORAGE_KEY</code>, <code>AIRCRAFT_KEY</code>,
+<code>PLAN_KEY='drone-flight-plan-draft'</code>,
+<code>CHECKLIST_KEY</code>,
+<code>CL_EDIT_KEY='drone-checklist-edit-request'</code>,
+<code>EDIT_KEY='drone-edit-request'</code>。</li>
+<li><strong>計画書タブ</strong>：<code>#plan-view</code>
+に下書きを項目表示（案件名/飛行日/時刻/飛行場所/操縦者/機体/飛行目的/備考。値があるものだけ）。<code>#btn-plan-export</code>（<code>{app:'drone-flight-plan',savedAt,plan}</code>,
+<code>flight-plan-YYYYMMDD.json</code>）、<code>#btn-plan-import</code>（<code>parsed.plan||parsed</code>
+で置換）。</li>
+<li><strong>チェックリストタブ</strong>：<code>#cl-tbody</code> に date
+降順一覧（実施年月日/登録記号/実施場所/実施者/異常件数）。編集＝<code>CL_EDIT_KEY</code>
+に id をセットして checklist.html へ。削除＝confirm
+後該当除去。<code>#btn-cl-export</code>（<code>{app:'drone-checklist',exportedAt,checklist}</code>）。<code>#btn-cl-import</code>：<strong>id
+で後勝ちマージ</strong>（id 無ければ採番）。</li>
+<li><strong>日誌タブ</strong>：
+<ul>
+<li>折りたたみ
+<code>details.collapsible</code>：①検索（<code>s-from, s-to, s-location, s-aircraft, s-keyword</code>）②総飛行時間集計（機体別、<code>renderSummary()</code>）。いずれも初期は閉。</li>
+<li><code>getFiltered()</code>：期間（date
+文字列比較）・場所/機体（部分一致・小文字化）・キーワード（shoot/memo/anomaly/weather/wind
+を連結し含む）でフィルタ、date 降順。</li>
+<li>一覧テーブル：飛行日/時間/場所/機体/天候・風速/飛行概要/異常/操作。編集＝<code>EDIT_KEY</code>
+に id をセットして flight-log.html へ。削除＝confirm 後除去。</li>
+<li><code>#btn-csv</code>（第5.12形式）、<code>#btn-json</code>（<code>{app:'drone-flight-log',exportedAt,records:絞り込み結果}</code>）。</li>
+<li><code>#btn-import</code>（複数ファイル可）：<code>recordKey(r)</code>（id
+があれば <code>id:&lt;id&gt;</code>、無ければ
+<code>k|date|takeoff|aircraft|pilot</code>）で<strong>後勝ち</strong>マージ。<code>sortRecords</code>
+は「date+takeoff」→pilot→id 順。失敗ファイル名を報告。</li>
+<li><code>#btn-print</code>：<code>getFiltered()</code>
+を機体名でグループ化しA4横ページ分割。機体ヘッダ（機体名/JU番号/総飛行時間=繰越＋累積）＋様式１相当テーブル（No./飛行年月日/操縦者/離陸場所/着陸場所/離陸時刻/着陸時刻/飛行時間/総飛行時間/安全に影響した事項）。繰越・JU番号は機体管理
+<code>getAircraftInfo()</code> から。</li>
+</ul></li>
+<li><strong>全データ（一括）</strong>：<code>#btn-all-export</code>（<code>{app:'drone-all-data',version:1,exportedAt,data:{aircraft,plan,checklist,records}}</code>,
+<code>drone-all-data-YYYYMMDD.json</code>）。<code>#btn-all-import</code>：confirm
+後、存在するセットだけ置換し再描画。<code>#btn-clear-all</code>：confirm
+後、4キー＋旧キー（<code>drone-flight-log-header, drone-flight-log-meta, drone-checklist-state, drone-active-session</code>）を削除。</li>
+<li>初期化：<code>renderPlan(); renderChecklist(); render();</code>（各
+try/catch）。</li>
+</ul>
+<h2 id="飛行計算calculator.html">7.7 飛行計算（calculator.html）</h2>
+<ul>
+<li>目的：参考算出3セクション＋法令簡易チェック。<code>.container{max-width:1100px}</code>。<code>&lt;script src="flight-calc.js"&gt;</code>
+を先に読み込む。</li>
+<li>キー：<code>CALC_DRAFT_KEY='drone-calc-draft'</code>、<code>CALC_SUMMARY_KEY='drone-calc-summary'</code>。</li>
+<li>共通ヘルパ：<code>num(id)</code>（value を parseFloat、min/max
+範囲外なら <code>.invalid</code> 付与し NaN
+返す）、<code>show(id,v,digits=1)</code>（有限なら
+<code>toFixed</code>、不正なら「―」）。</li>
+<li><strong>セクション1 可能飛行時間・限界ホバリング</strong>：
+<ul>
+<li>入力：<code>ac-preset</code>(select)＋<code>ac-save</code>/<code>ac-delete</code>、<code>ft-mass, ft-payload, ft-rotors(4/6/8), ft-prop(inch), ft-cap, ft-volt(2S..12S), ft-fom, ft-eff, ft-health, ft-reserve(0.30/0.25/0.20), ft-cruise</code>。</li>
+<li>計算：<code>calcFlightTime({ totalMassKg: ft-mass + ft-payload, rotorCount: ft-rotors, propDiameterM: ft-prop*0.0254, figureOfMerit: ft-fom, driveEff: ft-eff, capacityMah: ft-cap, voltageV: ft-volt, reserveRatio: ft-reserve, batteryHealth: ft-health, cruiseFactor: ft-cruise })</code>。出力
+<code>ft-out-flight</code>（分）, <code>ft-out-hover</code>（分）,
+<code>ft-out-power</code>（W,0桁）。flightTimeMin&lt;5 で警告。</li>
+<li>実測比較
+<code>updateActual()</code>：<code>flightLogStats(ac-preset)</code>
+の平均×回数、理論比%（&lt;0.7 で劣化率見直し警告）。</li>
+<li><code>#btn-apply-plan</code>：結果4行を
+<code>drone-calc-summary</code> に保存し計画書へ誘導。</li>
+</ul></li>
+<li><strong>セクション2
+目視可能の目安</strong>：<code>dp-size</code>→<code>visualLineOfSightM</code>→<code>dp-out-vlos</code>（m,0桁）。下に<strong>航空法簡易チェック</strong>
+<code>#compliance-list</code>（<code>updateCompliance()</code>）。
+<ul>
+<li>重量：総g＝(ft-mass+ft-payload)×1000。≥25000→NG（25kg区分）/≥100→警告（登録・リモートID）/未満→OK（規制対象外）。</li>
+<li>高度：<code>gs-alt</code>。&gt;150→NG（個別許可）/&gt;130→警告/&gt;0→OK。</li>
+<li>目視外：<code>visualLineOfSightM(dp-size)</code>
+の距離超で目視外の注意。</li>
+<li>150m超で <code>gs-alt</code>、25kg以上で <code>ft-mass</code> に
+<code>.over-limit</code>（赤）。</li>
+</ul></li>
+<li><strong>セクション3 GSD・撮影範囲</strong>：
+<ul>
+<li>入力：<code>gs-sensor</code>（SENSOR_PRESETS から生成、既定
+<code>4/3型(M4/3)</code>）、<code>gs-focal, gs-imgw, gs-imgh, gs-alt, gs-target, gs-front(前方ラップ%), gs-side(側方ラップ%)</code>。</li>
+<li>計算：<code>calcGsd(...)</code>→<code>gs-out-gsd</code>(cm/px,2桁。&lt;1
+なら mm/px 併記)、<code>gs-out-fp</code>「横W × 縦H
+m」、<code>gs-out-lap</code>「撮影間隔=footprintH×(1-front/100) ／
+コース間隔=footprintW×(1-side/100)」、<code>altitudeForGsdM</code>→<code>gs-out-alt</code>（&gt;150
+で警告バナー）。</li>
+<li>SVG図解
+<code>updateViz()</code>：高度に応じて画角三角形・撮影範囲帯・高度寸法線・150m制限ラインを動的描画（縦横同一スケール）。</li>
+<li><code>#btn-copy-plan</code>：高度/GSD/撮影範囲/ラップ率をクリップボードへ（失敗時
+textarea フォールバック）。ボタンに「✅ コピーしました」を2秒表示。</li>
+</ul></li>
+<li><strong>スライダー併用</strong>：<code>SLIDER_DEFS</code>（<code>ft-mass:[0.1,10,0.01], ft-payload:[0,5,0.01], ft-cap:[500,20000,50], gs-alt:[1,200,1], gs-focal:[2,50,0.1], gs-target:[0.1,10,0.1], gs-front:[30,95,1], gs-side:[30,95,1]</code>）に対し、数値ボックス直下に
+<code>range</code>
+スライダー＋現在値バッジを生成し双方向同期。サム26px（グローブ対応）、ドラッグ中バッジ拡大。</li>
+<li><strong>プリセット</strong>：<code>renderPresets()</code>（内蔵＋★ユーザー）、<code>applyPreset(name)</code>（<code>PRESET_FIELDS</code>
+のマッピングで各入力へ、rotors/最近傍電圧/sensor
+も設定）。<code>ac-save</code> は現在値を
+<code>drone-aircraft-presets-v2</code>
+へ（同名は置換）。<code>ac-delete</code> は内蔵削除不可。</li>
+<li><strong>自動保存</strong>：全 input/select の <code>input</code> で
+<code>updateAll()</code>＋<code>saveDraft()</code>。</li>
+<li>初期化順：<code>renderPresets(); loadDraft(); syncSliders(); updateAll();</code>。</li>
+</ul>
+<hr />
+<h1 id="印刷pdf-出力仕様まとめ">8. 印刷／PDF 出力仕様（まとめ）</h1>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>画面</th>
+<th>帳票</th>
+<th>用紙</th>
+<th>ページ分割</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>flight-plan.html</td>
+<td>ドローン飛行計画書</td>
+<td>A4縦</td>
+<td>1枚</td>
+</tr>
+<tr>
+<td>checklist.html</td>
+<td>様式２ 日常点検記録＋飛行前確認＋特記事項</td>
+<td>A4縦</td>
+<td>実施年月日の全件を登録記号ごと</td>
+</tr>
+<tr>
+<td>flight-log.html</td>
+<td>様式１ 飛行記録</td>
+<td>A4横</td>
+<td>選択日を登録記号ごと</td>
+</tr>
+<tr>
+<td>data.html</td>
+<td>飛行日誌一覧（累積飛行時間付き）</td>
+<td>A4横</td>
+<td>機体ごと</td>
+</tr>
+</tbody>
+</table>
+<p>共通作法は第4.11。いずれもブラウザ印刷ダイアログで「PDFに保存」を選ぶ。印刷直前に
+<code>beforeprint</code>
+で印刷用DOMを再生成する（チェックリスト・日誌・データ管理）。</p>
+<hr />
+<h1 id="国土交通省-様式-対応表">9. 国土交通省 様式 対応表</h1>
+<h2 id="様式２日常点検記録-checklist.html-日常点検9項目">9.1
+様式２（日常点検記録）— checklist.html 日常点検9項目</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th><code>checks</code> キー</th>
+<th>点検箇所（和）</th>
+<th>英語（EN）</th>
+<th>点検内容（desc）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uas_general</code></td>
+<td>機体全般</td>
+<td>UAS GENERAL</td>
+<td>機器の取付状態（ネジ・コネクタ・ケーブル等）</td>
+</tr>
+<tr>
+<td><code>propeller</code></td>
+<td>プロペラ</td>
+<td>PROPELLER(S)</td>
+<td>外観・損傷・歪み</td>
+</tr>
+<tr>
+<td><code>frame</code></td>
+<td>フレーム</td>
+<td>FRAME</td>
+<td>外観・損傷・歪み</td>
+</tr>
+<tr>
+<td><code>communication_system</code></td>
+<td>通信系統</td>
+<td>COMMUNICATION SYSTEM</td>
+<td>機体と操縦装置の通信品質の健全性</td>
+</tr>
+<tr>
+<td><code>propulsion_system</code></td>
+<td>推進系統</td>
+<td>PROPULSION SYSTEM</td>
+<td>モーター又は発動機の健全性</td>
+</tr>
+<tr>
+<td><code>power_system</code></td>
+<td>電源系統</td>
+<td>POWER SYSTEM</td>
+<td>機体及び操縦装置の電源の健全性</td>
+</tr>
+<tr>
+<td><code>automatic_control_system</code></td>
+<td>自動制御系統</td>
+<td>AUTOMATIC CONTROL SYSTEM</td>
+<td>飛行制御装置の健全性</td>
+</tr>
+<tr>
+<td><code>flight_control_system</code></td>
+<td>操縦装置</td>
+<td>FLIGHT CONTROL SYSTEM</td>
+<td>外観、スティック、スイッチの健全性</td>
+</tr>
+<tr>
+<td><code>battery_fuel</code></td>
+<td>バッテリー、燃料</td>
+<td>BATTERY, FUEL</td>
+<td>バッテリーの充電状況、燃料表示性能の健全性</td>
+</tr>
+</tbody>
+</table>
+<h2 id="飛行前確認事項独自追加6項目">9.2
+飛行前確認事項（独自追加6項目）</h2>
+<p>様式２に存在しない項目（外観点検・バッテリー残量・昼間飛行・目視内飛行）は採用しない。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th><code>checks</code> キー</th>
+<th>項目</th>
+<th>補足表示</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pilot_condition</code></td>
+<td>操縦者の体調確認（飲酒・薬物なし）</td>
+<td>－</td>
+</tr>
+<tr>
+<td><code>weather_check</code></td>
+<td>気象状況の確認（風速・天候）</td>
+<td>－</td>
+</tr>
+<tr>
+<td><code>airspace_check</code></td>
+<td>飛行空域の確認（DID・150m制限・空港周辺など）</td>
+<td>－</td>
+</tr>
+<tr>
+<td><code>surroundings_check</code></td>
+<td>周囲の安全確認（第三者・障害物）</td>
+<td>－</td>
+</tr>
+<tr>
+<td><code>special_application</code></td>
+<td>特例申請の確認</td>
+<td>包括/個別/承認の判断ガイド表</td>
+</tr>
+<tr>
+<td><code>police_contact</code></td>
+<td>地元警察への事前連絡</td>
+<td>平日午後4時締切の警告ノート</td>
+</tr>
+</tbody>
+</table>
+<h2 id="様式１飛行記録-flight-log.html-data.html">9.3
+様式１（飛行記録）— flight-log.html / data.html</h2>
+<p>帳票列：飛行年月日(FLIGHT DATE) / 飛行させた者の氏名(NAME OF PILOT) /
+飛行概要(NATURE OF FLIGHT) / 離陸場所(FROM) / 着陸場所(TO) /
+離陸時刻(OFF) / 着陸時刻(ON) / 飛行時間(FLIGHT TIME) / 総飛行時間(TOTAL)
+/ 飛行の安全に影響のあった事項(MATTERS AFFECTED FLIGHT SAFETY) /
+確認者(CONFIRMER)。登録記号(REGISTRATION ID OF UAS)はページ見出し。</p>
+<hr />
+<h1 id="pwa-service-worker-manifest">10. PWA / Service Worker /
+manifest</h1>
+<h2 id="manifest.json全内容">10.1 manifest.json（全内容）</h2>
+<div class="sourceCode" id="cb33"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;ドローン運用ツール&quot;</span><span class="fu">,</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;short_name&quot;</span><span class="fu">:</span> <span class="st">&quot;ドローン運用&quot;</span><span class="fu">,</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;飛行計画書・飛行計算・チェックリスト・飛行日誌・データ管理&quot;</span><span class="fu">,</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;start_url&quot;</span><span class="fu">:</span> <span class="st">&quot;./index.html&quot;</span><span class="fu">,</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;scope&quot;</span><span class="fu">:</span> <span class="st">&quot;./&quot;</span><span class="fu">,</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;display&quot;</span><span class="fu">:</span> <span class="st">&quot;standalone&quot;</span><span class="fu">,</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;background_color&quot;</span><span class="fu">:</span> <span class="st">&quot;#F5F3EC&quot;</span><span class="fu">,</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;theme_color&quot;</span><span class="fu">:</span> <span class="st">&quot;#25364A&quot;</span><span class="fu">,</span></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;lang&quot;</span><span class="fu">:</span> <span class="st">&quot;ja&quot;</span><span class="fu">,</span></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;icons&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;src&quot;</span><span class="fu">:</span> <span class="st">&quot;icon-192.png&quot;</span><span class="fu">,</span> <span class="dt">&quot;sizes&quot;</span><span class="fu">:</span> <span class="st">&quot;192x192&quot;</span><span class="fu">,</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;image/png&quot;</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">&quot;src&quot;</span><span class="fu">:</span> <span class="st">&quot;icon-512.png&quot;</span><span class="fu">,</span> <span class="dt">&quot;sizes&quot;</span><span class="fu">:</span> <span class="st">&quot;512x512&quot;</span><span class="fu">,</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;image/png&quot;</span> <span class="fu">}</span></span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>アイコンは PNG 2サイズ（192/512）。色は theme と一致（bg=#F5F3EC,
+theme=#25364A）。</p>
+<h2 id="sw.js全内容と方針">10.2 sw.js（全内容と方針）</h2>
+<ul>
+<li><p><code>CACHE_NAME = 'drone-tools-v5'</code>。<strong>キャッシュ対象を変更したら必ずバージョン番号を上げる</strong>（上げ忘れると利用者端末に旧画面が残る）。</p></li>
+<li><p><code>ASSETS</code>（キャッシュ対象。相対パス）：</p>
+<pre><code>&#39;./&#39;, &#39;./theme.css&#39;, &#39;./index.html&#39;, &#39;./aircraft.html&#39;, &#39;./flight-plan.html&#39;,
+&#39;./calculator.html&#39;, &#39;./checklist.html&#39;, &#39;./flight-log.html&#39;, &#39;./data.html&#39;,
+&#39;./flight-calc.js&#39;, &#39;./manifest.json&#39;, &#39;./icon-192.png&#39;, &#39;./icon-512.png&#39;</code></pre></li>
+<li><p><code>install</code>：<code>caches.open(CACHE_NAME).addAll(ASSETS)</code>
+→ <code>skipWaiting()</code>。</p></li>
+<li><p><code>activate</code>：旧キャッシュ削除 →
+<code>clients.claim()</code>。</p></li>
+<li><p><code>fetch</code>（<strong>stale-while-revalidate</strong>）：GET
+のみ。<code>caches.match</code> を即返しつつ裏で <code>fetch</code>
+し、<code>res.ok</code>
+かつ同一オリジンならキャッシュ更新。オフライン時は cached
+を返す。</p></li>
+</ul>
+<div class="sourceCode" id="cb35"><pre
+class="sourceCode js"><code class="sourceCode javascript"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> CACHE_NAME <span class="op">=</span> <span class="st">&#39;drone-tools-v5&#39;</span><span class="op">;</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> ASSETS <span class="op">=</span> [ <span class="co">/* 上記 */</span> ]<span class="op">;</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>self<span class="op">.</span><span class="fu">addEventListener</span>(<span class="st">&#39;install&#39;</span><span class="op">,</span> e <span class="kw">=&gt;</span> {</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  e<span class="op">.</span><span class="fu">waitUntil</span>(caches<span class="op">.</span><span class="fu">open</span>(CACHE_NAME)<span class="op">.</span><span class="fu">then</span>(c <span class="kw">=&gt;</span> c<span class="op">.</span><span class="fu">addAll</span>(ASSETS))<span class="op">.</span><span class="fu">then</span>(() <span class="kw">=&gt;</span> self<span class="op">.</span><span class="fu">skipWaiting</span>()))<span class="op">;</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>self<span class="op">.</span><span class="fu">addEventListener</span>(<span class="st">&#39;activate&#39;</span><span class="op">,</span> e <span class="kw">=&gt;</span> {</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  e<span class="op">.</span><span class="fu">waitUntil</span>(caches<span class="op">.</span><span class="fu">keys</span>()<span class="op">.</span><span class="fu">then</span>(keys <span class="kw">=&gt;</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">Promise</span><span class="op">.</span><span class="fu">all</span>(keys<span class="op">.</span><span class="fu">filter</span>(k <span class="kw">=&gt;</span> k <span class="op">!==</span> CACHE_NAME)<span class="op">.</span><span class="fu">map</span>(k <span class="kw">=&gt;</span> caches<span class="op">.</span><span class="fu">delete</span>(k)))</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>  )<span class="op">.</span><span class="fu">then</span>(() <span class="kw">=&gt;</span> self<span class="op">.</span><span class="at">clients</span><span class="op">.</span><span class="fu">claim</span>()))<span class="op">;</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>self<span class="op">.</span><span class="fu">addEventListener</span>(<span class="st">&#39;fetch&#39;</span><span class="op">,</span> e <span class="kw">=&gt;</span> {</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (e<span class="op">.</span><span class="at">request</span><span class="op">.</span><span class="at">method</span> <span class="op">!==</span> <span class="st">&#39;GET&#39;</span>) <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>  e<span class="op">.</span><span class="fu">respondWith</span>(caches<span class="op">.</span><span class="fu">match</span>(e<span class="op">.</span><span class="at">request</span>)<span class="op">.</span><span class="fu">then</span>(cached <span class="kw">=&gt;</span> {</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> fetched <span class="op">=</span> <span class="fu">fetch</span>(e<span class="op">.</span><span class="at">request</span>)<span class="op">.</span><span class="fu">then</span>(res <span class="kw">=&gt;</span> {</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (res<span class="op">.</span><span class="at">ok</span> <span class="op">&amp;&amp;</span> <span class="kw">new</span> <span class="fu">URL</span>(e<span class="op">.</span><span class="at">request</span><span class="op">.</span><span class="at">url</span>)<span class="op">.</span><span class="at">origin</span> <span class="op">===</span> location<span class="op">.</span><span class="at">origin</span>) {</span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> clone <span class="op">=</span> res<span class="op">.</span><span class="fu">clone</span>()<span class="op">;</span></span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>        caches<span class="op">.</span><span class="fu">open</span>(CACHE_NAME)<span class="op">.</span><span class="fu">then</span>(c <span class="kw">=&gt;</span> c<span class="op">.</span><span class="fu">put</span>(e<span class="op">.</span><span class="at">request</span><span class="op">,</span> clone))<span class="op">;</span></span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> res<span class="op">;</span></span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>    })<span class="op">.</span><span class="fu">catch</span>(() <span class="kw">=&gt;</span> cached)<span class="op">;</span></span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> cached <span class="op">||</span> fetched<span class="op">;</span></span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a>  }))<span class="op">;</span></span>
+<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<hr />
+<h1 id="ビルドローカル確認配備">11. ビルド・ローカル確認・配備</h1>
+<h2 id="ビルド">11.1 ビルド</h2>
+<p>ビルド工程は<strong>ない</strong>。ファイルをそのまま配置するだけで動作する。</p>
+<h2 id="ローカル確認">11.2 ローカル確認</h2>
+<p><code>file://</code> では Service
+Worker・一部機能が動かないため、簡易HTTPサーバを使う。 -
+Windows（PowerShell）：<code>python -m http.server 8080</code> -
+Mac：<code>python3 -m http.server 8080</code> - ブラウザで
+<code>http://localhost:8080</code> を開く。</p>
+<h2 id="配備github-pages">11.3 配備（GitHub Pages）</h2>
+<ul>
+<li>リポジトリのルートに全ファイルを置き、GitHub Pages
+を有効化（ブランチのルートを公開）。公開URL例：<code>https://&lt;user&gt;.github.io/&lt;repo&gt;/</code>。</li>
+<li>相対パス（<code>./</code>）構成のためサブパス公開でも動作する。</li>
+<li>更新時、キャッシュ対象を変更したら <code>sw.js</code> の
+<code>CACHE_NAME</code> を必ず上げる。</li>
+</ul>
+<h2 id="マルチマシン運用ルール運用上の注意">11.4
+マルチマシン運用ルール（運用上の注意）</h2>
+<p>複数マシン（Windows×2・Mac）で作業し GitHub をハブに同期する場合： -
+作業開始時に必ず <code>git pull</code>。 - 作業終了時にその場で
+<code>git add . &amp;&amp; git commit &amp;&amp; git push</code>。 -
+鉄則：始める前に pull、終わったら push。別マシンへ移る前に必ず
+push（push 忘れは競合の原因）。</p>
+<hr />
+<h1 id="制約事項既知の仕様">12. 制約事項・既知の仕様</h1>
+<ul>
+<li><strong>データはブラウザ内のみ</strong>：キャッシュ削除・別端末/別ブラウザ・プライベートモードでは引き継がれない。定期的な「全データJSON出力」を必須案内とする。日誌は3年保存が求められる。</li>
+<li><strong>localStorage
+警告について</strong>：通常利用では発生しない。報告される警告はプライベートモード／サイトデータ・Cookieブロック設定／広告ブロック拡張／容量上限など環境固有事象。localStorage
+を使わないとブラウザを閉じた時点でデータ消失するため代替しない。「通常モードで開き、サイトデータ保存を許可」「こまめに全データJSON出力」と案内する。</li>
+<li><strong>機体の紐付けは機体名の文字列一致</strong>：機体名の変更・重複に注意。</li>
+<li><strong>算出値はすべて参考値</strong>：飛行時間・GSD・目視可能距離・法令簡易判定は最終判断の根拠にしない。最新の航空法・MLIT・DIPS
+を別途確認すること。</li>
+<li><strong>記事（SQUAWK）は当面非表示</strong>：日誌のコード上はコメントアウトで残置。将来有効化を想定。</li>
+</ul>
+<hr />
+<h1 id="今後の拡張に向けた留意点">13. 今後の拡張に向けた留意点</h1>
+<ul>
+<li>計画書の複数管理は将来対応予定（現在は下書き1件）。データ構造（キー設計）は拡張しやすい形を維持する。</li>
+<li>クラウド同期・複数アカウント対応を検討する場合は、localStorage
+キーの互換維持またはマイグレーション方針を別途設計する。</li>
+<li>機能を変更したら、本書（specification.md）と
+<code>userguide.html</code> を必ず同時更新する。UI 変更は
+<code>DESIGN-GUIDELINES.md</code> に従う。</li>
+<li>キャッシュ対象ファイルの増減・改名時は <code>sw.js</code> の
+<code>ASSETS</code> 更新と <code>CACHE_NAME</code>
+のバージョンアップを忘れない。</li>
+</ul>
+</div>
+</body>
+</html>
