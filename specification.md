@@ -989,3 +989,7 @@ self.addEventListener('fetch', e => {
 - クラウド同期・複数アカウント対応を検討する場合は、localStorage キーの互換維持またはマイグレーション方針を別途設計する。
 - 機能を変更したら、本書（specification.md）と `userguide.html` を必ず同時更新する。UI 変更は `DESIGN-GUIDELINES.md` に従う。
 - キャッシュ対象ファイルの増減・改名時は `sw.js` の `ASSETS` 更新と `CACHE_NAME` のバージョンアップを忘れない。
+
+---
+
+<p class="doc-meta">Last updated: 2026-06-17</p>

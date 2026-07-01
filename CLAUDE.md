@@ -29,6 +29,12 @@
 - 国土交通省の様式1・様式2の項目と整合させる。
 - 見た目・UI は `DESIGN-GUIDELINES.md` に従う。
 
+### 最終更新日の管理ルール
+以下の3ファイルの内容を変更した場合は、必ずページ最下部にある「Last updated: YYYY-MM-DD」の日付を変更日に更新すること。
+- userguide.html
+- specification.md
+- specification.html
+
 ## PWA / Service Worker（事故りやすい・要注意）
 - `sw.js` は stale-while-revalidate でキャッシュする。キャッシュ対象は `ASSETS` 配列。
 - キャッシュ対象ファイルを追加・削除・リネームしたら、必ず `ASSETS` を更新し、かつ `CACHE_NAME` のバージョン番号を上げる（現在値は `sw.js` を正とする。ここに数値は書かない＝ドリフト防止）。
