@@ -992,4 +992,4 @@ self.addEventListener('fetch', e => {
 
 ---
 
-<p class="doc-meta">Last updated: 2026-06-17</p>
+<p class="doc-meta">Last updated: 2026-07-13</p>
