@@ -59,11 +59,12 @@
 - 既存のファイル構成・命名規則を踏襲する。
 - ローカル確認は `python -m http.server 8080`（Mac では `python3 -m http.server 8080`）を使い、`http://localhost:8080` を開く。
 - 大きな変更は、着手前に手順を提示して確認を取る。
+- 検証はサンドボックスとフォルダの同期遅延が起こりうるため、計算ロジックを抽出した単体テスト(または jsdom)で行い、実ファイルの更新確認は別途行う。
 
 ## 変更完了チェックリスト（Definition of Done）
 1. キャッシュ対象ファイルを追加・削除・リネームした場合: `sw.js` の `ASSETS` を更新し、`CACHE_NAME` の番号を上げた。
 2. 機能を変更した場合: `specification.md` と `userguide.html` を更新し、両方の Last updated を変更日にした。`specification.md` を変えた場合は `specification.html` を再生成した。
 3. `python -m http.server 8080` で `http://localhost:8080` を開き、変更箇所の動作を確認した。
-4. `git add .` → `git commit` → `git push` まで完了した。
+4. `git add .` → `git commit` → `git push` まで完了した（commit メッセージは日本語で変更内容を要約）。
 
 （応答スタイル・日本語などの全般的な好みはグローバルの `~/.claude/CLAUDE.md` に集約）
